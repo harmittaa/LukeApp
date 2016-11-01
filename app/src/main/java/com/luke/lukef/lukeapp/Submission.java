@@ -14,23 +14,36 @@ public class Submission {
     int location;
     String title;
     String catagory;
+    String feedback;
 
-        public  void add() {
+
+    public Submission(Bitmap image, int location, String title, String catagory, String feedback){
+        this.image = image;
+        this.location = location;
+        this.title = title;
+        this.catagory = catagory;
+        this.feedback = feedback;
+    }
+    //making a new submission
+        public  Boolean add() {
+
+            return  true;
         }
-
-        public  void edit() {
+//editing an existing submission
+        public  Boolean update() {
+            return true;
         }
-
-        public  void update() {
+//deleting a submission
+        public  Boolean delete() {
+            return true;
         }
-
-        public  void delete() {
+//share submissions on other medias
+        public  Boolean share() {
+            return true;
         }
-
-        public  void share() {
-        }
-
-        public  void flag() {
+//add a review flag
+        public  Boolean flag() {
+            return true;
         }
 }
 
