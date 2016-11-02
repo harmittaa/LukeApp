@@ -10,18 +10,18 @@ import android.graphics.Bitmap;
  * handles submissions made by users
  */
 public class Submission {
-    Bitmap image;
-    int location;
-    String title;
-    String catagory;
-    String feedback;
+    private Bitmap image;
+    private int location;
+    private String title;
+    private String catagory;
+    private String feedback;
 
 
     public Submission(Bitmap image, int location, String title, String catagory, String feedback){
         this.image = image;
         this.location = location;
         this.title = title;
-        this.catagory = catagory;
+        this.category = category;
         this.feedback = feedback;
     }
     //making a new submission
