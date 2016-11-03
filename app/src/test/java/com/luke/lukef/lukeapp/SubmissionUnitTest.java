@@ -10,6 +10,9 @@ import com.luke.lukef.lukeapp.Submission;
 import org.junit.Test;
 
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 
 import static org.junit.Assert.*;
@@ -19,29 +22,32 @@ public class SubmissionUnitTest {
     @Test
     public void constructor_title() {
         String title = "Test submission";
-        Submission testSubmission = new Submission(title, "beach", "none", DateFormat.getDateTimeInstance(DateFormat.SHORT,DateFormat.AM_PM_FIELD) );
-        assertEquals(testSubmission.getTitle(),title );
+        Date thisDate = new Date();
+        Submission testSubmission = new Submission(title, "beach", "none", thisDate);
+        assertEquals(testSubmission.getTitle(), title);
     }
 
     @Test
     public void constructor_category() {
         String category = "Test submission";
-        Submission testSubmission = new Submission("Test submission", category, "none", DateFormat.getDateTimeInstance(DateFormat.SHORT,DateFormat.AM_PM_FIELD) );
-        assertEquals(testSubmission.getCategory(),category );
+        Date thisDate = new Date();
+        Submission testSubmission = new Submission("Test submission", category, "none", thisDate);
+        assertEquals(testSubmission.getCategory(), category);
     }
 
     @Test
     public void constructor_feedback() {
         String feedback = "Test feedback";
-        Submission testSubmission = new Submission("Test submission", "beach", feedback, DateFormat.getDateTimeInstance(DateFormat.SHORT,DateFormat.AM_PM_FIELD) );
-        assertEquals(testSubmission.getFeedback(),feedback );
+        Date thisDate = new Date();
+        Submission testSubmission = new Submission("Test submission", "beach", feedback, thisDate);
+        assertEquals(testSubmission.getFeedback(), feedback);
     }
 
     @Test
     public void constructor_date() {
-        DateFormat date = DateFormat.getDateTimeInstance(DateFormat.SHORT,DateFormat.AM_PM_FIELD);
-        Submission testSubmission = new Submission("Test submission", "beach", "test feedback", date);
-        assertEquals(testSubmission.getDate(),date );
+        Date thisDate = new Date();
+        Submission testSubmission = new Submission("Test submission", "beach", "test feedback", thisDate);
+        assertEquals(testSubmission.getDate(), thisDate);
     }
 
 }

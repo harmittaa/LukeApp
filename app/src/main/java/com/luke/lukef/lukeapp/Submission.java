@@ -18,13 +18,10 @@ public class Submission {
     private String title;
     private String category;
     private String feedback;
-    private DateFormat date;
+    private Date date;
 
 
-
-
-
-    public Submission(String title, String category, String feedback, DateFormat date){
+    public Submission(String title, String category, String feedback, Date date) {
         this.image = image;
         this.location = location;
         this.title = title;
@@ -32,27 +29,31 @@ public class Submission {
         this.feedback = feedback;
         this.date = date;
     }
-    //making a new submission
-        public  Boolean add() {
 
-            return  true;
-        }
-//editing an existing submission
-        public  Boolean update() {
-            return true;
-        }
-//deleting a submission
-        public  Boolean delete() {
-            return true;
-        }
-//share submissions on other medias
-        public  Boolean share() {
-            return true;
-        }
-//add a review flag
-        public  Boolean flag() {
-            return true;
-        }
+    //making a new submission
+    public boolean add() {
+        return true;
+    }
+
+    //editing an existing submission
+    public boolean update() {
+        return true;
+    }
+
+    //deleting a submission
+    public boolean delete() {
+        return true;
+    }
+
+    //share submissions on other medias
+    public boolean share() {
+        return true;
+    }
+
+    //add a review flag
+    public boolean flag() {
+        return true;
+    }
 
     public Bitmap getImage() {
         return image;
@@ -74,8 +75,8 @@ public class Submission {
         return feedback;
     }
 
-    public DateFormat getDate() {
-        return DateFormat.getDateTimeInstance();
+    public Date getDate() {
+        return this.date;
     }
 
 }
