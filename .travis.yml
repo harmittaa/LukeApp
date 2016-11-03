@@ -15,13 +15,12 @@ android:
     - 'android-sdk-preview-license-52d11cd2'
     - 'android-sdk-license-.+'
     - 'google-gdk-license-.+'
-
+    - '.+'
 
 before_install:
- - chmod +x gradlew
-  - mkdir "$ANDROID_SDK/licenses" || true
-  - echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > "$ANDROID_SDK/licenses/android-sdk-license"
-
+ - mkdir "$ANDROID_SDK/licenses" || true
+ - echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > "$ANDROID_SDK/licenses/android-sdk-license"
+ - chmod +x gradlew,
 
 script:
    - ./gradlew build connectedCheck --stacktrace
