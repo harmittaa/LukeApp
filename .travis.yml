@@ -12,16 +12,10 @@ android:
     - extra-android-m2repository
     - addon-google_apis-google-19
   licenses:
-    - 'android-sdk-preview-license-52d11cd2'
+    - 'android-sdk-preview-license-.+'
     - 'android-sdk-license-.+'
     - 'google-gdk-license-.+'
     - '.+'
-
-before_script:
- - sudo mkdir "$ANDROID_SDK/licenses" || true
- - sudo touch "$ANDROID_SDK/licenses/android-sdk-license"
- - cd $ANDROID_SDK/licenses/
- - sudo echo -e '8933bad161af4178b1185d1a37fbf41ea5269c55' > android-sdk-license
 
 before_install:
  - chmod +x gradlew
