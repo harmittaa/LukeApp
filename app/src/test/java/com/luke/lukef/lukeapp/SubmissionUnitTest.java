@@ -32,7 +32,7 @@ public class SubmissionUnitTest {
         String category = "Test submission";
         Date thisDate = new Date();
         Submission testSubmission = new Submission("Test submission", category, "none", thisDate);
-        assertEquals(testSubmission.getCategory(), "test for fail");
+        assertEquals(testSubmission.getCategory(), category);
     }
 
     @Test
