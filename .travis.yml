@@ -6,7 +6,7 @@ android:
     - tools 
     - platform-tools
     - build-tools-24.0.2
-    - android-19
+    - android-24
     - extra-google-m2repository
     - extra-android-m2repository
     - addon-google_apis-google-19
