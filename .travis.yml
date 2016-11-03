@@ -17,8 +17,13 @@ android:
     - 'google-gdk-license-.+'
     - '.+'
 
+before_script:
+ - sudo mkdir "$ANDROID_SDK/licenses" || true
+ - sudo touch "$ANDROID_SDK/licenses/android-sdk-license"
+ - cd $ANDROID_SDK/licenses/
+ - sudo echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > android-sdk-license
+
 before_install:
- - android update sdk --no-ui --filter build-tools-24.0.2,android-24,extra-android-m2repository
  - chmod +x gradlew
 
 script:
