@@ -6,6 +6,11 @@ android:
     - platform-tools
     - build-tools-24.0.2
     - android-23
+    - extra-google-m2repository
+    - extra-android-m2repository
+    - addon-google_apis-google-19
+
+install: ./install-dependencies.sh
 
 script:
    - ./gradlew build connectedCheck
