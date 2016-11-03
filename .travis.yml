@@ -22,7 +22,8 @@ before_install:
 
 before_script:
  - sudo mkdir "$ANDROID_SDK/licenses" || true
- - sudo echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > "$ANDROID_SDK/licenses/android-sdk-license"
+ - sudo touch "$ANDROID_SDK/licenses/android-sdk-license"
+ - echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > "$ANDROID_SDK/licenses/android-sdk-license"
 
 script:
    - ./gradlew build connectedCheck --stacktrace
