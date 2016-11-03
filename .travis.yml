@@ -21,7 +21,7 @@ before_script:
  - sudo mkdir "$ANDROID_SDK/licenses" || true
  - sudo touch "$ANDROID_SDK/licenses/android-sdk-license"
  - cd $ANDROID_SDK/licenses/
- - sudo echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > android-sdk-license
+ - sudo echo -e '8933bad161af4178b1185d1a37fbf41ea5269c55' > android-sdk-license
 
 before_install:
  - chmod +x gradlew
