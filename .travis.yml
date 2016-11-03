@@ -10,6 +10,9 @@ android:
     - extra-android-m2repository
     - addon-google_apis-google-19
 
+before_install:
+ - chmod +x gradlew
+
 install: ./install-dependencies.sh
 
 script:
