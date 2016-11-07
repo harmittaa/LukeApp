@@ -1,3 +1,5 @@
+# Validation : https://yaml.travis-ci.org/harmittaa/LukeApp
+
 language: android
 sudo: required
 jdk: oraclejdk8
