@@ -67,7 +67,7 @@ before_deploy:
 
 deploy:
   provider: releases
-  file: app/build/outputs/apk/app-release.apk
+  file: app/build/outputs/apk/app-debug.apk
   file_glob: "true"
   skip_cleanup: true
   on:
