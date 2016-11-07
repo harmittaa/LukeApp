@@ -29,6 +29,7 @@ public class MapFragment extends Fragment implements View.OnClickListener {
         newSubmissionButton = (Button) fragmentView.findViewById(R.id.new_submission_button);
         leaderboardButton = (Button) fragmentView.findViewById(R.id.leaderboard_button);
         setupButtons();
+        getMainActivity().setBottomBarButtons(Constants.bottomActionBarStates.MAP_CAMERA);
         return fragmentView;
     }
 

@@ -24,6 +24,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         confirmationButton = (Button) fragmentView.findViewById(R.id.confirmation_button);
         newsubmissionMapButton = (Button) fragmentView.findViewById(R.id.newsubmission_map_button);
         setupButtons();
+        getMainActivity().setBottomBarButtons(Constants.bottomActionBarStates.BACK_TICK);
         return fragmentView;
     }
 

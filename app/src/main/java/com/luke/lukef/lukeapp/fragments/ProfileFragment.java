@@ -26,6 +26,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         profileLeaderboard = (Button) fragmentView.findViewById(R.id.profile_leaderboard);
         profilePoi = (Button) fragmentView.findViewById(R.id.profile_poi);
         setupButtons();
+        getMainActivity().setBottomBarButtons(Constants.bottomActionBarStates.BACK_ONLY);
         return fragmentView;
     }
 

@@ -25,6 +25,7 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
         leaderboardMapButton = (Button) fragmentView.findViewById(R.id.leaderboard_map_button);
         userProfileButton = (Button) fragmentView.findViewById(R.id.user_profile_button);
         setupButtons();
+        getMainActivity().setBottomBarButtons(Constants.bottomActionBarStates.BACK_ONLY);
         return fragmentView;
     }
 
