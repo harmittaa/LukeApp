@@ -1,5 +1,4 @@
-# Validation : https://yaml.travis-ci.org/harmittaa/LukeApp
-# http://szagurskii.com/blog/how-to-deploy-apk-to-github-releases-with-travis-ci/
+# https://medium.com/@anaganisk/build-a-signed-meteor-android-app-on-travis-ci-and-push-it-to-github-releases-d39c66eada6c#.3wqg2vy7u
 
 language: android
 sudo: required
@@ -22,6 +21,8 @@ env:
   - ANDROID_BUILD_TOOLS_VERSION=24.0.2
   - ANDROID_ABI=google_apis/armeabi-v7a
   - ADB_INSTALL_TIMEOUT=20
+  - secure: Pb+plX2R9CFYyEtMGSNKWq1wpvRPztbNLBkhG0TfaWfUtjWJFCHuD9zx0x45A87F4mG7U/JOcCwDFtGrwggseahpdjlulgKULpR+50LHe+lN2oncE7goiGr9UudIFWwslmXwn6J32yDhYtCd9qo+H396UagLBwtqpqMB8VJNoB2ZkQcMT+tBbOU+Zo7hF+8Es79UI9TBzwDAQVCZJTJVXBk6jTZ0WXlEaHPIVZIjGQmepJjDRb5OzyyaKO9Mg+aEl33mWvx13YgnQOhZfilIclcsIC5hqelT3s/dVXkUSKVrgXeC7Dj5hL+mwCe/HfHl3L1t9eWRqYUx6l/fp2ayuF7dt+28Y11WvICTfv6OQDSmmLIz83Xb5wtjFBV2L0dm5gBeOHKUaChkCQKOc6Y8V5kDsLWDKLQdcv/XN5dZ3J+3XbEMCDqb74Z0OzFokpQFxjEnvJvL6Rjk+3nrKEeHxOyCin1VNRCarN9GD0HlkE1ilJMakv5+vOwoXocwpUFfSdN07g6/OHp9JXeoK5Y9umDoaqhNoqtsV7TvpXumlkesumWHK1IeUPIwcAVM4HUgrWFOtbjso25hLOt9peD4ezckg3vwNdB6MMn9dB9gAGkLUzpfS89xAvioiPENOwt5b962UkChYBhqplgwWWzn1pJUH6//F4IA2iuNcT1Bba0=
+  - secure: gfM4Z/nqc/fvBJG5jR3+979CvLCQrTnK5CLc1Z8cTs6O82KQtFXp6HJkhsw9VwzPr90a6aT4hLu1foyOcyYLO2f5857V7EfYnebeo9HBim8zDx1WYYgsq5hzdhjgt9WSQHF1ldWgVsepWocjIPFSG7IkCvFVb8RnF7zQfYCyCB+6+NcUrRMHtYvwJDS8arPB4RaOv0Okroh5RMm8//O7qSn3BDHC70sjPDl9xV+ePKha3dlSutbEuffBUIjEH6Rs+hyEKAyl6v+46nIF0g5XLEI2V0MUsGWPlrEyKyi+1XQT+Wb+YQZyC+eQpTTXVfcrsxk/t3dVCuTJ1D/I+FJ2K7oH00xptg0NZOMzfzFn7WtxGqSojUowAPuKLsESMFf6o59sP2SJUNPPusKQTToF/sATjUG26WS5os8HUVZ8ub9RMAsmq9kfByGeGXdOBQt9DahzijtpjZ4h5ZYr7RWmn0+n2GdIVPHmEz/5pzG5jaLjvoYXIlf+TT87UrLagp7+Dv8hlkbBBRIfeSuwju/d3U4OW3qa6dwY+KTbJFqTlukIve9354kODYml9e4pgAYeOLqlZ4+VMcUaD11WfcJ64nxGiYyO8g6CWz198t89el9ZKoPoV0OEqBeIJrA1xcKMuyE9JSyO+UUXfSQz2i2s+yPLe2nLPhcTEK4Csu564i4=
 
 android:
   components:
@@ -43,6 +44,8 @@ android:
   - ".+"
 
 before_install:
+- openssl aes-256-cbc -K $encrypted_76152ddc58d4_key -iv $encrypted_76152ddc58d4_iv
+  -in .keystore.enc -out .keystore -d
 - mkdir "$ANDROID_HOME/licenses" || true
 - echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > "$ANDROID_HOME/licenses/android-sdk-license"
 - echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
@@ -57,14 +60,18 @@ before_script:
 - android-wait-for-emulator
 - adb shell input keyevent 82 &
 
-# http://stackoverflow.com/questions/33146458/travis-ci-apk-path
 before_deploy:
-  - cd app/build/outputs/apk/
-  - ls -a
+- cp $TRAVIS_BUILD_DIR/.keystore $HOME
+- jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 $HOME/android/release-unsigned.apk lukeapp -keystore $HOME/.keystore -storepass $storepass -keypass $keypass
+- "${ANDROID_HOME}/build-tools/24.0.2/zipalign 4 $HOME/android/release-unsigned.apk $HOME/android/lukeapp.apk"
 
+
+#- cd app/build/outputs/apk/
+#- ls -a
 deploy:
   provider: releases
-  file: app-debug.apk
+  #file: app-debug.apk
+  file: "$HOME/android/lukeapp.apk"
   skip_cleanup: true
   on:
     repo: harmittaa/LukeApp
@@ -72,7 +79,6 @@ deploy:
     jdk: oraclejdk8
   api_key:
     secure: Ie9y6AloQWoWwQa/tOofJveX8xbPlqyQc75X8gV6LwMrd8S3c71VhrR1VZL5cKd10JvYFZ/BPqw9JjHCkpSfqDQP7t3PCoDeqll9LEZKCCWVmpBv+Sls2xJpBAej33hAlpdJ8ig7kWOWsIHsLQdvx3NFx+tc+A4TiawZLfs4JrXqg/6SN2KJa1t7SeNZvKLE7SclXGHwXHlt8Cddznlscoffd/0yJMl+fQP1TLWLMlabNYf4zxtOAfxhl0moKru6vWYVPIY5kFL78Wpx2hftpfAWopxaKyk3M5o/OUiT5gqQpC7RMP2kw6zpLfyEsyfk0y/2roWaczWfy2xwbO1kfIaesUw6ZVu6RoIHkKxWcDWaTR85QyZhohbe372Cjt3mS56hthoJ0oja9dexZltlsMHoHVq4JcrQf2rOy45EqEZSmUwk57XaXQh0zkZp+xqK4JtN05o7HidoYMQlGnGlizbYWKuN+NclK8m9uLB9zmxhB7x+0GClxeKxTTFJZvQ8NLHtS+pObu2OfsnAvL/4EQOtqCV0jKVvS3cXezLf8zuvKuq5fl/I7OEVYxFFjFSx5JV0gycO3PV6BgeWfIsZkNvg4V874YeWdEEP/yOy0Zs57SNkVzi9uewaUJ8mKnfmuuesuyIfqvaMZia0XZshc63vL3Lp+b9IK4DmL/huO5s=
-
 notifications:
   email: false
   slack:
