@@ -1,8 +1,15 @@
-# Validation : https://yaml.travis-ci.org/harmittaa/LukeApp
-
 language: android
 sudo: required
 jdk: oraclejdk8
+
+cache:
+  directories:
+  - "$HOME/.gradle/caches/"
+  - "$HOME/.gradle/wrapper/"
+
+before_cache:
+- rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
+
 env:
   global:
   - ANDROID_API_LEVEL=24
@@ -36,14 +43,30 @@ before_install:
 - echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
 - chmod +x gradlew
 
+script:
+- "./gradlew build connectedCheck --stacktrace"
+
 before_script:
 - echo no | android create avd --force -n test -t android-21 --abi armeabi-v7a
 - emulator -avd test -no-skin -no-audio -no-window &
 - android-wait-for-emulator
 - adb shell input keyevent 82 &
 
-script:
-- "./gradlew build connectedCheck --stacktrace"
+before_deploy:
+- cd LukeApp/build/outputs/apk; ls -la; md5sum *-normal-release.apk > md5sum.txt;
+  sha1sum *-normal-release.apk > sha1sum.txt; cd -
+
+deploy:
+  provider: releases
+  file: app/build/outputs/apk/app-release.apk
+  skip_cleanup: true
+  on:
+    repo: harmittaa/LukeApp
+    tags: true
+    jdk: oraclejdk8
+  api_key:
+    secure: Ie9y6AloQWoWwQa/tOofJveX8xbPlqyQc75X8gV6LwMrd8S3c71VhrR1VZL5cKd10JvYFZ/BPqw9JjHCkpSfqDQP7t3PCoDeqll9LEZKCCWVmpBv+Sls2xJpBAej33hAlpdJ8ig7kWOWsIHsLQdvx3NFx+tc+A4TiawZLfs4JrXqg/6SN2KJa1t7SeNZvKLE7SclXGHwXHlt8Cddznlscoffd/0yJMl+fQP1TLWLMlabNYf4zxtOAfxhl0moKru6vWYVPIY5kFL78Wpx2hftpfAWopxaKyk3M5o/OUiT5gqQpC7RMP2kw6zpLfyEsyfk0y/2roWaczWfy2xwbO1kfIaesUw6ZVu6RoIHkKxWcDWaTR85QyZhohbe372Cjt3mS56hthoJ0oja9dexZltlsMHoHVq4JcrQf2rOy45EqEZSmUwk57XaXQh0zkZp+xqK4JtN05o7HidoYMQlGnGlizbYWKuN+NclK8m9uLB9zmxhB7x+0GClxeKxTTFJZvQ8NLHtS+pObu2OfsnAvL/4EQOtqCV0jKVvS3cXezLf8zuvKuq5fl/I7OEVYxFFjFSx5JV0gycO3PV6BgeWfIsZkNvg4V874YeWdEEP/yOy0Zs57SNkVzi9uewaUJ8mKnfmuuesuyIfqvaMZia0XZshc63vL3Lp+b9IK4DmL/huO5s=
+
 
 notifications:
   email: false
