@@ -59,13 +59,14 @@ before_script:
 
 #http://stackoverflow.com/questions/33146458/travis-ci-apk-path
 before_deploy:
-  - cp app/build/outputs/apk/app-release.apk app-release.apk
+# - cp app/build/outputs/apk/app-release.apk app-release.apk
 # - cd LukeApp/build/outputs/apk; ls -la; md5sum *-normal-release.apk > md5sum.txt;
 #  sha1sum *-normal-release.apk > sha1sum.txt; cd -
+  - cd app/build/outputs/apk/
 
 deploy:
   provider: releases
-  file: "app-release.apk"
+  file: app/build/outputs/apk/app-release.apk
   file_glob: "true"
   skip_cleanup: true
   on:
