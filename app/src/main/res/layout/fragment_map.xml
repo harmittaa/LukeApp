@@ -52,4 +52,12 @@
         app:layout_constraintHorizontal_bias="0.47"
         app:layout_constraintBottom_toTopOf="@+id/poi_button"
         android:layout_marginBottom="8dp" />
+
+    <com.google.android.gms.maps.MapFragment
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        tools:layout_editor_absoluteY="152dp"
+        tools:layout_editor_absoluteX="57dp"
+        android:id="@+id/mapFragment2" />
+
 </android.support.constraint.ConstraintLayout>
