@@ -57,13 +57,16 @@ before_script:
 - android-wait-for-emulator
 - adb shell input keyevent 82 &
 
-# before_deploy:
+#http://stackoverflow.com/questions/33146458/travis-ci-apk-path
+before_deploy:
+  - cp app/build/outputs/apk/app-release.apk app-release.apk
 # - cd LukeApp/build/outputs/apk; ls -la; md5sum *-normal-release.apk > md5sum.txt;
 #  sha1sum *-normal-release.apk > sha1sum.txt; cd -
 
 deploy:
   provider: releases
-  file: LukeApp/app/build/outputs/apk/lukeapp-release.apk
+  file: "app-release.apk"
+  file_glob: "true"
   skip_cleanup: true
   on:
     repo: harmittaa/LukeApp
