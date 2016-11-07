@@ -62,7 +62,7 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
 
             public void onItemClick(AdapterView<?> arg0,
                                     View arg1, int position, long arg3) {
-                Toast.makeText(getApplicationContext(), array_sort.get(position),
+                Toast.makeText(getActivity().getApplicationContext(), array_sort.get(position),
                         Toast.LENGTH_SHORT).show();
             }
         });
