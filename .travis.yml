@@ -59,16 +59,13 @@ before_script:
 
 #http://stackoverflow.com/questions/33146458/travis-ci-apk-path
 before_deploy:
-# - cp app/build/outputs/apk/app-release.apk app-release.apk
-# - cd LukeApp/build/outputs/apk; ls -la; md5sum *-normal-release.apk > md5sum.txt;
-#  sha1sum *-normal-release.apk > sha1sum.txt; cd -
   - cd app/build/outputs/apk/
   - ls -a
 
 deploy:
   provider: releases
-  file: app/build/outputs/apk/app-debug.apk
-  file_glob: "true"
+  #file: app/build/outputs/apk/app-debug.apk
+  file: app-debug.apk
   skip_cleanup: true
   on:
     repo: harmittaa/LukeApp
