@@ -57,14 +57,13 @@ before_script:
 - android-wait-for-emulator
 - adb shell input keyevent 82 &
 
-#http://stackoverflow.com/questions/33146458/travis-ci-apk-path
+# http://stackoverflow.com/questions/33146458/travis-ci-apk-path
 before_deploy:
   - cd app/build/outputs/apk/
   - ls -a
 
 deploy:
   provider: releases
-  #file: app/build/outputs/apk/app-debug.apk
   file: app-debug.apk
   skip_cleanup: true
   on:
