@@ -81,15 +81,18 @@ before_deploy:
 #Unable to open '/home/travis/android/release-unsigned.apk' as zip archive
 #- "${ANDROID_HOME}/build-tools/24.0.2/zipalign 4 app-release-unsigned.apk $HOME/android/lukeapp.apk"
 
-- "${ANDROID_HOME}/build-tools/24.0.2/zipalign 4 $HOME/android/lukeapp.apk app-release-unsigned.apk"
- 
- 
-- cd app/build/outputs/apk/
+#Output file 'app-release-unsigned.apk' exists
+#- "${ANDROID_HOME}/build-tools/24.0.2/zipalign 4 $HOME/android/lukeapp.apk app-release-unsigned.apk"
+
+# try next:
+- "${ANDROID_HOME}/build-tools/24.0.2/zipalign -v 4 app-release-unsigned.apk lukeapp.apk"
 - ls -a
+
 deploy:
   provider: releases
   #file: app-debug.apk
-  file: "$HOME/android/lukeapp.apk"
+  #file: "$HOME/android/lukeapp.apk"
+   file: lukeapp.apk
   skip_cleanup: true
   on:
     repo: harmittaa/LukeApp
