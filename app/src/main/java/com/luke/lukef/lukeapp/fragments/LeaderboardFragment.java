@@ -129,8 +129,8 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
                 }
                 return null;
             }
-        }
-
+        //}
+    //}
     public static Bitmap getRoundedShape(Bitmap scaleBitmapImage, int width) {
         // TODO Auto-generated method stub
         int targetWidth = width;
