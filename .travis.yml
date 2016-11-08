@@ -1,19 +1,17 @@
-# https://medium.com/@anaganisk/build-a-signed-meteor-android-app-on-travis-ci-and-push-it-to-github-releases-d39c66eada6c#.3wqg2vy7u
-
 language: android
 sudo: required
 jdk: oraclejdk8
-
+ 
 cache:
   directories:
   - "$HOME/.m2"
   - "$HOME/.gradle"
   - "$HOME/.gradle/caches/"
   - "$HOME/.gradle/wrapper/"
-
+ 
 before_cache:
-- rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
-
+ - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
+ 
 env:
   global:
   - ANDROID_API_LEVEL=24
@@ -22,8 +20,8 @@ env:
   - ANDROID_ABI=google_apis/armeabi-v7a
   - ADB_INSTALL_TIMEOUT=20
   - secure: "QbCi0uj+QeO/ZIDylJ+wLMWUZmbH/5wz1mP+sk3wuu+u53mSqPFNGqe1miPaTnSMOQmKLYvimib0/052RgvM5vYA4fZrT8UMmd4bfQw7E1n0SPyIJTXbO2m+BtQPphQhuTpqQWYxXQdPfVse4w9MO58uT1gKwTv/m61VK2GMNel70sjmCu5bblEWp//ntEnrISCBBbAFnR1X7XdAQMpWhLA2BtqATSWV+gmjAnz3f2MRbKOZNDL4yaoEq+rguc2A+z2J99e4KIgJO80JFDcIMRMuH78+W6f2LVlMOoG9kKJLi5tWxRL5oJ83Sbw7AkHb4I8Ee0tv3RBov8qoUlxD5CvS5IttjgiHufxcapQRh97pUYKKjteFh2rdKhuiwEx6LOfxXq35PCnvwwet2gXMqkXIH6Y6DvZjdbIhTbX6p2YkjoNl3GW7sD3vuEp1sXRuZg7pb4q2LC3+sxvZArwZI8ArWA57qnmHP2lO+zh59tkEtqZYQX+jBFETOs3AS3UF0u3jyZnqIEwCY+eRQo0Mx8ioRc0Dx5cyodK7fjSTaiGR5IODZGgQ591PuA5NbsJl4lqHiUu/2+5ZUhStxyIuDWh4aRMukzKyKOIgiq/MK6FLd7W3Jz/HPx7G8uGeGk4KIcpFcEK6RENTneREkewwyHzPXwKQgEglyZVpoXunSjo="
- - secure: "jBKiAIyQhiAtxzwv9cCOmjKfrcdNsO4k5S3fLvhWiH3gs/ZqJhQno+rLcwXUMBzXSrLMhGq5XcmRhL+RbePiPWCvpzcfMD/9NbCYUyf9ncXa94zUpkvhuuwCOECjnInnQSSY/gvydcQMoZ/Qx4Unctv0xDorHerBhXzB87HjD7HX4osyz30W2R9C+ox31HqG3VidCcCSE9NfoyiWsH1hJlYpjucQFIVObCwKfPDvNsCFRwMooii2enagC1HAHqFb4KJmxe6RZLwj3Crz6u0JZpAuDX4C+Vrn++W6oYcXjXIFlIPg8hC4Do+/rI/QyASp7InZvQm67INvXN5ZDMaAtV5u+BBdc8JnMJoTlwRYqNFTRZ8h8R37+zzhXMT9jpYDiTiMcCIQuerPc358Df+m5a4IDsVm/Gui6vzR2l+1uO9ExAnvDJvI6UHYmcOPpxTdfAYg4eycf+l+6RKS+afmvDjwDiXlFrWVbmixr8aMKGThe1imK0vUPNjaRhGy1OYjBNsELELebAj0jZaZHH1/4EibGO2hQ93I8HpBYfVueSM1Q6fH/gpuRA6jnZ4ePlTrUfP21cstdjiqBPGEfzQbE1WZBc78mvq7VmgWsjM+VhmUbaqx4iKZb9zYFs9GCGE2fPkaRoefTMxSihWj568U6XtwwiaREbrM9C8QDuV0udU="
-
+  - secure: "jBKiAIyQhiAtxzwv9cCOmjKfrcdNsO4k5S3fLvhWiH3gs/ZqJhQno+rLcwXUMBzXSrLMhGq5XcmRhL+RbePiPWCvpzcfMD/9NbCYUyf9ncXa94zUpkvhuuwCOECjnInnQSSY/gvydcQMoZ/Qx4Unctv0xDorHerBhXzB87HjD7HX4osyz30W2R9C+ox31HqG3VidCcCSE9NfoyiWsH1hJlYpjucQFIVObCwKfPDvNsCFRwMooii2enagC1HAHqFb4KJmxe6RZLwj3Crz6u0JZpAuDX4C+Vrn++W6oYcXjXIFlIPg8hC4Do+/rI/QyASp7InZvQm67INvXN5ZDMaAtV5u+BBdc8JnMJoTlwRYqNFTRZ8h8R37+zzhXMT9jpYDiTiMcCIQuerPc358Df+m5a4IDsVm/Gui6vzR2l+1uO9ExAnvDJvI6UHYmcOPpxTdfAYg4eycf+l+6RKS+afmvDjwDiXlFrWVbmixr8aMKGThe1imK0vUPNjaRhGy1OYjBNsELELebAj0jZaZHH1/4EibGO2hQ93I8HpBYfVueSM1Q6fH/gpuRA6jnZ4ePlTrUfP21cstdjiqBPGEfzQbE1WZBc78mvq7VmgWsjM+VhmUbaqx4iKZb9zYFs9GCGE2fPkaRoefTMxSihWj568U6XtwwiaREbrM9C8QDuV0udU="
+ 
 android:
   components:
   - tools
@@ -42,7 +40,7 @@ android:
   - android-sdk-license-.+
   - google-gdk-license-.+
   - ".+"
-
+ 
 before_install:
 - openssl aes-256-cbc -K $encrypted_31ca736e9020_key -iv $encrypted_31ca736e9020_iv
   -in .keystore.enc -out .keystore -d
@@ -50,22 +48,22 @@ before_install:
 - echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > "$ANDROID_HOME/licenses/android-sdk-license"
 - echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
 - chmod +x gradlew
-
+ 
 script:
 - "./gradlew clean build connectedCheck -PdisablePreDex --stacktrace"
-
+ 
 before_script:
 - echo no | android create avd --force -n test -t android-21 --abi armeabi-v7a
 - emulator -avd test -no-skin -no-audio -no-window &
 - android-wait-for-emulator
 - adb shell input keyevent 82 &
-
+ 
 before_deploy:
 - cp $TRAVIS_BUILD_DIR/.keystore $HOME
 - jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 $HOME/android/release-unsigned.apk lukeapp -keystore $HOME/.keystore -storepass $storepass -keypass $keypass
 - "${ANDROID_HOME}/build-tools/24.0.2/zipalign 4 $HOME/android/release-unsigned.apk $HOME/android/lukeapp.apk"
-
-
+ 
+ 
 #- cd app/build/outputs/apk/
 #- ls -a
 deploy:
