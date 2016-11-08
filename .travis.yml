@@ -80,7 +80,8 @@ before_deploy:
 
 #Unable to open '/home/travis/android/release-unsigned.apk' as zip archive
 #- "${ANDROID_HOME}/build-tools/24.0.2/zipalign 4 app-release-unsigned.apk $HOME/android/lukeapp.apk"
-- "${ANDROID_HOME}/build-tools/24.0.2/zipalign 4 app-release-unsigned.apk $HOME/android/lukeapp.apk"
+
+- "${ANDROID_HOME}/build-tools/24.0.2/zipalign 4 $HOME/android/lukeapp.apk app-release-unsigned.apk"
  
  
 - cd app/build/outputs/apk/
