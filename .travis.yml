@@ -68,6 +68,8 @@ before_deploy:
 #- jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore $HOME/.keystore -storepass $storepass -keypass $keypass $HOME/android/release-unsigned.apk lukeapp_keystore
 
 
+- cd app/build/outputs/apk/
+- ls -a
 # jarsigner: unable to open jar file: /home/travis/android/release-unsigned.apk
 - jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore $HOME/.keystore -storepass $storepass -keypass $keypass app/build/outputs/apk/release-unsigned.apk lukeapp_keystore
 #Only one alias can be specified
