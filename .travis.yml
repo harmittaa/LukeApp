@@ -92,7 +92,7 @@ deploy:
   provider: releases
   #file: app-debug.apk
   #file: "$HOME/android/lukeapp.apk"
-   file: lukeapp.apk
+  file: lukeapp.apk
   skip_cleanup: true
   on:
     repo: harmittaa/LukeApp
