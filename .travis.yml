@@ -74,6 +74,8 @@ before_deploy:
 #- jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore $HOME/.keystore -storepass $storepass -keypass $keypass app/build/outputs/apk/release-unsigned.apk lukeapp_keystore
 # v2 of upper one
 - jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore $HOME/.keystore -storepass $storepass -keypass $keypass app-release-unsigned.apk lukeapp_keystore
+# verification
+- jarsigner -verify app-release-unsigned.apk
 
 #Only one alias can be specified
 #- jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 lukeapp_keystore -keystore $HOME/.keystore -storepass $storepass -keypass $keypass $HOME/android/release-unsigned.apk lukeapp
