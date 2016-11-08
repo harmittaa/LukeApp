@@ -61,7 +61,10 @@ before_script:
 before_deploy:
 - cp $TRAVIS_BUILD_DIR/.keystore $HOME
 #- jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 $HOME/android/release-unsigned.apk lukeapp_keystore -keystore $HOME/.keystore -storepass $storepass -keypass $keypass
-- jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 lukeapp_keystore -keystore $HOME/.keystore -storepass $storepass -keypass $keypass $HOME/android/release-unsigned.apk lukeapp
+#- jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore certificates/myappname-cert.keystore -storepass myappname -keypass myappname platforms/android/ant-build/CordovaApp-release-unsigned.apk myappname
+- jarsigner -verbose -sgialg SHA1withRSA -digestalg SHA1 lukeapp_keystore -keystore $HOME/.keystore -storepass $storepass -keypass $keypass $HOME/android/release-unsigned.apk duke
+#Only one alias can be specified
+#- jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 lukeapp_keystore -keystore $HOME/.keystore -storepass $storepass -keypass $keypass $HOME/android/release-unsigned.apk lukeapp
 
 - "${ANDROID_HOME}/build-tools/24.0.2/zipalign 4 $HOME/android/release-unsigned.apk $HOME/android/lukeapp.apk"
  
