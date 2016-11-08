@@ -3,12 +3,16 @@ package com.luke.lukef.lukeapp;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.PopupWindow;
 
 import com.luke.lukef.lukeapp.fragments.ConfirmationFragment;
 import com.luke.lukef.lukeapp.fragments.LeaderboardFragment;
@@ -30,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
         leftButton = (ImageButton)findViewById(R.id.button_left);
         rightButton = (ImageButton)findViewById(R.id.button_right);
         midButton = (ImageButton)findViewById(R.id.button_mid);
+
     }
 
 
@@ -38,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         //activate map fragment as default
         fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP);
+
     }
 
     /**

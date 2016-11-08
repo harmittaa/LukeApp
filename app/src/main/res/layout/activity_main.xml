@@ -5,7 +5,8 @@
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.luke.lukef.lukeapp.MainActivity">
+    tools:context="com.luke.lukef.lukeapp.MainActivity"
+    >
 
     <RelativeLayout
         android:id="@+id/fragment_container"
@@ -23,7 +24,7 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintLeft_toLeftOf="parent">
 
-        <LinearLayout
+        <RelativeLayout
             android:id="@+id/bottomBarBackTick"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -36,20 +37,20 @@
                 android:id="@+id/button_back1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="Button"
-                app:srcCompat="@android:drawable/btn_star" />
+                app:srcCompat="@android:drawable/btn_star"
+                android:layout_alignParentLeft="true"/>
 
             <ImageButton
                 android:id="@+id/button_tick"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="Button"
-                app:srcCompat="@android:drawable/btn_star" />
-        </LinearLayout>
+                app:srcCompat="@android:drawable/btn_star"
+                android:layout_alignParentRight="true"/>
+        </RelativeLayout>
 
-        <LinearLayout
+        <RelativeLayout
             android:id="@+id/bottomBarBackReport"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -62,20 +63,20 @@
                 android:id="@+id/button_back2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="Button"
-                app:srcCompat="@android:drawable/btn_star_big_on" />
+                app:srcCompat="@android:drawable/btn_star_big_on"
+                android:layout_alignParentLeft="true"/>
 
             <ImageButton
                 android:id="@+id/button_report"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="Button"
-                app:srcCompat="@android:drawable/btn_star_big_on" />
-        </LinearLayout>
+                app:srcCompat="@android:drawable/btn_star_big_on"
+                android:layout_alignParentRight="true"/>
+        </RelativeLayout>
 
-        <LinearLayout
+        <RelativeLayout
             android:id="@+id/bottomBarMap"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -88,27 +89,28 @@
                 android:id="@+id/button_left"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="Button"
                 app:srcCompat="@android:drawable/ic_dialog_dialer"
-                android:elevation="4dp" />
+                android:elevation="4dp"
+                android:layout_alignParentLeft="true"/>
 
             <ImageButton
                 android:id="@+id/button_mid"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="Button"
-                app:srcCompat="@android:drawable/ic_dialog_dialer" />
+                app:srcCompat="@android:drawable/ic_dialog_dialer"
+                android:layout_centerInParent="true">
 
+            </ImageButton>
             <ImageButton
                 android:id="@+id/button_right"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="Button"
-                app:srcCompat="@android:drawable/ic_dialog_dialer" />
-        </LinearLayout>
+                app:srcCompat="@android:drawable/ic_dialog_dialer"
+                android:layout_alignParentRight="true"/>
+        </RelativeLayout>
 
     </LinearLayout>
 

@@ -1,17 +1,24 @@
 package com.luke.lukef.lukeapp.fragments;
 
+import android.app.Dialog;
 import android.app.Fragment;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.PopupWindow;
+import android.widget.TextView;
 
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
+import com.luke.lukef.lukeapp.tools.PopupMaker;
 
 public class MapFragment extends Fragment implements View.OnClickListener {
     private static final String TAG = "MapFragment";
@@ -37,7 +44,9 @@ public class MapFragment extends Fragment implements View.OnClickListener {
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.poi_button:
-                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_POINT_OF_INTEREST);
+                //getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_POINT_OF_INTEREST);
+                PopupMaker pm = new PopupMaker(getMainActivity());
+                pm.createPopupTest();
                 break;
             case R.id.new_submission_button:
                 getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_NEW_SUBMISSION);
