@@ -34,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
         leftButton = (ImageButton)findViewById(R.id.button_left);
         rightButton = (ImageButton)findViewById(R.id.button_right);
         midButton = (ImageButton)findViewById(R.id.button_mid);
+        setBottomBarButtonsListeners();
 
     }
 
@@ -135,5 +136,16 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    public void setBottomBarButtonsListeners(){
+        View.OnClickListener cl = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        };
+        findViewById(R.id.button_back1).setOnClickListener(cl);
+        findViewById(R.id.button_back2).setOnClickListener(cl);
     }
 }
