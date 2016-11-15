@@ -5,14 +5,11 @@ package com.luke.lukef.lukeapp;
  */
 
 
-import com.luke.lukef.lukeapp.Submission;
+import com.luke.lukef.lukeapp.model.Submission;
 
 import org.junit.Test;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
 
 
 import static org.junit.Assert.*;

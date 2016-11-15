@@ -1,5 +1,6 @@
 package com.luke.lukef.lukeapp;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -14,6 +15,7 @@ import com.auth0.android.lock.Lock;
 import com.auth0.android.lock.LockCallback;
 import com.auth0.android.lock.utils.LockException;
 import com.auth0.android.result.Credentials;
+import com.luke.lukef.lukeapp.model.SessionSingleton;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,8 +26,13 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 
 public class WelcomeActivity extends AppCompatActivity implements View.OnClickListener {
+    private static final String TAG = "WelcomeActivity";
+
 
     private Button loginButton;
     private Button skipLoginButton;
@@ -39,8 +46,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_welcome);
 
-        loginButton = (Button)findViewById(R.id.loginButton);
-        skipLoginButton = (Button)findViewById(R.id.skipLoginButton);
+        loginButton = (Button) findViewById(R.id.loginButton);
+        skipLoginButton = (Button) findViewById(R.id.skipLoginButton);
 
         loginButton.setOnClickListener(this);
         skipLoginButton.setOnClickListener(this);
@@ -53,7 +60,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 //TODO: switch to mainactivity
                 break;
             case R.id.loginButton:
-                //// TODO: 15/11/2016 activate auth0
                 SetupTask setupTask = new SetupTask(getString(R.string.auth0URL));
                 setupTask.execute();
                 break;
@@ -69,8 +75,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
 
     private void doLogin(String clientId, String domain) {
-        Auth0 auth0 = new Auth0(clientId,domain);
-        lock = Lock.newBuilder(auth0,callBack).build(this);
+        Auth0 auth0 = new Auth0(clientId, domain);
+        lock = Lock.newBuilder(auth0, callBack).build(this);
         startActivity(lock.newIntent(this));
     }
 
@@ -79,6 +85,27 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         public void onAuthentication(Credentials credentials) {
             accessToken = credentials.getAccessToken();
             idToken = credentials.getIdToken();
+            SessionSingleton.getInstance().setAccessToken(accessToken);
+            SessionSingleton.getInstance().setIdToken(idToken);
+            // TODO: 15/11/2016 login to luke, check username, change to new user screen if first time login
+            LoginCallable loginTask = new LoginCallable();
+            FutureTask<Boolean> booleanFutureTask = new FutureTask<Boolean>(loginTask);
+            Thread thread = new Thread(booleanFutureTask);
+            thread.start();
+            try {
+                if (booleanFutureTask.get()) {
+                    // TODO: 15/11/2016 check username, if exists -> main screen, if not -> go to username creation
+                    CheckUsernameTask checkUsernameTask = new CheckUsernameTask();
+                    checkUsernameTask.execute();
+                } else {
+                    System.out.println("jeenem");
+                }
+            } catch (InterruptedException e) {
+                Log.e(TAG, "onAuthentication: ",e );
+            } catch (ExecutionException e) {
+                Log.e(TAG, "onAuthentication: ",e );
+            }
+            //startActivity(new Intent(getApplicationContext(),MainActivity.class));
         }
 
         @Override
@@ -92,14 +119,22 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         }
     };
 
-    private class SetupTask extends AsyncTask<Void,Void,Void> {
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        lock.onDestroy(this);
+        lock = null;
+    }
+
+    private class SetupTask extends AsyncTask<Void, Void, Void> {
         String url;
         String jsonString;
-        public SetupTask(String url){
+
+        public SetupTask(String url) {
             this.url = url;
         }
 
-        private boolean parseCheck(String domain, String clientID){
+        private boolean parseCheck(String domain, String clientID) {
             return !TextUtils.isEmpty(domain) && !TextUtils.isEmpty(clientID);
         }
 
@@ -114,8 +149,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     jsonString = "";
                     StringBuilder stringBuilder = new StringBuilder();
                     String line;
-                    while((line = bufferedReader.readLine()) != null){
-                        stringBuilder.append(line+"\n");
+                    while ((line = bufferedReader.readLine()) != null) {
+                        stringBuilder.append(line + "\n");
                     }
                     bufferedReader.close();
                     jsonString = stringBuilder.toString();
@@ -146,10 +181,99 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            if(parseCheck(auth0Domain,auth0ClienID)){
-                doLogin(auth0ClienID,auth0Domain);
+            if (parseCheck(auth0Domain, auth0ClienID)) {
+                doLogin(auth0ClienID, auth0Domain);
             }
         }
     }
 
+    private class LoginCallable implements Callable<Boolean> {
+        HttpURLConnection httpURLConnection;
+
+        @Override
+        public Boolean call() throws Exception {
+            try {
+                URL lukeURL = new URL(getString(R.string.loginUrl));
+                httpURLConnection = (HttpURLConnection) lukeURL.openConnection();
+                httpURLConnection.setRequestProperty(getString(R.string.authorization), getString(R.string.bearer) + idToken);
+                httpURLConnection.setRequestProperty(getString(R.string.acstoken), accessToken);
+                if (httpURLConnection.getResponseCode() == 200) {
+                    return true;
+                } else {
+                    //TODO: if error do something else, ERROR STREAM
+                    return false;
+                }
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+                return false;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+    }
+
+    private class CheckUsernameTask extends AsyncTask<Void, Void, Void> {
+        private String uname;
+        private String jsonString;
+        HttpURLConnection httpURLConnection;
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            try {
+                URL lukeURL = new URL(getString(R.string.userUrl));
+                httpURLConnection = (HttpURLConnection) lukeURL.openConnection();
+                httpURLConnection.setRequestProperty(getString(R.string.authorization), getString(R.string.bearer) + idToken);
+                httpURLConnection.setRequestProperty(getString(R.string.acstoken), accessToken);
+                if (httpURLConnection.getResponseCode() == 200) {
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
+                    jsonString = "";
+                    StringBuilder stringBuilder = new StringBuilder();
+                    String line;
+                    while ((line = bufferedReader.readLine()) != null) {
+                        stringBuilder.append(line + "\n");
+                    }
+                    jsonString = stringBuilder.toString();
+                    bufferedReader.close();
+
+                } else {
+                    //TODO: if error do something else, ERROR STREAM
+                    Log.e(TAG, "doInBackground: vöörö" );
+                }
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
+            JSONObject jsonObject;
+            try {
+                jsonObject = new JSONObject(jsonString);
+                if (jsonObject.has("id")) {
+                    SessionSingleton.getInstance().setUserId(jsonObject.getString("id"));
+                }
+                SessionSingleton.getInstance().setXp(jsonObject.getInt("score"));
+                if (jsonObject.has("image_url")){//!TextUtils.isEmpty(jsonObject.getString("image_url"))) {
+                    // TODO: 15/11/2016 parse url to bitmap
+                }
+                if (jsonObject.has("username")) {
+                    SessionSingleton.getInstance().setUsername(uname);
+                    // TODO: 15/11/2016 move to main activity
+                    startActivity(new Intent(getApplicationContext(),MainActivity.class));
+                } else {
+                    // TODO: 15/11/2016 move to username setting screen
+                    startActivity(new Intent(getApplicationContext(),NewUserActivity.class));
+                }
+
+            } catch (JSONException e) {
+                Log.e(TAG, "onPostExecute: ",e );
+            }
+        }
+    }
 }
