@@ -45,15 +45,12 @@ import com.luke.lukef.lukeapp.fragments.ProfileFragment;
 import com.luke.lukef.lukeapp.fragments.UserSubmissionFragment;
 
 import static android.R.id.progress;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
@@ -328,8 +325,8 @@ public class MainActivity extends AppCompatActivity {
                             e.printStackTrace();
                         }
                         // Insert the fragment by replacing any existing fragment
-                         FragmentManager fragmentManager = getFragmentManager();
-                         fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment).commit();
+                        FragmentManager fragmentManager = getFragmentManager();
+                        fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment).commit();
                         // Highlight the selected item has been done by NavigationView
                         item.setChecked(true);
 
