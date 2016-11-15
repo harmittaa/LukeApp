@@ -40,11 +40,7 @@ public class WelcomeFragment extends Fragment implements View.OnClickListener{
         // Inflate the layout for this fragment
         fragmentView = inflater.inflate(R.layout.fragment_welcome, container, false);
 
-        loginButton = (Button)fragmentView.findViewById(R.id.loginButton);
-        skipLoginButton = (Button)fragmentView.findViewById(R.id.skipLoginButton);
 
-        loginButton.setOnClickListener(this);
-        skipLoginButton.setOnClickListener(this);
         return fragmentView;
     }
 

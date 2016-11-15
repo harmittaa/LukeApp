@@ -35,29 +35,21 @@ public class LoginActivity extends AppCompatActivity {
     public void fragmentSwitcherLogin(Constants.loginFragmentTypes fragmentToChange){
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        // cases are enumerations
+        Fragment fragment = null;
         switch (fragmentToChange){
             case LOGIN_FRAGMENT_AUTH0:
-                Auth0Fragment auth0frag = new Auth0Fragment();
-                // create the transaction to switch what ever is in the container to the fragment
-                fragmentTransaction.replace(R.id.fragment_container_login, auth0frag);
-                fragmentTransaction.commit();
-                //setBottomBarButtons(Constants.bottomActionBarStates.BACK_TICK);
+                fragment = new Auth0Fragment();
                 break;
             case LOGIN_FRAGMENT_USERDATA:
-                UserDataInputFragment udif = new UserDataInputFragment();
-                // create the transaction to switch what ever is in the container to the fragment
-                fragmentTransaction.replace(R.id.fragment_container_login, udif);
-                fragmentTransaction.commit();
-                //setBottomBarButtons(Constants.bottomActionBarStates.BACK_TICK);
+                fragment = new UserDataInputFragment();
                 break;
             case LOGIN_FRAGMENT_WELCOME:
-                WelcomeFragment welcomeF = new WelcomeFragment();
-                // create the transaction to switch what ever is in the container to the fragment
-                fragmentTransaction.replace(R.id.fragment_container_login, welcomeF);
-                fragmentTransaction.commit();
-                //setBottomBarButtons(Constants.bottomActionBarStates.BACK_TICK);
+                fragment = new WelcomeFragment();
                 break;
+        }
+        if(fragment != null) {
+            fragmentTransaction.replace(R.id.fragment_container_login, fragment);
+            fragmentTransaction.commit();
         }
     }
 }
