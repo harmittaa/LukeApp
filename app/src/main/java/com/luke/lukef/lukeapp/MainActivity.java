@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
         actionView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            //Do the function here
+                //Do the function here
             }
         });
 
@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
         View header = navigationView.getHeaderView(0);
         progressStatus = 25;
         Drawable drawable = ResourcesCompat.getDrawable(getResources(), R.drawable.progress_bar, null);
-        progressBar = (ProgressBar)header.findViewById(R.id.progressbar1);
+        progressBar = (ProgressBar) header.findViewById(R.id.progressbar1);
         // Main Progress
         progressBar.setProgress(progressStatus);
         // Maximum Progress
@@ -231,7 +231,7 @@ public class MainActivity extends AppCompatActivity {
                         Class fragmentClass;
                         // Handle navigation view item clicks here.
                         int id = item.getItemId();
-                        switch(id) {
+                        switch (id) {
                             case R.id.achievements:
                                 fragmentClass = AchievementFragment.class;
                                 break;
@@ -253,8 +253,8 @@ public class MainActivity extends AppCompatActivity {
                             e.printStackTrace();
                         }
                         // Insert the fragment by replacing any existing fragment
-                        FragmentManager fragmentManager = getFragmentManager();
-                        fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment).commit();
+                        // FragmentManager fragmentManager = getFragmentManager();
+                        // fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment).commit();
                         // Highlight the selected item has been done by NavigationView
                         item.setChecked(true);
 
