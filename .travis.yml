@@ -1,43 +1,109 @@
+#https://lint.travis-ci.org/
 language: android
 sudo: required
 jdk: oraclejdk8
+ 
+cache:
+  directories:
+  - "$HOME/.m2"
+  - "$HOME/.gradle"
+  - "$HOME/.gradle/caches/"
+  - "$HOME/.gradle/wrapper/"
+ 
+before_cache:
+ - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
+ 
 env:
   global:
-   - ANDROID_API_LEVEL=24
-   - EMULATOR_API_LEVEL=21
-   - ANDROID_BUILD_TOOLS_VERSION=24.0.2
-   - ANDROID_ABI=google_apis/armeabi-v7a
-   - ADB_INSTALL_TIMEOUT=20 # minutes (2 minutes by default)
+  - ANDROID_API_LEVEL=24
+  - EMULATOR_API_LEVEL=21
+  - ANDROID_BUILD_TOOLS_VERSION=24.0.2
+  - ANDROID_ABI=google_apis/armeabi-v7a
+  - ADB_INSTALL_TIMEOUT=20
+  - secure: "QbCi0uj+QeO/ZIDylJ+wLMWUZmbH/5wz1mP+sk3wuu+u53mSqPFNGqe1miPaTnSMOQmKLYvimib0/052RgvM5vYA4fZrT8UMmd4bfQw7E1n0SPyIJTXbO2m+BtQPphQhuTpqQWYxXQdPfVse4w9MO58uT1gKwTv/m61VK2GMNel70sjmCu5bblEWp//ntEnrISCBBbAFnR1X7XdAQMpWhLA2BtqATSWV+gmjAnz3f2MRbKOZNDL4yaoEq+rguc2A+z2J99e4KIgJO80JFDcIMRMuH78+W6f2LVlMOoG9kKJLi5tWxRL5oJ83Sbw7AkHb4I8Ee0tv3RBov8qoUlxD5CvS5IttjgiHufxcapQRh97pUYKKjteFh2rdKhuiwEx6LOfxXq35PCnvwwet2gXMqkXIH6Y6DvZjdbIhTbX6p2YkjoNl3GW7sD3vuEp1sXRuZg7pb4q2LC3+sxvZArwZI8ArWA57qnmHP2lO+zh59tkEtqZYQX+jBFETOs3AS3UF0u3jyZnqIEwCY+eRQo0Mx8ioRc0Dx5cyodK7fjSTaiGR5IODZGgQ591PuA5NbsJl4lqHiUu/2+5ZUhStxyIuDWh4aRMukzKyKOIgiq/MK6FLd7W3Jz/HPx7G8uGeGk4KIcpFcEK6RENTneREkewwyHzPXwKQgEglyZVpoXunSjo="
+  - secure: "jBKiAIyQhiAtxzwv9cCOmjKfrcdNsO4k5S3fLvhWiH3gs/ZqJhQno+rLcwXUMBzXSrLMhGq5XcmRhL+RbePiPWCvpzcfMD/9NbCYUyf9ncXa94zUpkvhuuwCOECjnInnQSSY/gvydcQMoZ/Qx4Unctv0xDorHerBhXzB87HjD7HX4osyz30W2R9C+ox31HqG3VidCcCSE9NfoyiWsH1hJlYpjucQFIVObCwKfPDvNsCFRwMooii2enagC1HAHqFb4KJmxe6RZLwj3Crz6u0JZpAuDX4C+Vrn++W6oYcXjXIFlIPg8hC4Do+/rI/QyASp7InZvQm67INvXN5ZDMaAtV5u+BBdc8JnMJoTlwRYqNFTRZ8h8R37+zzhXMT9jpYDiTiMcCIQuerPc358Df+m5a4IDsVm/Gui6vzR2l+1uO9ExAnvDJvI6UHYmcOPpxTdfAYg4eycf+l+6RKS+afmvDjwDiXlFrWVbmixr8aMKGThe1imK0vUPNjaRhGy1OYjBNsELELebAj0jZaZHH1/4EibGO2hQ93I8HpBYfVueSM1Q6fH/gpuRA6jnZ4ePlTrUfP21cstdjiqBPGEfzQbE1WZBc78mvq7VmgWsjM+VhmUbaqx4iKZb9zYFs9GCGE2fPkaRoefTMxSihWj568U6XtwwiaREbrM9C8QDuV0udU="
+ 
 android:
   components:
-    - tools
-    - tools 
-    - platform-tools
-    - build-tools-24.0.2
-    - android-24
-    - android-$EMULATOR_API_LEVEL
-    - extra-google-m2repository
-    - extra-android-m2repository
-    - addon-google_apis-google-19
-    - sys-img-armeabi-v7a-addon-google_apis-google-$ANDROID_API_LEVEL
-    - sys-img-armeabi-v7a-addon-google_apis-google-$EMULATOR_API_LEVEL
+  - tools
+  - tools
+  - platform-tools
+  - build-tools-24.0.2
+  - android-24
+  - android-$EMULATOR_API_LEVEL
+  - extra-google-m2repository
+  - extra-android-m2repository
+  - addon-google_apis-google-19
+  - sys-img-armeabi-v7a-addon-google_apis-google-$ANDROID_API_LEVEL
+  - sys-img-armeabi-v7a-addon-google_apis-google-$EMULATOR_API_LEVEL
   licenses:
-    - 'android-sdk-preview-license-.+'
-    - 'android-sdk-license-.+'
-    - 'google-gdk-license-.+'
-    - '.+'
-
+  - android-sdk-preview-license-.+
+  - android-sdk-license-.+
+  - google-gdk-license-.+
+  - ".+"
+ 
 before_install:
- - mkdir "$ANDROID_HOME/licenses" || true
- - echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > "$ANDROID_HOME/licenses/android-sdk-license"
- - echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
- - chmod +x gradlew
-
-before_script:
-  - echo no | android create avd --force -n test -t android-21 --abi armeabi-v7a
-  - emulator -avd test -no-skin -no-audio -no-window &
-  - android-wait-for-emulator
-  - adb shell input keyevent 82 &
-
+- openssl aes-256-cbc -K $encrypted_31ca736e9020_key -iv $encrypted_31ca736e9020_iv
+  -in .keystore.enc -out .keystore -d
+- mkdir "$ANDROID_HOME/licenses" || true
+- echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > "$ANDROID_HOME/licenses/android-sdk-license"
+- echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
+- chmod +x gradlew
+ 
 script:
-   - ./gradlew build connectedCheck --stacktrace
+- "./gradlew clean build connectedCheck -PdisablePreDex --stacktrace"
+ 
+before_script:
+- echo no | android create avd --force -n test -t android-21 --abi armeabi-v7a
+- emulator -avd test -no-skin -no-audio -no-window &
+- android-wait-for-emulator
+- adb shell input keyevent 82 &
+ 
+before_deploy:
+- cp $TRAVIS_BUILD_DIR/.keystore $HOME
+#- jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 $HOME/android/release-unsigned.apk lukeapp_keystore -keystore $HOME/.keystore -storepass $storepass -keypass $keypass
+#- jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore certificates/myappname-cert.keystore -storepass myappname -keypass myappname platforms/android/ant-build/CordovaApp-release-unsigned.apk myappname
+
+# try this next
+# http://docs.oracle.com/javase/7/docs/technotes/tools/windows/jarsigner.html Example
+#- jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore $HOME/.keystore -storepass $storepass -keypass $keypass $HOME/android/release-unsigned.apk lukeapp_keystore
+
+
+- cd app/build/outputs/apk/
+- ls -a
+# jarsigner: unable to open jar file: /home/travis/android/release-unsigned.apk
+#- jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore $HOME/.keystore -storepass $storepass -keypass $keypass app/build/outputs/apk/release-unsigned.apk lukeapp_keystore
+# v2 of upper one
+- jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore $HOME/.keystore -storepass $storepass -keypass $keypass app-release-unsigned.apk lukeapp_keystore
+# verification
+- jarsigner -verify app-release-unsigned.apk
+
+#Only one alias can be specified
+#- jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 lukeapp_keystore -keystore $HOME/.keystore -storepass $storepass -keypass $keypass $HOME/android/release-unsigned.apk lukeapp
+
+#Unable to open '/home/travis/android/release-unsigned.apk' as zip archive
+#- "${ANDROID_HOME}/build-tools/24.0.2/zipalign 4 app-release-unsigned.apk $HOME/android/lukeapp.apk"
+
+#Output file 'app-release-unsigned.apk' exists
+#- "${ANDROID_HOME}/build-tools/24.0.2/zipalign 4 $HOME/android/lukeapp.apk app-release-unsigned.apk"
+
+# try next:
+- "${ANDROID_HOME}/build-tools/24.0.2/zipalign -v 4 app-release-unsigned.apk lukeapp.apk"
+- ls -a
+
+deploy:
+  provider: releases
+  #file: app-debug.apk
+  #file: "$HOME/android/lukeapp.apk"
+  file: lukeapp.apk
+  skip_cleanup: true
+  on:
+    repo: harmittaa/LukeApp
+    tags: true
+    jdk: oraclejdk8
+  api_key:
+    secure: Ie9y6AloQWoWwQa/tOofJveX8xbPlqyQc75X8gV6LwMrd8S3c71VhrR1VZL5cKd10JvYFZ/BPqw9JjHCkpSfqDQP7t3PCoDeqll9LEZKCCWVmpBv+Sls2xJpBAej33hAlpdJ8ig7kWOWsIHsLQdvx3NFx+tc+A4TiawZLfs4JrXqg/6SN2KJa1t7SeNZvKLE7SclXGHwXHlt8Cddznlscoffd/0yJMl+fQP1TLWLMlabNYf4zxtOAfxhl0moKru6vWYVPIY5kFL78Wpx2hftpfAWopxaKyk3M5o/OUiT5gqQpC7RMP2kw6zpLfyEsyfk0y/2roWaczWfy2xwbO1kfIaesUw6ZVu6RoIHkKxWcDWaTR85QyZhohbe372Cjt3mS56hthoJ0oja9dexZltlsMHoHVq4JcrQf2rOy45EqEZSmUwk57XaXQh0zkZp+xqK4JtN05o7HidoYMQlGnGlizbYWKuN+NclK8m9uLB9zmxhB7x+0GClxeKxTTFJZvQ8NLHtS+pObu2OfsnAvL/4EQOtqCV0jKVvS3cXezLf8zuvKuq5fl/I7OEVYxFFjFSx5JV0gycO3PV6BgeWfIsZkNvg4V874YeWdEEP/yOy0Zs57SNkVzi9uewaUJ8mKnfmuuesuyIfqvaMZia0XZshc63vL3Lp+b9IK4DmL/huO5s=
+notifications:
+  email: false
+  slack:
+    secure: "gNSqTlUKguDFSwLwb6T9pn3a1erpL4COqT0I0fhHGGjxWmD8I2Pof7TS/e1Scr9IzCfbe1z8s3EbdAtmFIutLrsJ1qz6nggtr1yKtXjy1IP0yuEkDpsEwQ4L3IQ8zujp1XaH/D+Y4DXhbkVgx1XrS0jt2vViHgMwlUQ+DF9jCL05213U4ZiGhZfDmyc8cuZPm+2/vNEUsYUiijl8XBWm5OFVKP7+bA6SF/DndRs3CCkxrDxLmuSvEwMB3lmmM1FR/7ZHr9NaKq+dZJgaUNZHgoop8kO+O3A2/B5zFztzPnAINyEe1PgYJxIficjFazsk64tGDIfmwv0zKgntfVu0tnMI1yaNfXIlyRDZkV41CW1/7TSmnIfnrlpFFSwg3LNYigh1plQn6iFpHOVf8TbIxtGVjkHuMYcaIyvNDNZq6itp0i8t1c06xT9SfPnVBSiP/BTMPoRMmhA+ZbIRW+5t1LGFO/42FNvxIDBuy0FSy7x79P1o3RJrYtJzsYwTBIfFyQhxwvEZQGoYjqZ713YMDTmvWF0EklKMztjidE77x4CYN5EyyoziA8RytOenHkWkygYzoOlmAj3f/qEJn2CxBU+PCUNBluHRQ2c3PQB3zhZcgI8u/hgUZoWyRojC8wma4fr3o9Tei11p19sqbLq4DA0dJDlT9sPceWTDGepUaUk="

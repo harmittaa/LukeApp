@@ -1,6 +1,7 @@
 package com.luke.lukef.lukeapp;
 
 import android.Manifest;
+
 import android.animation.ObjectAnimator;
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -18,6 +19,9 @@ import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 
 import android.os.Bundle;
@@ -28,6 +32,7 @@ import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
+import android.widget.PopupWindow;
 import android.widget.Toast;
 
 import com.luke.lukef.lukeapp.fragments.AchievementFragment;
@@ -40,6 +45,11 @@ import com.luke.lukef.lukeapp.fragments.ProfileFragment;
 import com.luke.lukef.lukeapp.fragments.UserSubmissionFragment;
 
 import static android.R.id.progress;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -318,8 +328,8 @@ public class MainActivity extends AppCompatActivity {
                             e.printStackTrace();
                         }
                         // Insert the fragment by replacing any existing fragment
-                        // FragmentManager fragmentManager = getFragmentManager();
-                        // fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment).commit();
+                         FragmentManager fragmentManager = getFragmentManager();
+                         fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment).commit();
                         // Highlight the selected item has been done by NavigationView
                         item.setChecked(true);
 
@@ -350,6 +360,4 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
-
-
 }
