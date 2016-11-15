@@ -25,12 +25,14 @@ import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 
+import com.luke.lukef.lukeapp.fragments.AchievementFragment;
 import com.luke.lukef.lukeapp.fragments.ConfirmationFragment;
 import com.luke.lukef.lukeapp.fragments.LeaderboardFragment;
 import com.luke.lukef.lukeapp.fragments.MapFragment;
 import com.luke.lukef.lukeapp.fragments.NewSubmissionFragment;
 import com.luke.lukef.lukeapp.fragments.PointOfInterestFragment;
 import com.luke.lukef.lukeapp.fragments.ProfileFragment;
+import com.luke.lukef.lukeapp.fragments.UserSubmissionFragment;
 
 import static android.R.id.progress;
 
@@ -231,10 +233,10 @@ public class MainActivity extends AppCompatActivity {
                         int id = item.getItemId();
                         switch(id) {
                             case R.id.achievements:
-//                                fragmentClass = AchievementFragment.class;
+                                fragmentClass = AchievementFragment.class;
                                 break;
                             case R.id.my_findings:
-//                                fragmentClass = UserSubmissionFragment.class;
+                                fragmentClass = UserSubmissionFragment.class;
                                 break;
                             case R.id.leaderboard:
                                 fragmentClass = LeaderboardFragment.class;
@@ -246,7 +248,7 @@ public class MainActivity extends AppCompatActivity {
                                 fragmentClass = MapFragment.class;
                         }
                         try {
-//                            fragment = (Fragment) fragmentClass.newInstance();
+                            fragment = (Fragment) fragmentClass.newInstance();
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
