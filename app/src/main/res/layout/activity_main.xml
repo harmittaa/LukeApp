@@ -1,118 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/activity_main"
+    android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.luke.lukef.lukeapp.MainActivity"
-    >
+    android:fitsSystemWindows="true"
+    tools:openDrawer="start">
 
-    <RelativeLayout
-        android:id="@+id/fragment_container"
+    <include
+        layout="@layout/main_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <android.support.design.widget.NavigationView
+        android:id="@+id/nav_view"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
-        app:layout_constraintLeft_toLeftOf="parent"></RelativeLayout>
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:fitsSystemWindows="true"
+        app:headerLayout="@layout/nav_header_main"
+        app:menu="@menu/main_drawer" />
 
-    <LinearLayout
-        android:id="@+id/linearLayout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent">
-
-        <RelativeLayout
-            android:id="@+id/bottomBarBackTick"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            android:visibility="gone">
-
-            <ImageButton
-                android:id="@+id/button_back1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Button"
-                app:srcCompat="@android:drawable/ic_menu_revert"
-                android:layout_alignParentLeft="true"/>
-
-            <ImageButton
-                android:id="@+id/button_tick"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Button"
-                app:srcCompat="@android:drawable/btn_star"
-                android:layout_alignParentRight="true"/>
-        </RelativeLayout>
-
-        <RelativeLayout
-            android:id="@+id/bottomBarBackReport"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            android:visibility="gone">
-
-            <ImageButton
-                android:id="@+id/button_back2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Button"
-                app:srcCompat="@android:drawable/ic_menu_revert"
-                android:layout_alignParentLeft="true"/>
-
-            <ImageButton
-                android:id="@+id/button_report"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Button"
-                app:srcCompat="@android:drawable/btn_star_big_on"
-                android:layout_alignParentRight="true"/>
-        </RelativeLayout>
-
-        <RelativeLayout
-            android:id="@+id/bottomBarMap"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            android:visibility="visible">
-
-            <ImageButton
-                android:id="@+id/button_left"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Button"
-                app:srcCompat="@android:drawable/ic_dialog_dialer"
-                android:elevation="4dp"
-                android:layout_alignParentLeft="true"/>
-
-            <ImageButton
-                android:id="@+id/button_mid"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Button"
-                app:srcCompat="@android:drawable/ic_dialog_dialer"
-                android:layout_centerInParent="true">
-
-            </ImageButton>
-            <ImageButton
-                android:id="@+id/button_right"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Button"
-                app:srcCompat="@android:drawable/ic_dialog_dialer"
-                android:layout_alignParentRight="true"/>
-        </RelativeLayout>
-
-    </LinearLayout>
-
-
-</android.support.constraint.ConstraintLayout>
+</android.support.v4.widget.DrawerLayout>
