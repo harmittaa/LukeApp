@@ -8,4 +8,8 @@ public class Constants {
     public enum bottomActionBarStates{
         MAP_CAMERA, BACK_ONLY, BACK_TICK, BACK_REPORT
     }
+
+    public enum loginFragmentTypes{
+        LOGIN_FRAGMENT_WELCOME, LOGIN_FRAGMENT_AUTH0,LOGIN_FRAGMENT_USERDATA
+    }
 }
