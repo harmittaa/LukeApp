@@ -318,8 +318,8 @@ public class MainActivity extends AppCompatActivity {
                             e.printStackTrace();
                         }
                         // Insert the fragment by replacing any existing fragment
-                        // FragmentManager fragmentManager = getFragmentManager();
-                        // fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment).commit();
+                         FragmentManager fragmentManager = getFragmentManager();
+                         fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment).commit();
                         // Highlight the selected item has been done by NavigationView
                         item.setChecked(true);
 
@@ -350,6 +350,4 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
-
-
 }
