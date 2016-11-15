@@ -8,16 +8,9 @@
     tools:context="com.luke.lukef.lukeapp.MainActivity"
     tools:showIn="@layout/main_view">
 
-    <RelativeLayout
-        android:id="@+id/fragment_container"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
-        app:layout_constraintLeft_toLeftOf="parent"></RelativeLayout>
-
     <LinearLayout
         android:id="@+id/linearLayout"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -114,6 +107,13 @@
         </RelativeLayout>
 
     </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
+        app:layout_constraintLeft_toLeftOf="parent"></RelativeLayout>
 
 
 </android.support.constraint.ConstraintLayout>
