@@ -126,11 +126,14 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
             View row = null;
             LayoutInflater inflater = cntx.getLayoutInflater();
             row = inflater.inflate(R.layout.list_item_leaderboard, null);
+            TextView number = (TextView)row.findViewById(R.id.number);
             TextView tv = (TextView) row.findViewById(R.id.title);
             ImageView im = (ImageView) row.findViewById(R.id.imageview);
             tv.setText(array_sort.get(position));
 
             im.setImageBitmap(getRoundedShape(decodeFile(cntx, listview_images[position]), 200));
+
+            number.setText("" + (position + 1) + ". ");
 
             return row;
         }
