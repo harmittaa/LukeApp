@@ -58,6 +58,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         switch (v.getId()) {
             case R.id.skipLoginButton:
                 //TODO: switch to mainactivity
+                SessionSingleton.getInstance().setUserLogged(false);
+                startActivity(new Intent(WelcomeActivity.this, MainActivity.class));
                 break;
             case R.id.loginButton:
                 SetupTask setupTask = new SetupTask(getString(R.string.auth0URL));
@@ -97,6 +99,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     // TODO: 15/11/2016 check username, if exists -> main screen, if not -> go to username creation
                     CheckUsernameTask checkUsernameTask = new CheckUsernameTask();
                     checkUsernameTask.execute();
+                    SessionSingleton.getInstance().setUserLogged(true);
                     finish();
                 } else {
                     System.out.println("jeenem");

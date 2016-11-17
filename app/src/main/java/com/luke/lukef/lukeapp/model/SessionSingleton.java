@@ -21,6 +21,7 @@ public class SessionSingleton {
     private int xp;
     private int level;
     private Bitmap userImage;
+    private boolean isUserLogged = false;
 
     // optimal case when all the parameters can be gotten from the server
     public void setValues(String username, int xp, int level, Bitmap userImage, String userId, String accessToken, String idToken){
@@ -100,5 +101,13 @@ public class SessionSingleton {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public boolean isUserLogged() {
+        return isUserLogged;
+    }
+
+    public void setUserLogged(boolean userLogged) {
+        isUserLogged = userLogged;
     }
 }
