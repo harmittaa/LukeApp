@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="lock-2.0.0">
+    <ANNOTATIONS>
+      <root url="jar://$PROJECT_DIR$/app/build/intermediates/exploded-aar/com.auth0.android/lock/2.0.0/annotations.zip!/" />
+    </ANNOTATIONS>
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/app/build/intermediates/exploded-aar/com.auth0.android/lock/2.0.0/res" />
+      <root url="jar://$PROJECT_DIR$/app/build/intermediates/exploded-aar/com.auth0.android/lock/2.0.0/jars/classes.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.auth0.android/lock/2.0.0/5601a4ce6dce418abdc481cafe55a93a5977c058/lock-2.0.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
