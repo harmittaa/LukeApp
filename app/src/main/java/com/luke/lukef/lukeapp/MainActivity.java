@@ -129,48 +129,33 @@ public class MainActivity extends AppCompatActivity {
     public void fragmentSwitcher(Constants.fragmentTypes fragmentToChange) {
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        Fragment fragment = null;
         // cases are enumerations
         switch (fragmentToChange) {
             case FRAGMENT_CONFIRMATION:
                 // create the fragment object
-                ConfirmationFragment confirmationFragment = new ConfirmationFragment();
-                // create the transaction to switch what ever is in the container to the fragment
-                fragmentTransaction.replace(R.id.fragment_container, confirmationFragment);
-                fragmentTransaction.commit();
-                //setBottomBarButtons(Constants.bottomActionBarStates.BACK_TICK);
-
+                fragment = new ConfirmationFragment();
                 break;
             case FRAGMENT_LEADERBOARD:
-                LeaderboardFragment leaderboardFragment = new LeaderboardFragment();
-                fragmentTransaction.replace(R.id.fragment_container, leaderboardFragment).addToBackStack(null);
-                fragmentTransaction.commit();
-                //setBottomBarButtons(Constants.bottomActionBarStates.BACK_ONLY);
+                fragment = new LeaderboardFragment();
                 break;
             case FRAGMENT_NEW_SUBMISSION:
-                NewSubmissionFragment newSubmissionFragment = new NewSubmissionFragment();
-                fragmentTransaction.replace(R.id.fragment_container, newSubmissionFragment).addToBackStack(null);
-                fragmentTransaction.commit();
-                //setBottomBarButtons(Constants.bottomActionBarStates.BACK_TICK);
+                fragment = new NewSubmissionFragment();
                 break;
             case FRAGMENT_POINT_OF_INTEREST:
-                PointOfInterestFragment pointOfInterestFragment = new PointOfInterestFragment();
-                fragmentTransaction.replace(R.id.fragment_container, pointOfInterestFragment).addToBackStack(null);
-                fragmentTransaction.commit();
-                //setBottomBarButtons(Constants.bottomActionBarStates.BACK_ONLY);
+                fragment = new PointOfInterestFragment();
                 break;
             case FRAGMENT_PROFILE:
-                ProfileFragment profileFragment = new ProfileFragment();
-                fragmentTransaction.replace(R.id.fragment_container, profileFragment).addToBackStack(null);
-                fragmentTransaction.commit();
-                //setBottomBarButtons(Constants.bottomActionBarStates.BACK_ONLY);
+                fragment = new ProfileFragment();
                 break;
             case FRAGMENT_MAP:
-                Log.e(TAG, "fragmentSwitcher: SWITCH");
-                MapFragment mapFragment = new MapFragment();
-                fragmentTransaction.replace(R.id.fragment_container, mapFragment);
-                fragmentTransaction.commit();
-                //setBottomBarButtons(Constants.bottomActionBarStates.MAP_CAMERA);
+                fragment = new MapFragment();
                 break;
+        }
+        //replace the fragment
+        if(fragment != null){
+            fragmentTransaction.replace(R.id.fragment_container, fragment);
+            fragmentTransaction.commit();
         }
     }
 
