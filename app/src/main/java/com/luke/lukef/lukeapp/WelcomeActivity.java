@@ -97,8 +97,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     // TODO: 15/11/2016 check username, if exists -> main screen, if not -> go to username creation
                     CheckUsernameTask checkUsernameTask = new CheckUsernameTask();
                     checkUsernameTask.execute();
+                    finish();
                 } else {
                     System.out.println("jeenem");
+                    finish();
                 }
             } catch (InterruptedException e) {
                 Log.e(TAG, "onAuthentication: ",e );
@@ -122,8 +124,10 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        lock.onDestroy(this);
-        lock = null;
+        if(lock!=null) {
+            lock.onDestroy(this);
+            lock = null;
+        }
     }
 
     private class SetupTask extends AsyncTask<Void, Void, Void> {
@@ -159,9 +163,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
                 httpURLConnection.disconnect();
             } catch (MalformedURLException e) {
-                e.printStackTrace();
+                Log.e(TAG, "doInBackground: ",e );
             } catch (IOException e) {
-                e.printStackTrace();
+                Log.e(TAG, "doInBackground: ",e );
             }
 
             return null;
