@@ -7,6 +7,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
@@ -14,17 +17,21 @@ import com.luke.lukef.lukeapp.R;
 
 public class NewSubmissionFragment extends Fragment implements View.OnClickListener {
     View fragmentView;
-    Button newsubmissionMapButton;
-    Button confirmationButton;
+    Button cameraButton;
+    Button categoryButton;
+    EditText submissionTitle;
+    EditText submissionDescription;
+
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         fragmentView = inflater.inflate(R.layout.fragment_new_submission, container, false);
-        confirmationButton = (Button) fragmentView.findViewById(R.id.confirmation_button);
-        newsubmissionMapButton = (Button) fragmentView.findViewById(R.id.newsubmission_map_button);
+        cameraButton = (Button) fragmentView.findViewById(R.id.activateCameraButton);
+        categoryButton = (Button) fragmentView.findViewById(R.id.buttonCategory);
         setupButtons();
         getMainActivity().setBottomBarButtons(Constants.bottomActionBarStates.BACK_TICK);
+        this.setBottomButtonListeners();
         return fragmentView;
     }
 
@@ -34,9 +41,17 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
             case R.id.confirmation_button:
                 getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_CONFIRMATION);
                 break;
-            case R.id.newsubmission_map_button:
-                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP);
+            case R.id.button_back1:
+                getMainActivity().onBackPressed();
                 break;
+            case R.id.button_back2:
+                getMainActivity().onBackPressed();
+                break;
+            case R.id.button_tick:
+                // TODO: 18/11/2016 check the submission valididty, then submit it
+                break;
+            case R.id.activateCameraButton:
+                // TODO: 18/11/2016 activate camera 
         }
     }
 
@@ -45,7 +60,18 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     }
 
     private void setupButtons() {
-        confirmationButton.setOnClickListener(this);
-        newsubmissionMapButton.setOnClickListener(this);
+        cameraButton.setOnClickListener(this);
+        categoryButton.setOnClickListener(this);
+    }
+
+    private void setBottomButtonListeners() {
+        LinearLayout v = getMainActivity().getBottomBar();
+        final int childcount = v.getChildCount();
+        for (int i = 0; i < childcount; i++) {
+            View view = v.getChildAt(i);
+            if (view instanceof Button || view instanceof ImageButton) {
+                view.setOnClickListener(this);
+            }
+        }
     }
 }

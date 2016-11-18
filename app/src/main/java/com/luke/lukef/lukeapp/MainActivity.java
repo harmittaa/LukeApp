@@ -31,6 +31,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.PopupWindow;
 import android.widget.Toast;
@@ -157,8 +158,7 @@ public class MainActivity extends AppCompatActivity {
         }
         //replace the fragment
         if(fragment != null){
-            fragmentTransaction.replace(R.id.fragment_container, fragment);
-            fragmentTransaction.commit();
+            fragmentTransaction.replace(R.id.fragment_container, fragment).addToBackStack("BackStack").commit();
         }
     }
 
@@ -202,14 +202,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void setBottomBarButtonsListeners() {
-        View.OnClickListener cl = new View.OnClickListener() {
+        View.OnClickListener clBack = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onBackPressed();
             }
         };
-        findViewById(R.id.button_back1).setOnClickListener(cl);
-        findViewById(R.id.button_back2).setOnClickListener(cl);
+        findViewById(R.id.button_back1).setOnClickListener(clBack);
+        findViewById(R.id.button_back2).setOnClickListener(clBack);
     }
 
     final private int REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS = 124;
@@ -274,6 +274,7 @@ public class MainActivity extends AppCompatActivity {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
+            super.onBackPressed();
         } else {
             super.onBackPressed();
         }
@@ -314,7 +315,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                         // Insert the fragment by replacing any existing fragment
                          FragmentManager fragmentManager = getFragmentManager();
-                         fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment).commit();
+                         fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment).addToBackStack("BackStack").commit();
                         // Highlight the selected item has been done by NavigationView
                         item.setChecked(true);
 
@@ -344,5 +345,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    //returns the bottom button bar, this can be later used in fragments, to set them as the click listener
+    public LinearLayout getBottomBar(){
+        return (LinearLayout)this.findViewById(R.id.linearLayout);
     }
 }
