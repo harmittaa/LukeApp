@@ -4,9 +4,12 @@ import android.Manifest;
 import android.app.Dialog;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.location.Location;
 import android.location.LocationManager;
+import android.media.Image;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -23,9 +26,15 @@ import android.widget.TextView;
 
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
+import com.luke.lukef.lukeapp.NewUserActivity;
 import com.luke.lukef.lukeapp.R;
+import com.luke.lukef.lukeapp.model.SessionSingleton;
+import com.luke.lukef.lukeapp.model.Submission;
 import com.luke.lukef.lukeapp.tools.PopupMaker;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
@@ -41,7 +50,14 @@ import org.osmdroid.views.overlay.gestures.RotationGestureOverlay;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 
 public class MapFragment extends Fragment implements View.OnClickListener {
     private static final String TAG = "MapFragment";
@@ -62,6 +78,7 @@ public class MapFragment extends Fragment implements View.OnClickListener {
         setupButtons();
         getMainActivity().setBottomBarButtons(Constants.bottomActionBarStates.MAP_CAMERA);
         setupOSMap();
+        getSubmissions();
         return fragmentView;
     }
 
@@ -116,7 +133,7 @@ public class MapFragment extends Fragment implements View.OnClickListener {
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        Location lastLoc = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+ /*       Location lastLoc = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         IMapController mapController = map.getController();
         mapController.setZoom(100);
         GeoPoint startPoint = new GeoPoint(lastLoc.getLatitude(), lastLoc.getLongitude());
@@ -126,7 +143,7 @@ public class MapFragment extends Fragment implements View.OnClickListener {
 
         MyLocationNewOverlay mLocationOverlay = new MyLocationNewOverlay(new GpsMyLocationProvider(getMainActivity()),map);
         mLocationOverlay.enableMyLocation();
-        map.getOverlays().add(mLocationOverlay);
+        map.getOverlays().add(mLocationOverlay); */
 
         CompassOverlay mCompassOverlay = new CompassOverlay(getMainActivity(), new InternalCompassOrientationProvider(getMainActivity()), map);
         mCompassOverlay.enableCompass();
@@ -144,9 +161,9 @@ public class MapFragment extends Fragment implements View.OnClickListener {
         map.getOverlays().add(mScaleBarOverlay);*/
     }
 
-    private void mapPinTest(Location l){
+    private void mapPinTest(Location l) {
         ArrayList<OverlayItem> items = new ArrayList<OverlayItem>();
-        OverlayItem newOI = new OverlayItem("", "", new GeoPoint(l.getLatitude(),l.getLongitude()));
+        OverlayItem newOI = new OverlayItem("", "", new GeoPoint(l.getLatitude(), l.getLongitude()));
         //PIN DRAWABLE CAN BE CHANGED, this can be used to make different colored pins for categories / submission types
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             newOI.setMarker(getMainActivity().getDrawable(android.R.drawable.btn_star));
@@ -165,6 +182,7 @@ public class MapFragment extends Fragment implements View.OnClickListener {
                         popMaker.createPopupTest();
                         return true;
                     }
+
                     @Override
                     public boolean onItemLongPress(final int index, final OverlayItem item) {
                         return false;
@@ -173,5 +191,76 @@ public class MapFragment extends Fragment implements View.OnClickListener {
         mOverlay.setFocusItemsOnTap(true);
 
         map.getOverlays().add(mOverlay);
+    }
+
+    private void getSubmissions() {
+        Log.e(TAG, "Getting submissions");
+        Runnable getSubmissions = new Runnable() {
+            String jsonString;
+            List submissions;
+
+            @Override
+            public void run() {
+                try {
+                    URL checkUsernameUrl = new URL("http://www.balticapp.fi/lukeA/report");
+                    HttpURLConnection httpURLConnection = (HttpURLConnection) checkUsernameUrl.openConnection();
+                    if (httpURLConnection.getResponseCode() == 200) {
+                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
+                        jsonString = "";
+                        StringBuilder stringBuilder = new StringBuilder();
+                        String line;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            stringBuilder.append(line + "\n");
+                        }
+                        bufferedReader.close();
+                        jsonString = stringBuilder.toString();
+                        Log.e(TAG, "The jsonString " + jsonString);
+                        JSONObject jsonObject;
+                        JSONArray jsonArray;
+                        submissions = new ArrayList<Submission>();
+                        List submissionIds = new ArrayList<Submission>();
+                        try {
+                            jsonArray = new JSONArray(jsonString);
+                            Log.e(TAG, "JsonArray length " + jsonArray.length());
+                            if (jsonArray.length() > 0) {
+                                for (int i = 0; i < jsonArray.length(); i++) {
+                                    jsonObject = jsonArray.getJSONObject(i);
+                                    Log.e(TAG, "Parsed jsonObject: " + jsonObject);
+
+
+                                    for (int j = 0; j < jsonObject.getJSONArray("categoryId").length(); j++) {
+                                        submissionIds.add(jsonObject.getJSONArray("categoryId").get(i));
+                                    }
+
+                                    Bitmap image;
+                                    Location location = new Location("");
+                                    location.setLongitude(jsonObject.getDouble("longitude"));
+                                    location.setLatitude(jsonObject.getDouble("latitude"));
+
+                                    submissions.add(new Submission(jsonObject.getString("id"), jsonObject.getString("title"), submissionIds, jsonObject.getString("date"),
+                                                    jsonObject.getString("description"), image, location));
+
+                                }
+                            } else {
+
+                            }
+
+
+                        } catch (JSONException e) {
+                            Log.e(TAG, "onPostExecute: ", e);
+                        }
+                    } else {
+
+                    }
+                } catch (MalformedURLException e) {
+                    Log.e(TAG, "doInBackground: ", e);
+                } catch (IOException e) {
+                    Log.e(TAG, "doInBackground: ", e);
+                }
+            }
+        };
+
+        Thread thread = new Thread(getSubmissions);
+        thread.start();
     }
 }

@@ -5,29 +5,45 @@ package com.luke.lukef.lukeapp.model;
  */
 
 import android.graphics.Bitmap;
+import android.location.Location;
 
+import java.lang.reflect.Array;
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * handles submissions made by users
  */
 public class Submission {
     private Bitmap image;
-    private int location;
+    private Location location;
     private String title;
-    private String category;
-    private String feedback;
+    private List category;
     private Date date;
+    private String description;
+    private String id;
 
-
-    public Submission(String title, String category, String feedback, Date date) {
+    //all values present
+    public Submission(String id, String title, List category, Date date, String description, Bitmap image, Location location) {
+        this.category = new ArrayList();
+        this.id = id;
         this.image = image;
         this.location = location;
         this.title = title;
         this.category = category;
-        this.feedback = feedback;
         this.date = date;
+        this.description = description;
+    }
+
+    //only mandatory values
+    public Submission(List category, Date date, String description) {
+        this.category = new ArrayList();
+        this.location = location;
+        this.category = category;
+        this.date = date;
+        this.description = description;
     }
 
     //making a new submission
@@ -59,7 +75,7 @@ public class Submission {
         return image;
     }
 
-    public int getLocation() {
+    public Location getLocation() {
         return location;
     }
 
@@ -67,17 +83,19 @@ public class Submission {
         return title;
     }
 
-    public String getCategory() {
+    public List getCategory() {
         return category;
-    }
-
-    public String getFeedback() {
-        return feedback;
     }
 
     public Date getDate() {
         return this.date;
     }
 
-}
+    public String getDescription() {
+        return description;
+    }
 
+    public void setDescription(String description) {
+        this.description = description;
+    }
+}
