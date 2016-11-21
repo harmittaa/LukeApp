@@ -9,6 +9,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
@@ -24,6 +25,7 @@ import android.widget.TextView;
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
+import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.tools.PopupMaker;
 
 import org.osmdroid.api.IMapController;
@@ -41,15 +43,107 @@ import org.osmdroid.views.overlay.gestures.RotationGestureOverlay;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.net.ssl.HttpsURLConnection;
 
 public class MapFragment extends Fragment implements View.OnClickListener {
     private static final String TAG = "MapFragment";
     private View fragmentView;
     private Button pointOfInterestButton;
-    private Button newSubmissionButton;
     private Button leaderboardButton;
     private MapView map;
+
+
+    public String performPostCall(final String requestURL, final HashMap<String, String> postDataParams) {
+
+        Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                URL url;
+                String response = "";
+                try {
+                    url = new URL(requestURL);
+
+                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                    conn.setRequestProperty(getString(R.string.authorization), getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
+                    conn.setRequestProperty(getString(R.string.acstoken), SessionSingleton.getInstance().getAccessToken());
+                    conn.setReadTimeout(15000);
+                    conn.setConnectTimeout(15000);
+                    conn.setRequestMethod("POST");
+                    conn.setDoInput(true);
+                    conn.setDoOutput(true);
+
+
+                    OutputStream os = conn.getOutputStream();
+                    BufferedWriter writer = new BufferedWriter(
+                            new OutputStreamWriter(os, "UTF-8"));
+                    writer.write(getPostDataString(postDataParams));
+
+                    writer.flush();
+                    writer.close();
+                    os.close();
+                    int responseCode = conn.getResponseCode();
+
+                    if (responseCode == HttpsURLConnection.HTTP_OK || responseCode == 200) {
+                        String line;
+                        BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                        while ((line = br.readLine()) != null) {
+                            response += line + "\n";
+                        }
+                        Log.e(TAG, "ACTUAL RESPONSE: " + response);
+                    } else {
+                        String line;
+                        BufferedReader br = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+                        while ((line = br.readLine()) != null) {
+                            response += line + "\n";
+                        }
+                        Log.e(TAG, "actual ERROR CODE: " + responseCode);
+                        Log.e(TAG, "ACTUAL ERROR: " + response);
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "performPostCall: ", e);
+                }
+
+            }
+        };
+        Thread t = new Thread(r);
+        t.start();
+        return "YEEEEE";
+
+    };
+
+    @NonNull
+    private String getPostDataString(HashMap<String, String> params) throws UnsupportedEncodingException {
+        StringBuilder result = new StringBuilder();
+        boolean first = true;
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            if (first)
+                first = false;
+            else
+                result.append("&");
+
+            result.append(URLEncoder.encode(entry.getKey(), "UTF-8"));
+            result.append("=");
+            result.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
+        }
+
+        return result.toString();
+    }
+
+
+
 
     @Nullable
     @Override
@@ -57,11 +151,19 @@ public class MapFragment extends Fragment implements View.OnClickListener {
         Log.e(TAG, "onCreateView: MAP fragment");
         fragmentView = inflater.inflate(R.layout.fragment_map, container, false);
         //pointOfInterestButton = (Button) fragmentView.findViewById(R.id.poi_button);
-        newSubmissionButton = (Button) fragmentView.findViewById(R.id.new_submission_button);
         leaderboardButton = (Button) fragmentView.findViewById(R.id.leaderboard_button);
         setupButtons();
         getMainActivity().setBottomBarButtons(Constants.bottomActionBarStates.MAP_CAMERA);
         setupOSMap();
+
+        HashMap<String, String> params = new HashMap<>();
+        params.put("title", "TestPattern");
+        params.put("reporGain", "100");
+        params.put("upvoteGain", "10");
+        params.put("downvoteGain", "2");
+        params.put("active", "true");
+        Log.e(TAG, "onCreate:  BEFORE POST REQUEST!");
+        performPostCall("http://www.balticapp.fi/lukeA/experience/create", params);
         return fragmentView;
     }
 
@@ -73,9 +175,6 @@ public class MapFragment extends Fragment implements View.OnClickListener {
                 PopupMaker pm = new PopupMaker(getMainActivity());
                 pm.createPopupTest();
                 break;*/
-            case R.id.new_submission_button:
-                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_NEW_SUBMISSION);
-                break;
             case R.id.leaderboard_button:
                 getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_LEADERBOARD);
                 break;
@@ -88,7 +187,6 @@ public class MapFragment extends Fragment implements View.OnClickListener {
 
     private void setupButtons() {
 //        pointOfInterestButton.setOnClickListener(this);
-        newSubmissionButton.setOnClickListener(this);
         leaderboardButton.setOnClickListener(this);
     }
 

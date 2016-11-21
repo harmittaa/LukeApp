@@ -1,6 +1,7 @@
 package com.luke.lukef.lukeapp.model;
 
 import android.graphics.Bitmap;
+import android.util.Log;
 
 /**
  * Created by Daniel on 15/11/2016.
@@ -89,6 +90,8 @@ public class SessionSingleton {
 
     public void setIdToken(String idToken) {
         this.idToken = idToken;
+
+        Log.e(TAG, "setidToken: idtoken token set to " + this.idToken );
     }
 
     public String getAccessToken() {
@@ -97,6 +100,8 @@ public class SessionSingleton {
 
     public void setAccessToken(String accessToken) {
         this.accessToken = accessToken;
+
+        Log.e(TAG, "setidToken: accestoken set to " + this.accessToken );
     }
 
     public void setUsername(String username) {
