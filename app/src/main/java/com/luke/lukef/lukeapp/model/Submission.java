@@ -19,15 +19,21 @@ public class Submission {
     private String category;
     private String feedback;
     private Date date;
+    private String content;
 
 
-    public Submission(String title, String category, String feedback, Date date) {
+    public Submission(String title, String category, String feedback, Date date, String content) {
         this.image = image;
         this.location = location;
         this.title = title;
         this.category = category;
         this.feedback = feedback;
         this.date = date;
+        this.content = content;
+    }
+    //For testing CarView
+    public Submission(){
+
     }
 
     //making a new submission
@@ -53,6 +59,10 @@ public class Submission {
     //add a review flag
     public boolean flag() {
         return true;
+    }
+
+    public String getContent() {
+        return content;
     }
 
     public Bitmap getImage() {

@@ -25,6 +25,8 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -43,10 +45,12 @@ import com.luke.lukef.lukeapp.fragments.NewSubmissionFragment;
 import com.luke.lukef.lukeapp.fragments.PointOfInterestFragment;
 import com.luke.lukef.lukeapp.fragments.ProfileFragment;
 import com.luke.lukef.lukeapp.fragments.UserSubmissionFragment;
+import com.luke.lukef.lukeapp.model.Submission;
 
 import static android.R.id.progress;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
         navigationView = (NavigationView) findViewById(R.id.nav_view);
         setupDrawerContent(navigationView);
         Menu menu = navigationView.getMenu();
+
         //Notification switch handler
         MenuItem menuItem = menu.findItem(R.id.notification);
         View actionView = MenuItemCompat.getActionView(menuItem);
@@ -298,6 +303,7 @@ public class MainActivity extends AppCompatActivity {
                             case R.id.leaderboard:
                                 fragmentClass = LeaderboardFragment.class;
                                 break;
+
 //                            case R.id.notification:
 //                                fragmentSwitcher();
 //                                break;
@@ -334,12 +340,10 @@ public class MainActivity extends AppCompatActivity {
                 drawerLayout.openDrawer(GravityCompat.START);
                 return true;
         }
-
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 }
