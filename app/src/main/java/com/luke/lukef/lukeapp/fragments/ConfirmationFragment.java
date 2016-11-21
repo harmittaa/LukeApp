@@ -32,10 +32,10 @@ public class ConfirmationFragment extends Fragment implements View.OnClickListen
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.confirmation_map_button:
-                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP);
+                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP,null);
                 break;
             case R.id.confirmation_submission_button:
-                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_NEW_SUBMISSION);
+                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_NEW_SUBMISSION,null);
                 break;
         }
     }

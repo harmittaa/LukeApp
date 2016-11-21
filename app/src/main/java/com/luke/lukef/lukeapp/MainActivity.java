@@ -49,6 +49,8 @@ import com.luke.lukef.lukeapp.fragments.ProfileFragment;
 import com.luke.lukef.lukeapp.fragments.UserSubmissionFragment;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 
+import org.osmdroid.util.GeoPoint;
+
 import static android.R.id.progress;
 import static android.R.id.switch_widget;
 
@@ -117,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         //activate map fragment as default
-        fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP);
+        fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP,null);
 
     }
 
@@ -132,8 +134,9 @@ public class MainActivity extends AppCompatActivity {
      * fragment which is chosen.
      *
      * @param fragmentToChange Constants enum type defined for each fragment
+     * @param bundleToSend Optional bundle to send along with the transaction
      */
-    public void fragmentSwitcher(Constants.fragmentTypes fragmentToChange) {
+    public void fragmentSwitcher(Constants.fragmentTypes fragmentToChange, Bundle bundleToSend) {
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         Fragment fragment = null;
@@ -147,6 +150,9 @@ public class MainActivity extends AppCompatActivity {
                 fragment = new LeaderboardFragment();
                 break;
             case FRAGMENT_NEW_SUBMISSION:
+                if(getCurrentFragment(fragmentManager) instanceof MapFragment){
+                    bundleToSend = constructBundleFromMap((MapFragment)getCurrentFragment(fragmentManager));
+                }
                 fragment = new NewSubmissionFragment();
                 break;
             case FRAGMENT_POINT_OF_INTEREST:
@@ -161,8 +167,24 @@ public class MainActivity extends AppCompatActivity {
         }
         //replace the fragment
         if(fragment != null){
+            if(bundleToSend != null){
+                fragment.setArguments(bundleToSend);
+            }
             fragmentTransaction.replace(R.id.fragment_container, fragment).addToBackStack("BackStack").commit();
         }
+    }
+
+    private Bundle constructBundleFromMap(MapFragment mf) {
+        Bundle bundle = new Bundle();
+        GeoPoint gettedLoc = mf.getLastLoc();
+        bundle.putDouble("latitude",gettedLoc.getLatitude());
+        bundle.putDouble("longitude",gettedLoc.getLongitude());
+        bundle.putDouble("altitude",gettedLoc.getAltitude());
+        return bundle;
+    }
+
+    private Fragment getCurrentFragment(FragmentManager fm){
+        return fm.findFragmentById(R.id.fragment_container);
     }
 
     /**
@@ -215,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (SessionSingleton.getInstance().isUserLogged()) {
-                    fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_NEW_SUBMISSION);
+                    fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_NEW_SUBMISSION,null);
                 } else {
                     // TODO: 21/11/2016 popup to login
                     AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
