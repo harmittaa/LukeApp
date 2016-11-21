@@ -20,7 +20,7 @@ public class SubmissionUnitTest {
     public void constructor_title() {
         String title = "Test submission";
         Date thisDate = new Date();
-        Submission testSubmission = new Submission(title, "beach", "none", thisDate);
+        Submission testSubmission = new Submission(title, "beach", "none", thisDate, "Content");
         assertEquals(testSubmission.getTitle(), title);
     }
 
@@ -28,7 +28,7 @@ public class SubmissionUnitTest {
     public void constructor_category() {
         String category = "Test submission";
         Date thisDate = new Date();
-        Submission testSubmission = new Submission("Test submission", category, "none", thisDate);
+        Submission testSubmission = new Submission("Test submission", category, "none", thisDate, "Content");
         assertEquals(testSubmission.getCategory(), category);
     }
 
@@ -36,14 +36,14 @@ public class SubmissionUnitTest {
     public void constructor_feedback() {
         String feedback = "Test feedback";
         Date thisDate = new Date();
-        Submission testSubmission = new Submission("Test submission", "beach", feedback, thisDate);
+        Submission testSubmission = new Submission("Test submission", "beach", feedback, thisDate, "Content");
         assertEquals(testSubmission.getFeedback(), feedback);
     }
 
     @Test
     public void constructor_date() {
         Date thisDate = new Date();
-        Submission testSubmission = new Submission("Test submission", "beach", "test feedback", thisDate);
+        Submission testSubmission = new Submission("Test submission", "beach", "test feedback", thisDate, "Content");
         assertEquals(testSubmission.getDate(), thisDate);
     }
 
