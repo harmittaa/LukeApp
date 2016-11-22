@@ -116,13 +116,13 @@ public class MapFragment extends Fragment implements View.OnClickListener {
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        Location lastLoc = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        IMapController mapController = map.getController();
-        mapController.setZoom(100);
-        GeoPoint startPoint = new GeoPoint(lastLoc.getLatitude(), lastLoc.getLongitude());
-        mapController.setCenter(startPoint);
+        //Location lastLoc = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        //IMapController mapController = map.getController();
+        //mapController.setZoom(100);
+        //GeoPoint startPoint = new GeoPoint(lastLoc.getLatitude(), lastLoc.getLongitude());
+        //mapController.setCenter(startPoint);
 
-        mapPinTest(lastLoc);
+        //mapPinTest(lastLoc);
 
         MyLocationNewOverlay mLocationOverlay = new MyLocationNewOverlay(new GpsMyLocationProvider(getMainActivity()),map);
         mLocationOverlay.enableMyLocation();

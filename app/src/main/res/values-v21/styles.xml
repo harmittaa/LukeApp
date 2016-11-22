@@ -1,9 +1,26 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
+    </style>
+
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:editTextColor">#424242</item>
+        <item name="android:textColorPrimary">#FAFAFA</item>
+        <item name="android:textColorSecondary">#424242</item>
+        <item name="android:textColorTertiary">#424242</item>
+        <item name="android:textColorPrimaryInverse">#424242</item>
+        <item name="android:textColorSecondaryInverse">#424242</item>
+        <item name="android:textColorTertiaryInverse">#424242</item>
+        <item name="android:colorPrimary">#004d99</item>
+        <item name="android:colorPrimaryDark">#003366</item>
+
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
     </style>
 </resources>
