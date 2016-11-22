@@ -8,6 +8,7 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -32,6 +33,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.PopupWindow;
@@ -107,15 +109,17 @@ public class MainActivity extends AppCompatActivity {
         leftButton = (ImageButton) findViewById(R.id.button_left);
         rightButton = (ImageButton) findViewById(R.id.button_right);
         midButton = (ImageButton) findViewById(R.id.button_mid);
-
         setBottomBarButtonsListeners();
+
         leftButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                drawerLayout.openDrawer(navigationView);
+            @Override
+            public void onClick(View view) {
+                drawerLayout.openDrawer(GravityCompat.START);
             }
         });
 
     }
+
 
     @Override
     protected void onResume() {
@@ -303,10 +307,6 @@ public class MainActivity extends AppCompatActivity {
                             case R.id.leaderboard:
                                 fragmentClass = LeaderboardFragment.class;
                                 break;
-
-//                            case R.id.notification:
-//                                fragmentSwitcher();
-//                                break;
                             default:
                                 fragmentClass = MapFragment.class;
                         }

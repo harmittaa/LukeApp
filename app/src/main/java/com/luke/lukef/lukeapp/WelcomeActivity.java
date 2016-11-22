@@ -1,13 +1,23 @@
 package com.luke.lukef.lukeapp;
 
+import android.animation.ObjectAnimator;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.support.design.widget.NavigationView;
+import android.support.v4.content.res.ResourcesCompat;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.Button;
+import android.widget.ProgressBar;
 
 import com.auth0.android.Auth0;
 import com.auth0.android.lock.AuthenticationCallback;
@@ -32,11 +42,8 @@ import java.util.concurrent.FutureTask;
 
 public class WelcomeActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String TAG = "WelcomeActivity";
-
-
     private Button loginButton;
     private Button skipLoginButton;
-
     private Lock lock;
     private String idToken = "";
     private String accessToken = "";
