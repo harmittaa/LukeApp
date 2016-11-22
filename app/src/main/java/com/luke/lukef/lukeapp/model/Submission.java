@@ -46,6 +46,10 @@ public class Submission {
         return true;
     }
 
+    public boolean submitToServer(){
+        return false;
+    }
+
     //editing an existing submission
     public boolean update() {
         return true;

@@ -1,6 +1,9 @@
 package com.luke.lukef.lukeapp.fragments;
 
+import android.app.AlertDialog;
 import android.app.Fragment;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -10,33 +13,50 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.FileProvider;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
+import com.luke.lukef.lukeapp.NewUserActivity;
 import com.luke.lukef.lukeapp.R;
+import com.luke.lukef.lukeapp.model.Category;
+import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.model.Submission;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -53,6 +73,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     private final static String TAG = NewSubmissionFragment.class.toString();
     private Bitmap bitmap;
     private String mCurrentPhotoPath;
+    ArrayList<Category> selectedCategries;
 
     @Nullable
     @Override
@@ -65,6 +86,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         this.setBottomButtonListeners();
         fetchBundleFromArguments();
         setupThumbnailMap();
+        selectedCategries = new ArrayList<>();
         return fragmentView;
     }
 
@@ -86,6 +108,10 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
             case R.id.activateCameraButton:
                 // TODO: 18/11/2016 activate camera
                 dispatchTakePictureIntent();
+                break;
+            case R.id.buttonCategory:
+                makeCategoryListPopup();
+                break;
         }
     }
 
@@ -154,7 +180,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
             }
             // Continue only if the File was successfully created
             if (photoFile != null) {
-                Uri photoURI = FileProvider.getUriForFile(getMainActivity(),"com.luke.lukef.lukeapp",photoFile);
+                Uri photoURI = FileProvider.getUriForFile(getMainActivity(), "com.luke.lukef.lukeapp", photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
             }
@@ -189,7 +215,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         return image;
     }
 
-    private Bitmap getBitmapFromStorage(){
+    private Bitmap getBitmapFromStorage() {
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inSampleSize = 8;
         final Bitmap b = BitmapFactory.decodeFile(this.mCurrentPhotoPath, options);
@@ -197,11 +223,90 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     }
 
     private void makeSubmission() {
-
+        if(checkFieldsValidity()){
+            // TODO: 22/11/2016 create submission object, make httprequest and send to server(put this request into submission?)
+        }
     }
 
-    private void checkFieldsValidity(){
+    private boolean checkFieldsValidity() {
         // TODO: 22/11/2016 check if location != null , check if
+        if (!TextUtils.isEmpty(submissionDescription.getText().toString())) {
+            if (location != null) {
+                if (selectedCategries.size() < 1) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
     }
 
+
+    private void makeCategoryListPopup() {
+        final AlertDialog.Builder builderSingle = new AlertDialog.Builder(getMainActivity());
+        //builderSingle.setIcon(R.drawable.ic_launcher);
+        builderSingle.setTitle("Select A Category");
+
+        final CategoryListAdapter cla = new CategoryListAdapter(getMainActivity(), android.R.layout.select_dialog_singlechoice, SessionSingleton.getInstance().getCategoryList());
+
+        builderSingle.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        builderSingle.setAdapter(cla, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                NewSubmissionFragment.this.selectedCategries.add(cla.getItem(which));
+                Log.e(TAG, "onClick: added to selected: " + cla.getItem(which) + " size now at " + selectedCategries.size());
+                dialog.dismiss();
+            }
+        });
+        builderSingle.create();
+        builderSingle.show();
+    }
+
+    private class CategoryListAdapter extends ArrayAdapter<Category> {
+
+
+        public CategoryListAdapter(Context context, int resource) {
+            super(context, resource);
+        }
+
+        public CategoryListAdapter(Context context, int resource, int textViewResourceId) {
+            super(context, resource, textViewResourceId);
+        }
+
+        public CategoryListAdapter(Context context, int resource, Category[] objects) {
+            super(context, resource, objects);
+        }
+
+        public CategoryListAdapter(Context context, int resource, int textViewResourceId, Category[] objects) {
+            super(context, resource, textViewResourceId, objects);
+        }
+
+        public CategoryListAdapter(Context context, int resource, List<Category> objects) {
+            super(context, resource, objects);
+        }
+
+        public CategoryListAdapter(Context context, int resource, int textViewResourceId, List<Category> objects) {
+            super(context, resource, textViewResourceId, objects);
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            TextView view = (TextView) super.getView(position, convertView, parent);
+            // Replace text with my own
+            view.setText(getItem(position).getTitle());
+            return view;
+        }
+
+
+    }
 }

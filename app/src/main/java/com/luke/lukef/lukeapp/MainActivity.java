@@ -28,6 +28,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -47,13 +48,24 @@ import com.luke.lukef.lukeapp.fragments.NewSubmissionFragment;
 import com.luke.lukef.lukeapp.fragments.PointOfInterestFragment;
 import com.luke.lukef.lukeapp.fragments.ProfileFragment;
 import com.luke.lukef.lukeapp.fragments.UserSubmissionFragment;
+import com.luke.lukef.lukeapp.model.Category;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.osmdroid.util.GeoPoint;
+import org.w3c.dom.Text;
 
 import static android.R.id.progress;
 import static android.R.id.switch_widget;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -118,8 +130,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        getCategories();
+
         //activate map fragment as default
         fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP,null);
+
+
 
     }
 
@@ -409,6 +425,78 @@ public class MainActivity extends AppCompatActivity {
     //returns the bottom button bar, this can be later used in fragments, to set them as the click listener
     public LinearLayout getBottomBar(){
         return (LinearLayout)this.findViewById(R.id.linearLayout);
+    }
+
+    private void getCategories() {
+        Log.e(TAG, "confirmUsername: clickd");
+        Runnable checkUsernameRunnable = new Runnable() {
+            String jsonString;
+
+            @Override
+            public void run() {
+                try {
+                    URL categoriesUrl = new URL("http://www.balticapp.fi/lukeA/category");
+                    HttpURLConnection httpURLConnection = (HttpURLConnection) categoriesUrl.openConnection();
+                    //httpURLConnection.setRequestProperty(getString(R.string.authorization), getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
+                    //httpURLConnection.setRequestProperty(getString(R.string.acstoken), SessionSingleton.getInstance().getAccessToken());
+                    if (httpURLConnection.getResponseCode() == 200) {
+                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
+                        jsonString = "";
+                        StringBuilder stringBuilder = new StringBuilder();
+                        String line;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            stringBuilder.append(line + "\n");
+                        }
+                        bufferedReader.close();
+                        jsonString = stringBuilder.toString();
+                        JSONArray jsonArr;
+                        try {
+                            jsonArr = new JSONArray(jsonString);
+                            Log.e(TAG, "run: CATEGORIES JSON: " + jsonArr.toString());
+
+                            for(int i = 0;i<jsonArr.length();i++){
+                                JSONObject jsonCategory = jsonArr.getJSONObject(i);
+                                Category c = new Category();
+                                c.setDescription(jsonCategory.getString("description"));
+                                c.setId(jsonCategory.getString("id"));
+                                if(!TextUtils.isEmpty(jsonCategory.getString("title"))){
+                                    c.setTitle(jsonCategory.getString("title"));
+                                }
+                                if(!TextUtils.isEmpty(jsonCategory.getString("image_url"))){
+                                    //// TODO: 22/11/2016 parse image into bitmap
+                                }
+                                Log.e(TAG, "run: created category\n" + c.toString());
+                                SessionSingleton.getInstance().addCategory(c);
+                            }
+                        } catch (JSONException e) {
+                            Log.e(TAG, "onPostExecute: ", e);
+                        }
+                    } else {
+
+                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getErrorStream()));
+                        jsonString = "";
+                        StringBuilder stringBuilder = new StringBuilder();
+                        String line;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            stringBuilder.append(line + "\n");
+                        }
+                        bufferedReader.close();
+                        jsonString = stringBuilder.toString();
+
+                        Log.e(TAG, "run: ERROR WITH CATEGORIES : " + jsonString);
+                    }
+                } catch (MalformedURLException e) {
+                    Log.e(TAG, "doInBackground: ", e);
+                } catch (IOException e) {
+                    Log.e(TAG, "doInBackground: ", e);
+                }
+            }
+        };
+
+        Thread thread = new Thread(checkUsernameRunnable);
+        thread.start();
+
+
     }
 
 }
