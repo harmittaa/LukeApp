@@ -67,7 +67,6 @@ public class MapFragment extends Fragment implements View.OnClickListener, Locat
     private View fragmentView;
     private Button leaderboardButton;
     private MapView map;
-    LocationManager locationManager;
     Location lastLoc;
     Location lastKnownLoc;
 

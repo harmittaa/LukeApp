@@ -3,11 +3,15 @@ package com.luke.lukef.lukeapp.fragments;
 import android.app.Fragment;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
+import android.support.v4.content.FileProvider;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -22,11 +26,17 @@ import android.widget.LinearLayout;
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
+import com.luke.lukef.lukeapp.model.Submission;
 
 import org.osmdroid.api.IMapController;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
+
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -41,6 +51,8 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     MapView thumbnailMap;
     GeoPoint location;
     private final static String TAG = NewSubmissionFragment.class.toString();
+    private Bitmap bitmap;
+    private String mCurrentPhotoPath;
 
     @Nullable
     @Override
@@ -51,12 +63,8 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         setupButtons();
         getMainActivity().setBottomBarButtons(Constants.bottomActionBarStates.BACK_TICK);
         this.setBottomButtonListeners();
+        fetchBundleFromArguments();
         setupThumbnailMap();
-
-        Bundle b = getMainActivity().getIntent().getExtras();
-        if (b != null){
-            location = new GeoPoint(b.getDouble("latitude"),b.getDouble("longitude"),b.getDouble("altitude"));
-        }
         return fragmentView;
     }
 
@@ -64,7 +72,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.confirmation_button:
-                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_CONFIRMATION,null);
+                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_CONFIRMATION, null);
                 break;
             case R.id.button_back1:
                 getMainActivity().onBackPressed();
@@ -90,6 +98,14 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         categoryButton.setOnClickListener(this);
     }
 
+    private void fetchBundleFromArguments() {
+        Bundle b = getArguments();  // getMainActivity().getIntent().getExtras();
+        if (b != null) {
+            location = new GeoPoint(b.getDouble("latitude"), b.getDouble("longitude"), b.getDouble("altitude"));
+            Log.e(TAG, "onCreateView: bundle received: " + location.toString());
+        }
+    }
+
     private void setBottomButtonListeners() {
         LinearLayout v = getMainActivity().getBottomBar();
         final int childcount = v.getChildCount();
@@ -101,9 +117,9 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         }
     }
 
-    private void setupThumbnailMap(){
-        photoThumbnail = (ImageView)fragmentView.findViewById(R.id.photoThumbnail);
-        thumbnailMap = (MapView)fragmentView.findViewById(R.id.thumbnailmap);
+    private void setupThumbnailMap() {
+        photoThumbnail = (ImageView) fragmentView.findViewById(R.id.photoThumbnail);
+        thumbnailMap = (MapView) fragmentView.findViewById(R.id.thumbnailmap);
         thumbnailMap.setTileSource(TileSourceFactory.MAPNIK);
         /*thumbnailMap.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -120,7 +136,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
             Log.e(TAG, "setupThumbnailMap: geopoint is : " + location);
             mapController.setCenter(location);
         } else {
-            mapController.setCenter(new GeoPoint(60.0,25.0));
+            mapController.setCenter(new GeoPoint(60.0, 25.0));
         }
 
     }
@@ -129,7 +145,19 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getMainActivity().getPackageManager()) != null) {
-            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            // Create the File where the photo should go
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                Uri photoURI = FileProvider.getUriForFile(getMainActivity(),"com.luke.lukef.lukeapp",photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            }
         }
     }
 
@@ -139,7 +167,41 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
             Bundle extras = data.getExtras();
             Bitmap imageBitmap = (Bitmap) extras.get("data");
             photoThumbnail.setImageBitmap(imageBitmap);
+            Log.e(TAG, "onActivityResult: size of image: " + imageBitmap.getHeight() + " : " + imageBitmap.getWidth());
+            Log.e(TAG, "onActivityResult: size of photothmbnail: " + photoThumbnail.getHeight() + " : " + photoThumbnail.getWidth());
         }
+    }
+
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "lukeImage";//"JPEG_" + timeStamp + "_";
+        File storageDir = getMainActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        mCurrentPhotoPath = image.getAbsolutePath();
+        return image;
+    }
+
+    private Bitmap getBitmapFromStorage(){
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inSampleSize = 8;
+        final Bitmap b = BitmapFactory.decodeFile(this.mCurrentPhotoPath, options);
+        return b;
+    }
+
+    private void makeSubmission() {
+
+    }
+
+    private void checkFieldsValidity(){
+        // TODO: 22/11/2016 check if location != null , check if
     }
 
 }
