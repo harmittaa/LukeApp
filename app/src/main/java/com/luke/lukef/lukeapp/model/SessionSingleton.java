@@ -1,6 +1,7 @@
 package com.luke.lukef.lukeapp.model;
 
 import android.graphics.Bitmap;
+import android.util.Log;
 
 /**
  * Created by Daniel on 15/11/2016.
@@ -32,6 +33,8 @@ public class SessionSingleton {
         this.userId = userId;
         this.accessToken = accessToken;
         this.idToken = idToken;
+        Log.e(TAG, "setValues: acstoken " + accessToken );
+        Log.e(TAG, "setValues: idtoken " + idToken);
     }
 
     // calls DB to update the xp

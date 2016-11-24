@@ -237,9 +237,9 @@ public class MapFragment extends Fragment implements View.OnClickListener {
                                     location.setLongitude(jsonObject.getDouble("longitude"));
                                     location.setLatitude(jsonObject.getDouble("latitude"));
 
-                                    // TODO: 18/11/2016 FIX IMAGE 
-                                    submissions.add(new Submission(jsonObject.getString("id"), jsonObject.getString("title"), submissionIds, jsonObject.getString("date"),
-                                                    jsonObject.getString("description"), image, location));
+                                    // TODO: 18/11/2016 FIX IMAGE
+                                //    submissions.add(new Submission(jsonObject.getString("id"), jsonObject.getString("title"), submissionIds, jsonObject.getString("date"),
+                                //                    jsonObject.getString("description"), image, location));
 
                                 }
                             } else {
