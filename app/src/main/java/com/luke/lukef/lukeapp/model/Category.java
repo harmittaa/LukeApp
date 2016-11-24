@@ -63,6 +63,6 @@ public class Category {
 
     @Override
     public String toString() {
-        return " id: " + id + " title: " + title + " description: " + description + " image_url: " + image + " isPositive: " + isPositive;
+        return id;
     }
 }

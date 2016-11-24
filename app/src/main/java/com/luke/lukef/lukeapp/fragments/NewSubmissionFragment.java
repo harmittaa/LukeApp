@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
-import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -74,6 +73,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     private Bitmap bitmap;
     private String mCurrentPhotoPath;
     ArrayList<Category> selectedCategries;
+    Button submittt;
 
     @Nullable
     @Override
@@ -81,6 +81,9 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         fragmentView = inflater.inflate(R.layout.fragment_new_submission, container, false);
         cameraButton = (Button) fragmentView.findViewById(R.id.activateCameraButton);
         categoryButton = (Button) fragmentView.findViewById(R.id.buttonCategory);
+        submittt = (Button)fragmentView.findViewById(R.id.button_submit_test);
+        submissionDescription = (EditText)fragmentView.findViewById(R.id.newSubmissionEditTextDescrption);
+        submissionTitle = (EditText)fragmentView.findViewById(R.id.newSubmissionEditTextTitle);
         setupButtons();
         getMainActivity().setBottomBarButtons(Constants.bottomActionBarStates.BACK_TICK);
         this.setBottomButtonListeners();
@@ -93,18 +96,6 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.confirmation_button:
-                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_CONFIRMATION, null);
-                break;
-            case R.id.button_back1:
-                getMainActivity().onBackPressed();
-                break;
-            case R.id.button_back2:
-                getMainActivity().onBackPressed();
-                break;
-            case R.id.button_tick:
-                // TODO: 18/11/2016 check the submission valididty, then submit it
-                break;
             case R.id.activateCameraButton:
                 // TODO: 18/11/2016 activate camera
                 dispatchTakePictureIntent();
@@ -112,6 +103,8 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
             case R.id.buttonCategory:
                 makeCategoryListPopup();
                 break;
+            case R.id.button_submit_test:
+                makeSubmission();
         }
     }
 
@@ -122,6 +115,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     private void setupButtons() {
         cameraButton.setOnClickListener(this);
         categoryButton.setOnClickListener(this);
+        submittt.setOnClickListener(this);
     }
 
     private void fetchBundleFromArguments() {
@@ -147,15 +141,13 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         photoThumbnail = (ImageView) fragmentView.findViewById(R.id.photoThumbnail);
         thumbnailMap = (MapView) fragmentView.findViewById(R.id.thumbnailmap);
         thumbnailMap.setTileSource(TileSourceFactory.MAPNIK);
-        /*thumbnailMap.setOnTouchListener(new View.OnTouchListener() {
+        thumbnailMap.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 return true;
             }
         });
-*/
 
-        thumbnailMap.setBuiltInZoomControls(true);
         IMapController mapController = thumbnailMap.getController();
         mapController.setZoom(100);
         if (location != null) {
@@ -225,6 +217,10 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     private void makeSubmission() {
         if(checkFieldsValidity()){
             // TODO: 22/11/2016 create submission object, make httprequest and send to server(put this request into submission?)
+            Submission newSub = new Submission(getMainActivity(),this.selectedCategries,new Date(),submissionDescription.getText().toString(),this.location);
+            newSub.submitToServer(SessionSingleton.getInstance().getAccessToken(),SessionSingleton.getInstance().getIdToken());
+        }else {
+            Log.e(TAG, "makeSubmission: FIELDS NOT VALID\nFIELDS NOT VALID" );
         }
     }
 
@@ -232,7 +228,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         // TODO: 22/11/2016 check if location != null , check if
         if (!TextUtils.isEmpty(submissionDescription.getText().toString())) {
             if (location != null) {
-                if (selectedCategries.size() < 1) {
+                if (selectedCategries.size() > 0) {
                     return true;
                 } else {
                     return false;

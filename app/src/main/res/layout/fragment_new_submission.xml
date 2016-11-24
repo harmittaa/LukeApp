@@ -21,7 +21,7 @@
         android:layout_height="wrap_content"
         android:inputType="textPersonName"
         android:ems="10"
-        android:id="@+id/edittextTitle"
+        android:id="@+id/newSubmissionEditTextTitle"
         android:hint="Enter a title (optional)"
         android:layout_marginTop="8dp"
         app:layout_constraintTop_toBottomOf="@+id/activateCameraButton"
@@ -32,20 +32,20 @@
         android:layout_height="wrap_content"
         android:inputType="textMultiLine"
         android:ems="10"
-        android:id="@+id/edittextDescrption"
+        android:id="@+id/newSubmissionEditTextDescrption"
         android:hint="Write a description"
-        app:layout_constraintLeft_toLeftOf="@+id/edittextTitle"
+        app:layout_constraintLeft_toLeftOf="@+id/newSubmissionEditTextTitle"
         android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@+id/edittextTitle" />
+        app:layout_constraintTop_toBottomOf="@+id/newSubmissionEditTextTitle" />
 
     <Button
         android:text="Choose categories"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/buttonCategory"
-        app:layout_constraintLeft_toLeftOf="@+id/edittextDescrption"
+        app:layout_constraintLeft_toLeftOf="@+id/newSubmissionEditTextDescrption"
         android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@+id/edittextDescrption"
+        app:layout_constraintTop_toBottomOf="@+id/newSubmissionEditTextDescrption"
         app:layout_constraintBottom_toBottomOf="parent"
         android:layout_marginBottom="16dp"
         app:layout_constraintVertical_bias="0.0" />
@@ -94,5 +94,14 @@
         app:layout_constraintGuide_percent="0.40388006"
         tools:layout_editor_absoluteY="229dp"
         tools:layout_editor_absoluteX="0dp" />
+
+    <Button
+        android:text="Button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/button_submit_test"
+        android:layout_marginStart="8dp"
+        app:layout_constraintLeft_toRightOf="@+id/buttonCategory"
+        app:layout_constraintTop_toTopOf="@+id/buttonCategory" />
 
 </android.support.constraint.ConstraintLayout>
