@@ -12,9 +12,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.support.v4.content.ContextCompat;
-import android.content.res.Resources;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.support.design.widget.NavigationView;
 
@@ -22,9 +19,6 @@ import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.content.Context;
-import android.content.pm.PackageManager;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 
 import android.os.Bundle;
@@ -37,8 +31,6 @@ import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.PopupWindow;
-import android.widget.Toast;
 
 import com.luke.lukef.lukeapp.fragments.AchievementFragment;
 import com.luke.lukef.lukeapp.fragments.ConfirmationFragment;
@@ -55,10 +47,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.osmdroid.util.GeoPoint;
-import org.w3c.dom.Text;
-
-import static android.R.id.progress;
-import static android.R.id.switch_widget;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -66,11 +54,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -319,14 +302,12 @@ public class MainActivity extends AppCompatActivity {
                 Boolean storage = perms.get(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
                 if (location && storage) {
                     // All Permissions Granted
-                    //Toast.makeText(MainActivity.this, "All permissions granted", //Toast.LENGTH_SHORT).show();
                 } else if (location) {
                     //Toast.makeText(this, "Storage permission is required to store map tiles to reduce data usage and for offline usage.", Toast.LENGTH_LONG).show();
                 } else if (storage) {
                     //Toast.makeText(this, "Location permission is required to show the user's location on map.", Toast.LENGTH_LONG).show();
                 } else { // !location && !storage case
                     // Permission Denied
-                    //Toast.makeText(MainActivity.this, "Storage permission is required to store map tiles to reduce data usage and for offline usage." + "\nLocation permission is required to show the user's location on map.", Toast.LENGTH_SHORT).show();
                 }
             }
             break;
@@ -485,8 +466,6 @@ public class MainActivity extends AppCompatActivity {
 
                         Log.e(TAG, "run: ERROR WITH CATEGORIES : " + jsonString);
                     }
-                } catch (MalformedURLException e) {
-                    Log.e(TAG, "doInBackground: ", e);
                 } catch (IOException e) {
                     Log.e(TAG, "doInBackground: ", e);
                 }

@@ -2,7 +2,6 @@ package com.luke.lukef.lukeapp.model;
 
 import android.graphics.Bitmap;
 import android.util.Log;
-
 import java.util.ArrayList;
 
 /**
@@ -36,6 +35,8 @@ public class SessionSingleton {
         this.userId = userId;
         this.accessToken = accessToken;
         this.idToken = idToken;
+        Log.e(TAG, "setValues: acstoken " + accessToken );
+        Log.e(TAG, "setValues: idtoken " + idToken);
     }
 
     private SessionSingleton(){

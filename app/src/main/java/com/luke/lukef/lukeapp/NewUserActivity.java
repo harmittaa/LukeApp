@@ -43,7 +43,7 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
         username.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if(checkUsernameValid(username.getText().toString())) {
+                if (checkUsernameValid(username.getText().toString())) {
                     confirmUsername(username.getText().toString());
                 }
                 return false;
@@ -55,7 +55,7 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.newUserConfirmButton:
-                if(checkUsernameValid(username.getText().toString())) {
+                if (checkUsernameValid(username.getText().toString())) {
                     confirmUsername(username.getText().toString());
                 }
                 break;
@@ -75,7 +75,7 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void confirmUsername(final String usernameToCheck) {
-        Log.e(TAG, "confirmUsername: clickd" );
+        Log.e(TAG, "confirmUsername: clickd");
         Runnable checkUsernameRunnable = new Runnable() {
             String jsonString;
 
@@ -106,17 +106,14 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
                                 httpURLConnection.setRequestProperty(getString(R.string.acstoken), SessionSingleton.getInstance().getAccessToken());
                                 if (httpURLConnection.getResponseCode() == 200) {
                                     // TODO: 17/11/2016 success, move to main screen
-                                    NewUserActivity.this.startActivity(new Intent(NewUserActivity.this,MainActivity.class));
-                                    Toast.makeText(NewUserActivity.this, "Success!", Toast.LENGTH_SHORT);
+                                    NewUserActivity.this.startActivity(new Intent(NewUserActivity.this, MainActivity.class));
 
                                 } else {
                                     // TODO: 17/11/2016 display errormessage for each type of error
-                                    Toast.makeText(NewUserActivity.this, "Error Occured", Toast.LENGTH_SHORT);
 
                                 }
                             } else {
                                 // TODO: 17/11/2016 make alert that username is taken
-                                Toast.makeText(NewUserActivity.this, "Username taken", Toast.LENGTH_SHORT);
 
                             }
                         } catch (JSONException e) {

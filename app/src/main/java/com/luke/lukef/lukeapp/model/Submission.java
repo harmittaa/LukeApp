@@ -1,6 +1,5 @@
 package com.luke.lukef.lukeapp.model;
 
-
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.text.TextUtils;
@@ -27,7 +26,6 @@ import java.util.Date;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
-
 
 /**
  * handles submissions made by users
@@ -77,7 +75,7 @@ public class Submission {
                 jsonObject.put("title", Submission.this.title);
             }
             // TODO: 25/11/2016 When image implementation on server is done, add image to json object if not null
-            Log.e(TAG, "convertToJson: Created json object that looks like: " + jsonObject.toString() );
+            Log.e(TAG, "convertToJson: Created json object that looks like: " + jsonObject.toString());
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -162,7 +160,7 @@ public class Submission {
         };
 
         FutureTask<Boolean> futureTask = new FutureTask<Boolean>(booleanCallable);
-        Thread t=new Thread(futureTask);
+        Thread t = new Thread(futureTask);
         t.start();
 
         try {
@@ -233,7 +231,4 @@ public class Submission {
     public void setDescription(String description) {
         this.description = description;
     }
-
-
 }
-

@@ -100,6 +100,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             idToken = credentials.getIdToken();
             SessionSingleton.getInstance().setAccessToken(accessToken);
             SessionSingleton.getInstance().setIdToken(idToken);
+            Log.e(TAG, "onAuthentication: LOGIN INFO" );
+            Log.e(TAG, "onAuthentication: acstoken " + accessToken );
+            Log.e(TAG, "onAuthentication: idToken " + idToken);
             // TODO: 15/11/2016 login to luke, check username, change to new user screen if first time login
             LoginCallable loginTask = new LoginCallable();
             FutureTask<Boolean> booleanFutureTask = new FutureTask<Boolean>(loginTask);
