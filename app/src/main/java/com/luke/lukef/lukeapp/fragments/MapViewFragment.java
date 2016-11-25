@@ -16,10 +16,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
@@ -37,10 +41,9 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
     Location lastLoc;
     Location lastKnownLoc;
     GoogleMap googleMap;
-    MapView googleMapView;
     private MapFragment mapFragment;
 
-    public Location getLastLoc(){
+    public Location getLastLoc() {
         if (this.lastLoc != null) {
             Location jeeben = new Location("");
             jeeben.setAltitude(this.lastLoc.getAltitude());
@@ -66,7 +69,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
         leaderboardButton = (Button) fragmentView.findViewById(R.id.leaderboard_button);
         setupButtons();
         getMainActivity().setBottomBarButtons(Constants.bottomActionBarStates.MAP_CAMERA);
-        setupOSMap();
+        setupGoogleMap();
         getSubmissions();
 
         mapFragment = (MapFragment) getChildFragmentManager().findFragmentById(R.id.mapFragment);
@@ -79,7 +82,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.leaderboard_button:
-                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_LEADERBOARD,null);
+                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_LEADERBOARD, null);
                 break;
         }
     }
@@ -89,12 +92,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
     }
 
     private void setupButtons() {
-//        pointOfInterestButton.setOnClickListener(this);
         leaderboardButton.setOnClickListener(this);
-    }
-
-    private void setupLocationListener() {
-
     }
 
     /**
@@ -102,46 +100,36 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
      * Enables touch controls
      * Sets starting position and zooms in
      */
-    private void setupOSMap() {
+    private void setupGoogleMap() {
         //init map
         //get current phone position and zoom to location
         LocationManager lm = (LocationManager) getMainActivity().getSystemService(Context.LOCATION_SERVICE);
 
         if (ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            //// TODO: 21/11/2016 ask for permission
+            // TODO: 21/11/2016 ask for permission
         }
 
         Location lastKnownLocation = lm.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
         this.lastKnownLoc = lastKnownLocation;
 
- /*       Location lastLoc = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        IMapController mapController = map.getController();
-        mapController.setZoom(100);
-        GeoPoint startPoint;
-        if(this.lastLoc != null){
-            startPoint = new GeoPoint(this.lastLoc.getLatitude(), this.lastLoc.getLongitude());
-        }else {
-            startPoint = new GeoPoint(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
-        }
-        mapController.setCenter(startPoint);
-
-        MyLocationNewOverlay mLocationOverlay = new MyLocationNewOverlay(new GpsMyLocationProvider(getMainActivity()),map);
-        mLocationOverlay.enableMyLocation();
-        map.getOverlays().add(mLocationOverlay);
-
-        map.setMultiTouchControls(true);
-        map.getOverlays().add(mRotationGestureOverlay);
-
-        scale bar, looks wonky
-        ScaleBarOverlay mScaleBarOverlay = new ScaleBarOverlay(map);
-        mScaleBarOverlay.setCentred(true);
-        //play around with these values to get the location on screen in the right place for your applicatio
-        mScaleBarOverlay.setScaleBarOffset(map.getWidth(), 10);
-        map.getOverlays().add(mScaleBarOverlay);*/
     }
 
     private void mapPinTest(Location l) {
 
+    }
+
+    private void zoomMap() {
+        /*CameraUpdate center = CameraUpdateFactory.newLatLng(new LatLng(getLastLoc().getLatitude(), getLastLoc().getLongitude()));
+        CameraUpdate cu = CameraUpdateFactory.zoomTo(15);
+        googleMap.moveCamera(center);
+        googleMap.animateCamera(cu);
+
+        googleMap.animateCamera(CameraUpdateFactory.zoomTo(15));*/
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(new LatLng(getLastLoc().getLatitude(), getLastLoc().getLongitude()))      // Sets the center of the map to Mountain View
+                .zoom(17)                  // Sets the tilt of the camera to 30 degrees
+                .build();                   // Creates a CameraPosition from the builder
+        googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
     }
 
 
@@ -222,7 +210,8 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
                         // TODO: 25/11/2016 Show error when responsecode is not 200
                         Log.e(TAG, "Responsecode = " + httpURLConnection.getResponseCode());
                     }
-                */} catch (Exception e) {
+                */
+                } catch (Exception e) {
                     Log.e(TAG, "doInBackground: ", e);
                 }
             }
@@ -234,6 +223,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
 
     /**
      * Parses through provided list of submissions, creates OverlayItems and adds them to the map
+     *
      * @param submissions List of Submission objects
      */
     private void addSubmissionsToMap(List<Submission> submissions) {/*
@@ -290,5 +280,17 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
     public void onMapReady(GoogleMap googleMap) {
         this.googleMap = googleMap;
         this.googleMap.getUiSettings().setZoomControlsEnabled(true);
+        zoomMap();
+        if (ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        this.googleMap.setMyLocationEnabled(true);
     }
 }
