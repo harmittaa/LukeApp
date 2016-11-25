@@ -4,11 +4,9 @@ import android.Manifest;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -19,43 +17,28 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
 import com.luke.lukef.lukeapp.model.Submission;
-import com.luke.lukef.lukeapp.tools.PopupMaker;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.lang.reflect.Array;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Handles the Map view, fetches submission
  */
-public class MapFragment extends Fragment implements View.OnClickListener, LocationListener, OnMapReadyCallback {
-    private static final String TAG = "MapFragment";
+public class MapViewFragment extends Fragment implements View.OnClickListener, LocationListener, OnMapReadyCallback {
+    private static final String TAG = "MapViewFragment";
     private View fragmentView;
     private Button leaderboardButton;
     Location lastLoc;
     Location lastKnownLoc;
     GoogleMap googleMap;
     MapView googleMapView;
+    private MapFragment mapFragment;
 
     public Location getLastLoc(){
         if (this.lastLoc != null) {
@@ -86,9 +69,9 @@ public class MapFragment extends Fragment implements View.OnClickListener, Locat
         setupOSMap();
         getSubmissions();
 
-        googleMapView = (MapView)fragmentView.findViewById(R.id.mapView);
-        googleMapView.onCreate(savedInstanceState);
-        googleMapView.getMapAsync(this);
+        mapFragment = (MapFragment) getChildFragmentManager().findFragmentById(R.id.mapFragment);
+        mapFragment.getMapAsync(this);
+
         return fragmentView;
     }
 
