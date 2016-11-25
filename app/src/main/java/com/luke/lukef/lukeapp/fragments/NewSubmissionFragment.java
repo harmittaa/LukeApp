@@ -67,7 +67,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     private final static String TAG = NewSubmissionFragment.class.toString();
     private Bitmap bitmap;
     private String mCurrentPhotoPath;
-    ArrayList<Category> selectedCategries;
+    ArrayList<String> selectedCategries;
     Button submittt;
     Location location;
 
@@ -218,6 +218,8 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     private void makeSubmission() {
         if (checkFieldsValidity()) {
             // TODO: 22/11/2016 create submission object, make httprequest and send to server(put this request into submission?)
+            this.selectedCategries.removeAll(this.selectedCategries);
+            this.selectedCategries.add("2");
             Submission newSub = new Submission(getMainActivity(), this.selectedCategries, new Date(), submissionDescription.getText().toString(), this.location);
             if (newSub.submitToServer()) {
                 Log.e(TAG, "makeSubmission: Submission sent succesfully");
@@ -265,7 +267,8 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         builderSingle.setAdapter(cla, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                NewSubmissionFragment.this.selectedCategries.add(cla.getItem(which));
+                //NewSubmissionFragment.this.selectedCategries.add(cla.getItem(which));
+                NewSubmissionFragment.this.selectedCategries.add("1");
                 Log.e(TAG, "onClick: added to selected: " + cla.getItem(which) + " size now at " + selectedCategries.size());
                 dialog.dismiss();
             }

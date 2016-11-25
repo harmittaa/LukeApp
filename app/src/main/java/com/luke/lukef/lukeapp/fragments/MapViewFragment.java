@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -20,12 +21,28 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
 import com.luke.lukef.lukeapp.model.Submission;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Handles the Map view, fetches submission
@@ -67,6 +84,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
         setupButtons();
         getMainActivity().setBottomBarButtons(Constants.bottomActionBarStates.MAP_CAMERA);
         setupOSMap();
+        Log.e(TAG, "onCreateView: ONCREATE" );
         getSubmissions();
 
         mapFragment = (MapFragment) getChildFragmentManager().findFragmentById(R.id.mapFragment);
@@ -150,16 +168,19 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
      * Creates submission objects from JSON fetched from the server and adds them to the list.
      */
     private void getSubmissions() {
+        Log.e(TAG, "getSubmissions: be starting");
+
         Runnable getSubmissions = new Runnable() {
             String jsonString;
-
             @Override
             public void run() {
                 try {
+
                     // Gets the center of current map
-                    /*IGeoPoint currentCenterPoint = map.getMapCenter();
-                    Log.e(TAG, "Center is: lat" + currentCenterPoint.getLatitude() + " and long " + currentCenterPoint.getLongitude());
-                    URL getReportsUrl = new URL("http://www.balticapp.fi/lukeA/report?long=" + currentCenterPoint.getLongitude() + "?lat=" + currentCenterPoint.getLatitude());
+                    LatLng latLng = googleMap.getCameraPosition().target;
+
+                    Log.e(TAG, "Center is: lat" + latLng.latitude + " and long " + latLng.longitude);
+                    URL getReportsUrl = new URL("http://www.balticapp.fi/lukeA/report?long=" + latLng.longitude + "?lat=" + latLng.latitude);
                     HttpURLConnection httpURLConnection = (HttpURLConnection) getReportsUrl.openConnection();
                     if (httpURLConnection.getResponseCode() == 200) {
                         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
@@ -182,19 +203,16 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
                                 for (int i = 0; i < jsonArray.length(); i++) {
                                     jsonObject = jsonArray.getJSONObject(i);
 
-
                                     // parse Submission's categories
                                     for (int j = 0; j < jsonObject.getJSONArray("categoryId").length(); j++) {
                                         submissionCategoryIdList.add(jsonObject.getJSONArray("categoryId").get(i));
-
+                                        Log.e(TAG, "Category parse: " +  submissionCategoryIdList.add(jsonObject.getJSONArray("categoryId").get(i)));
                                     }
 
                                     Bitmap image;
                                     Location location = new Location("");
                                     location.setLongitude(jsonObject.getDouble("longitude"));
                                     location.setLatitude(jsonObject.getDouble("latitude"));
-
-                                    GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
 
                                     // TODO: 25/11/2016 Once images are implemented, create submission objects with Images
                                     //   submissions.add(new Submission(jsonObject.getString("id"), jsonObject.getString("title"), submissionCategoryIdList, jsonObject.getString("date"),
@@ -203,7 +221,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
                                     DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH);
                                     Date date = format.parse(jsonObject.getString("date"));
 
-                                   // submissions.add(new Submission(getMainActivity().getApplicationContext(), submissionCategoryIdList, date, jsonObject.getString("description"), geoPoint));
+                                   // submissions.add(new Submission(getMainActivity().getApplicationContext(), submissionCategoryIdList, date, jsonObject.getString("description"), location));
                                 }
                                 addSubmissionsToMap(submissions);
 
@@ -222,7 +240,8 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
                         // TODO: 25/11/2016 Show error when responsecode is not 200
                         Log.e(TAG, "Responsecode = " + httpURLConnection.getResponseCode());
                     }
-                */} catch (Exception e) {
+                } catch (Exception e) {
+                    Log.e(TAG, "run: EXCEPTION", e );
                     Log.e(TAG, "doInBackground: ", e);
                 }
             }
