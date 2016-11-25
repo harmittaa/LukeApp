@@ -2,6 +2,7 @@ package com.luke.lukef.lukeapp;
 
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -21,14 +22,23 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
+
+import javax.net.ssl.HttpsURLConnection;
 
 public class WelcomeActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String TAG = "WelcomeActivity";
@@ -51,6 +61,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         loginButton.setOnClickListener(this);
         skipLoginButton.setOnClickListener(this);
+
     }
 
     @Override
@@ -106,9 +117,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     finish();
                 }
             } catch (InterruptedException e) {
-                Log.e(TAG, "onAuthentication: ",e );
+                Log.e(TAG, "onAuthentication: ", e);
             } catch (ExecutionException e) {
-                Log.e(TAG, "onAuthentication: ",e );
+                Log.e(TAG, "onAuthentication: ", e);
             }
             //startActivity(new Intent(getApplicationContext(),MainActivity.class));
         }
@@ -127,7 +138,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if(lock!=null) {
+        if (lock != null) {
             lock.onDestroy(this);
             lock = null;
         }
@@ -166,9 +177,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 }
                 httpURLConnection.disconnect();
             } catch (MalformedURLException e) {
-                Log.e(TAG, "doInBackground: ",e );
+                Log.e(TAG, "doInBackground: ", e);
             } catch (IOException e) {
-                Log.e(TAG, "doInBackground: ",e );
+                Log.e(TAG, "doInBackground: ", e);
             }
 
             return null;
@@ -245,7 +256,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
                 } else {
                     //TODO: if error do something else, ERROR STREAM
-                    Log.e(TAG, "doInBackground: vöörö" );
+                    Log.e(TAG, "doInBackground: vöörö");
                 }
             } catch (MalformedURLException e) {
                 e.printStackTrace();
@@ -266,20 +277,20 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     SessionSingleton.getInstance().setUserId(jsonObject.getString("id"));
                 }
                 SessionSingleton.getInstance().setXp(jsonObject.getInt("score"));
-                if (jsonObject.has("image_url")){//!TextUtils.isEmpty(jsonObject.getString("image_url"))) {
+                if (jsonObject.has("image_url")) {//!TextUtils.isEmpty(jsonObject.getString("image_url"))) {
                     // TODO: 15/11/2016 parse url to bitmap
                 }
                 if (jsonObject.has("username")) {
                     SessionSingleton.getInstance().setUsername(uname);
                     // TODO: 15/11/2016 move to main activity
-                    startActivity(new Intent(getApplicationContext(),MainActivity.class));
+                    startActivity(new Intent(getApplicationContext(), MainActivity.class));
                 } else {
                     // TODO: 15/11/2016 move to username setting screen
-                    startActivity(new Intent(getApplicationContext(),NewUserActivity.class));
+                    startActivity(new Intent(getApplicationContext(), NewUserActivity.class));
                 }
 
             } catch (JSONException e) {
-                Log.e(TAG, "onPostExecute: ",e );
+                Log.e(TAG, "onPostExecute: ", e);
             }
         }
     }

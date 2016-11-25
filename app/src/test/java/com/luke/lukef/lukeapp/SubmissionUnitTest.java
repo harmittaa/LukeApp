@@ -16,7 +16,7 @@ import static org.junit.Assert.*;
 
 public class SubmissionUnitTest {
     // checks if the constructor that get all the parameter
-    @Test
+   /* @Test
     public void constructor_title() {
         String title = "Test submission";
         Date thisDate = new Date();
@@ -46,5 +46,5 @@ public class SubmissionUnitTest {
         Submission testSubmission = new Submission("Test submission", "beach", "test feedback", thisDate);
         assertEquals(testSubmission.getDate(), thisDate);
     }
-
+*/
 }

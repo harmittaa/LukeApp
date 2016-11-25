@@ -3,9 +3,12 @@ package com.luke.lukef.lukeapp;
 import android.Manifest;
 
 import android.animation.ObjectAnimator;
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.support.v4.content.ContextCompat;
@@ -25,12 +28,14 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.PopupWindow;
 import android.widget.Toast;
@@ -43,8 +48,24 @@ import com.luke.lukef.lukeapp.fragments.NewSubmissionFragment;
 import com.luke.lukef.lukeapp.fragments.PointOfInterestFragment;
 import com.luke.lukef.lukeapp.fragments.ProfileFragment;
 import com.luke.lukef.lukeapp.fragments.UserSubmissionFragment;
+import com.luke.lukef.lukeapp.model.Category;
+import com.luke.lukef.lukeapp.model.SessionSingleton;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.osmdroid.util.GeoPoint;
+import org.w3c.dom.Text;
 
 import static android.R.id.progress;
+import static android.R.id.switch_widget;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -58,8 +79,6 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private ImageButton leftButton;
-    private ImageButton rightButton;
-    private ImageButton midButton;
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private int progressStatus;
@@ -103,8 +122,6 @@ public class MainActivity extends AppCompatActivity {
         animation.start();
 
         leftButton = (ImageButton) findViewById(R.id.button_left);
-        rightButton = (ImageButton) findViewById(R.id.button_right);
-        midButton = (ImageButton) findViewById(R.id.button_mid);
 
         setBottomBarButtonsListeners();
         leftButton.setOnClickListener(new View.OnClickListener() {
@@ -113,13 +130,18 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        getCategories();
+
+        //activate map fragment as default
+        fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP,null);
+
+
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        //activate map fragment as default
-        fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP);
         checkPermissions();
     }
 
@@ -128,8 +150,9 @@ public class MainActivity extends AppCompatActivity {
      * fragment which is chosen.
      *
      * @param fragmentToChange Constants enum type defined for each fragment
+     * @param bundleToSend Optional bundle to send along with the transaction
      */
-    public void fragmentSwitcher(Constants.fragmentTypes fragmentToChange) {
+    public void fragmentSwitcher(Constants.fragmentTypes fragmentToChange, Bundle bundleToSend) {
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         Fragment fragment = null;
@@ -143,6 +166,9 @@ public class MainActivity extends AppCompatActivity {
                 fragment = new LeaderboardFragment();
                 break;
             case FRAGMENT_NEW_SUBMISSION:
+                if(getCurrentFragment(fragmentManager) instanceof MapFragment){
+                    bundleToSend = constructBundleFromMap((MapFragment)getCurrentFragment(fragmentManager));
+                }
                 fragment = new NewSubmissionFragment();
                 break;
             case FRAGMENT_POINT_OF_INTEREST:
@@ -157,9 +183,24 @@ public class MainActivity extends AppCompatActivity {
         }
         //replace the fragment
         if(fragment != null){
-            fragmentTransaction.replace(R.id.fragment_container, fragment);
-            fragmentTransaction.commit();
+            if(bundleToSend != null){
+                fragment.setArguments(bundleToSend);
+            }
+            fragmentTransaction.replace(R.id.fragment_container, fragment).addToBackStack("BackStack").commit();
         }
+    }
+
+    private Bundle constructBundleFromMap(MapFragment mf) {
+        Bundle bundle = new Bundle();
+        GeoPoint gettedLoc = mf.getLastLoc();
+        bundle.putDouble("latitude",gettedLoc.getLatitude());
+        bundle.putDouble("longitude",gettedLoc.getLongitude());
+        bundle.putDouble("altitude",gettedLoc.getAltitude());
+        return bundle;
+    }
+
+    private Fragment getCurrentFragment(FragmentManager fm){
+        return fm.findFragmentById(R.id.fragment_container);
     }
 
     /**
@@ -202,14 +243,41 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void setBottomBarButtonsListeners() {
-        View.OnClickListener cl = new View.OnClickListener() {
+        View.OnClickListener clBack = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onBackPressed();
             }
         };
-        findViewById(R.id.button_back1).setOnClickListener(cl);
-        findViewById(R.id.button_back2).setOnClickListener(cl);
+        View.OnClickListener clNewSub = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (SessionSingleton.getInstance().isUserLogged()) {
+                    fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_NEW_SUBMISSION,null);
+                } else {
+                    // TODO: 21/11/2016 popup to login
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setMessage("Please Log in to Submit")
+                            .setCancelable(false)
+                            .setPositiveButton("Login", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    MainActivity.this.startActivity(new Intent(MainActivity.this.getApplicationContext(), WelcomeActivity.class));
+                                }
+                            })
+                            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            });
+                    AlertDialog alert = builder.create();
+                    alert.show();
+                }
+            }
+        };
+        findViewById(R.id.button_back1).setOnClickListener(clBack);
+        findViewById(R.id.button_back2).setOnClickListener(clBack);
+        findViewById(R.id.button_mid).setOnClickListener(clNewSub);
     }
 
     final private int REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS = 124;
@@ -227,7 +295,7 @@ public class MainActivity extends AppCompatActivity {
             message += "\nStorage access to store map tiles.";
         }
         if (!permissions.isEmpty()) {
-            Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+            //Toast.makeText(this, message, Toast.LENGTH_LONG).show();
             String[] params = permissions.toArray(new String[permissions.size()]);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 requestPermissions(params, REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS);
@@ -251,15 +319,14 @@ public class MainActivity extends AppCompatActivity {
                 Boolean storage = perms.get(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
                 if (location && storage) {
                     // All Permissions Granted
-                    Toast.makeText(MainActivity.this, "All permissions granted", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(MainActivity.this, "All permissions granted", //Toast.LENGTH_SHORT).show();
                 } else if (location) {
-                    Toast.makeText(this, "Storage permission is required to store map tiles to reduce data usage and for offline usage.", Toast.LENGTH_LONG).show();
+                    //Toast.makeText(this, "Storage permission is required to store map tiles to reduce data usage and for offline usage.", Toast.LENGTH_LONG).show();
                 } else if (storage) {
-                    Toast.makeText(this, "Location permission is required to show the user's location on map.", Toast.LENGTH_LONG).show();
+                    //Toast.makeText(this, "Location permission is required to show the user's location on map.", Toast.LENGTH_LONG).show();
                 } else { // !location && !storage case
                     // Permission Denied
-                    Toast.makeText(MainActivity.this, "Storage permission is required to store map tiles to reduce data usage and for offline usage." +
-                            "\nLocation permission is required to show the user's location on map.", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(MainActivity.this, "Storage permission is required to store map tiles to reduce data usage and for offline usage." + "\nLocation permission is required to show the user's location on map.", Toast.LENGTH_SHORT).show();
                 }
             }
             break;
@@ -274,6 +341,7 @@ public class MainActivity extends AppCompatActivity {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
+            super.onBackPressed();
         } else {
             super.onBackPressed();
         }
@@ -314,7 +382,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                         // Insert the fragment by replacing any existing fragment
                          FragmentManager fragmentManager = getFragmentManager();
-                         fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment).commit();
+                         fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment).addToBackStack("BackStack").commit();
                         // Highlight the selected item has been done by NavigationView
                         item.setChecked(true);
 
@@ -345,4 +413,90 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        for (android.support.v4.app.Fragment fragment : getSupportFragmentManager().getFragments()) {
+            fragment.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    //returns the bottom button bar, this can be later used in fragments, to set them as the click listener
+    public LinearLayout getBottomBar(){
+        return (LinearLayout)this.findViewById(R.id.linearLayout);
+    }
+
+    private void getCategories() {
+        Log.e(TAG, "confirmUsername: clickd");
+        Runnable checkUsernameRunnable = new Runnable() {
+            String jsonString;
+
+            @Override
+            public void run() {
+                try {
+                    URL categoriesUrl = new URL("http://www.balticapp.fi/lukeA/category");
+                    HttpURLConnection httpURLConnection = (HttpURLConnection) categoriesUrl.openConnection();
+                    //httpURLConnection.setRequestProperty(getString(R.string.authorization), getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
+                    //httpURLConnection.setRequestProperty(getString(R.string.acstoken), SessionSingleton.getInstance().getAccessToken());
+                    if (httpURLConnection.getResponseCode() == 200) {
+                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
+                        jsonString = "";
+                        StringBuilder stringBuilder = new StringBuilder();
+                        String line;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            stringBuilder.append(line + "\n");
+                        }
+                        bufferedReader.close();
+                        jsonString = stringBuilder.toString();
+                        JSONArray jsonArr;
+                        try {
+                            jsonArr = new JSONArray(jsonString);
+                            Log.e(TAG, "run: CATEGORIES JSON: " + jsonArr.toString());
+
+                            for(int i = 0;i<jsonArr.length();i++){
+                                JSONObject jsonCategory = jsonArr.getJSONObject(i);
+                                Category c = new Category();
+                                c.setDescription(jsonCategory.getString("description"));
+                                c.setId(jsonCategory.getString("id"));
+                                if(!TextUtils.isEmpty(jsonCategory.getString("title"))){
+                                    c.setTitle(jsonCategory.getString("title"));
+                                }
+                                if(!TextUtils.isEmpty(jsonCategory.getString("image_url"))){
+                                    //// TODO: 22/11/2016 parse image into bitmap
+                                }
+                                Log.e(TAG, "run: created category\n" + c.toString());
+                                SessionSingleton.getInstance().addCategory(c);
+                            }
+                        } catch (JSONException e) {
+                            Log.e(TAG, "onPostExecute: ", e);
+                        }
+                    } else {
+
+                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getErrorStream()));
+                        jsonString = "";
+                        StringBuilder stringBuilder = new StringBuilder();
+                        String line;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            stringBuilder.append(line + "\n");
+                        }
+                        bufferedReader.close();
+                        jsonString = stringBuilder.toString();
+
+                        Log.e(TAG, "run: ERROR WITH CATEGORIES : " + jsonString);
+                    }
+                } catch (MalformedURLException e) {
+                    Log.e(TAG, "doInBackground: ", e);
+                } catch (IOException e) {
+                    Log.e(TAG, "doInBackground: ", e);
+                }
+            }
+        };
+
+        Thread thread = new Thread(checkUsernameRunnable);
+        thread.start();
+
+
+    }
+
 }

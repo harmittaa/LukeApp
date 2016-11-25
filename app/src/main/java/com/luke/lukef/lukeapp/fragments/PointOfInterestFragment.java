@@ -32,10 +32,10 @@ public class PointOfInterestFragment extends Fragment implements View.OnClickLis
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.poi_map_button:
-                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP);
+                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP,null);
                 break;
             case R.id.profile_button:
-                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_PROFILE);
+                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_PROFILE,null);
                 break;
         }
     }

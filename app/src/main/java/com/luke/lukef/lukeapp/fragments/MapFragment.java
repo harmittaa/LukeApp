@@ -5,10 +5,15 @@ import android.app.Dialog;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
@@ -24,6 +29,7 @@ import android.widget.TextView;
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
+import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.tools.PopupMaker;
 
 import org.osmdroid.api.IMapController;
@@ -41,23 +47,44 @@ import org.osmdroid.views.overlay.gestures.RotationGestureOverlay;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
-public class MapFragment extends Fragment implements View.OnClickListener {
+import javax.net.ssl.HttpsURLConnection;
+
+public class MapFragment extends Fragment implements View.OnClickListener, LocationListener {
     private static final String TAG = "MapFragment";
     private View fragmentView;
-    private Button pointOfInterestButton;
-    private Button newSubmissionButton;
     private Button leaderboardButton;
     private MapView map;
+    Location lastLoc;
+    Location lastKnownLoc;
+
+    public GeoPoint getLastLoc(){
+        if (this.lastLoc != null) {
+            return new GeoPoint(this.lastLoc.getLatitude(), this.lastLoc.getLongitude(), this.lastLoc.getAltitude());
+        } else if (this.lastKnownLoc != null) {
+            return new GeoPoint(this.lastKnownLoc.getLatitude(), this.lastKnownLoc.getLongitude(), this.lastKnownLoc.getAltitude());
+        } else {
+            return null;
+        }
+    }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Log.e(TAG, "onCreateView: MAP fragment");
         fragmentView = inflater.inflate(R.layout.fragment_map, container, false);
-        //pointOfInterestButton = (Button) fragmentView.findViewById(R.id.poi_button);
-        newSubmissionButton = (Button) fragmentView.findViewById(R.id.new_submission_button);
         leaderboardButton = (Button) fragmentView.findViewById(R.id.leaderboard_button);
         setupButtons();
         getMainActivity().setBottomBarButtons(Constants.bottomActionBarStates.MAP_CAMERA);
@@ -68,16 +95,8 @@ public class MapFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            /*case R.id.poi_button:
-                //getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_POINT_OF_INTEREST);
-                PopupMaker pm = new PopupMaker(getMainActivity());
-                pm.createPopupTest();
-                break;*/
-            case R.id.new_submission_button:
-                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_NEW_SUBMISSION);
-                break;
             case R.id.leaderboard_button:
-                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_LEADERBOARD);
+                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_LEADERBOARD,null);
                 break;
         }
     }
@@ -88,8 +107,16 @@ public class MapFragment extends Fragment implements View.OnClickListener {
 
     private void setupButtons() {
 //        pointOfInterestButton.setOnClickListener(this);
-        newSubmissionButton.setOnClickListener(this);
         leaderboardButton.setOnClickListener(this);
+    }
+
+    private void setupLocationListener() {
+        LocationManager locationManager = (LocationManager) getMainActivity().getSystemService(Context.LOCATION_SERVICE);
+        if (ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 1.0f, this);
+            return;
+        }
     }
 
     /**
@@ -106,36 +133,27 @@ public class MapFragment extends Fragment implements View.OnClickListener {
         map.setMultiTouchControls(true);
         //get current phone position and zoom to location
         LocationManager lm = (LocationManager) getMainActivity().getSystemService(Context.LOCATION_SERVICE);
+
         if (ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
+            //// TODO: 21/11/2016 ask for permission
         }
-        Location lastLoc = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        Location lastKnownLocation = lm.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
+        this.lastKnownLoc = lastKnownLocation;
         IMapController mapController = map.getController();
         mapController.setZoom(100);
-        GeoPoint startPoint = new GeoPoint(lastLoc.getLatitude(), lastLoc.getLongitude());
+        GeoPoint startPoint;
+        if(this.lastLoc != null){
+            startPoint = new GeoPoint(this.lastLoc.getLatitude(), this.lastLoc.getLongitude());
+        }else {
+            startPoint = new GeoPoint(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
+        }
         mapController.setCenter(startPoint);
-
-        mapPinTest(lastLoc);
 
         MyLocationNewOverlay mLocationOverlay = new MyLocationNewOverlay(new GpsMyLocationProvider(getMainActivity()),map);
         mLocationOverlay.enableMyLocation();
         map.getOverlays().add(mLocationOverlay);
 
-        CompassOverlay mCompassOverlay = new CompassOverlay(getMainActivity(), new InternalCompassOrientationProvider(getMainActivity()), map);
-        mCompassOverlay.enableCompass();
-        map.getOverlays().add(mCompassOverlay);
-
-        RotationGestureOverlay mRotationGestureOverlay = new RotationGestureOverlay(getMainActivity(), map);
-        mRotationGestureOverlay.setEnabled(true);
         map.setMultiTouchControls(true);
-        map.getOverlays().add(mRotationGestureOverlay);
 /*scale bar, looks wonky
         ScaleBarOverlay mScaleBarOverlay = new ScaleBarOverlay(map);
         mScaleBarOverlay.setCentred(true);
@@ -174,4 +192,26 @@ public class MapFragment extends Fragment implements View.OnClickListener {
 
         map.getOverlays().add(mOverlay);
     }
+
+
+    @Override
+    public void onLocationChanged(Location location) {
+        this.lastLoc = location;
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
+    }
+
 }

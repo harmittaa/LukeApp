@@ -1,6 +1,9 @@
 package com.luke.lukef.lukeapp.model;
 
 import android.graphics.Bitmap;
+import android.util.Log;
+
+import java.util.ArrayList;
 
 /**
  * Created by Daniel on 15/11/2016.
@@ -22,6 +25,7 @@ public class SessionSingleton {
     private int level;
     private Bitmap userImage;
     private boolean isUserLogged = false;
+    private ArrayList<Category> categories;
 
     // optimal case when all the parameters can be gotten from the server
     public void setValues(String username, int xp, int level, Bitmap userImage, String userId, String accessToken, String idToken){
@@ -32,6 +36,35 @@ public class SessionSingleton {
         this.userId = userId;
         this.accessToken = accessToken;
         this.idToken = idToken;
+    }
+
+    private SessionSingleton(){
+        this.categories = new ArrayList<>();
+    }
+
+    public void addCategory(Category c){
+        Log.e(TAG, "addCategory: added " + c + " to list of categories, size of list now " + this.categories.size() );
+        this.categories.add(c);
+    }
+
+    public void removeCategory(Category c){
+        this.categories.remove(c);
+    }
+
+    public void removeCategoryByIndex(int i){
+        this.categories.remove(i);
+    }
+
+    public void setCategories(ArrayList<Category> newCategories){
+        this.categories = newCategories;
+    }
+
+    public ArrayList<Category> getCategoryList(){
+        return this.categories;
+    }
+
+    public void emptyCategories(){
+        this.categories.clear();
     }
 
     // calls DB to update the xp
@@ -89,6 +122,8 @@ public class SessionSingleton {
 
     public void setIdToken(String idToken) {
         this.idToken = idToken;
+
+        Log.e(TAG, "setidToken: idtoken token set to " + this.idToken );
     }
 
     public String getAccessToken() {
@@ -97,6 +132,8 @@ public class SessionSingleton {
 
     public void setAccessToken(String accessToken) {
         this.accessToken = accessToken;
+
+        Log.e(TAG, "setidToken: accestoken set to " + this.accessToken );
     }
 
     public void setUsername(String username) {
