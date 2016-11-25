@@ -77,6 +77,7 @@ public class Submission {
                 jsonObject.put("title", Submission.this.title);
             }
             // TODO: 25/11/2016 When image implementation on server is done, add image to json object if not null
+            Log.e(TAG, "convertToJson: Created json object that looks like: " + jsonObject.toString() );
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -161,8 +162,12 @@ public class Submission {
         };
 
         FutureTask<Boolean> futureTask = new FutureTask<Boolean>(booleanCallable);
+        Thread t=new Thread(futureTask);
+        t.start();
+
         try {
-            return futureTask.get();
+            boolean b = futureTask.get();
+            return b;
         } catch (InterruptedException e) {
             Log.e(TAG, "submitToServer: ", e);
             return false;

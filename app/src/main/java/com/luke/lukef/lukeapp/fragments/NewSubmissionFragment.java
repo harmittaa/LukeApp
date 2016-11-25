@@ -47,6 +47,7 @@ import org.osmdroid.views.MapView;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -81,9 +82,9 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         fragmentView = inflater.inflate(R.layout.fragment_new_submission, container, false);
         cameraButton = (Button) fragmentView.findViewById(R.id.activateCameraButton);
         categoryButton = (Button) fragmentView.findViewById(R.id.buttonCategory);
-        submittt = (Button)fragmentView.findViewById(R.id.button_submit_test);
-        submissionDescription = (EditText)fragmentView.findViewById(R.id.newSubmissionEditTextDescrption);
-        submissionTitle = (EditText)fragmentView.findViewById(R.id.newSubmissionEditTextTitle);
+        submittt = (Button) fragmentView.findViewById(R.id.button_submit_test);
+        submissionDescription = (EditText) fragmentView.findViewById(R.id.newSubmissionEditTextDescrption);
+        submissionTitle = (EditText) fragmentView.findViewById(R.id.newSubmissionEditTextTitle);
         setupButtons();
         getMainActivity().setBottomBarButtons(Constants.bottomActionBarStates.BACK_TICK);
         this.setBottomButtonListeners();
@@ -179,14 +180,35 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         }
     }
 
+    private void compressImage() {
+        File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+        Bitmap b = getBitmapFromStorage();
+
+        //b = MediaStore.Images.Media.getBitmap(getMainActivity().getContentResolver(), this.imagePath);
+        Bitmap out = Bitmap.createScaledBitmap(b, 1920, 1080, false);
+        File file = new File(dir, this.mCurrentPhotoPath.toString());
+        FileOutputStream fOut;
+        try {
+            fOut = new FileOutputStream(file);
+            out.compress(Bitmap.CompressFormat.JPEG, 100, fOut);
+            fOut.flush();
+            fOut.close();
+            b.recycle();
+            out.recycle();
+        } catch (Exception e) {
+        }
+
+
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            Bundle extras = data.getExtras();
-            Bitmap imageBitmap = (Bitmap) extras.get("data");
+            compressImage();
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inSampleSize = 8;
+            final Bitmap imageBitmap = BitmapFactory.decodeFile(this.mCurrentPhotoPath.toString(), options);
             photoThumbnail.setImageBitmap(imageBitmap);
-            Log.e(TAG, "onActivityResult: size of image: " + imageBitmap.getHeight() + " : " + imageBitmap.getWidth());
-            Log.e(TAG, "onActivityResult: size of photothmbnail: " + photoThumbnail.getHeight() + " : " + photoThumbnail.getWidth());
         }
     }
 
@@ -215,16 +237,16 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     }
 
     private void makeSubmission() {
-        if(checkFieldsValidity()){
+        if (checkFieldsValidity()) {
             // TODO: 22/11/2016 create submission object, make httprequest and send to server(put this request into submission?)
-            Submission newSub = new Submission(getMainActivity(),this.selectedCategries,new Date(),submissionDescription.getText().toString(),this.location);
+            Submission newSub = new Submission(getMainActivity(), this.selectedCategries, new Date(), submissionDescription.getText().toString(), this.location);
             if (newSub.submitToServer()) {
                 Log.e(TAG, "makeSubmission: Submission sent succesfully");
             } else {
                 Log.e(TAG, "makeSubmission: Error submitting");
             }
-        }else {
-            Log.e(TAG, "makeSubmission: FIELDS NOT VALID\nFIELDS NOT VALID" );
+        } else {
+            Log.e(TAG, "makeSubmission: FIELDS NOT VALID\nFIELDS NOT VALID");
         }
     }
 
