@@ -1,11 +1,9 @@
 package com.luke.lukef.lukeapp.model;
 
-/**
- * Created by tehetenamasresha on 01/11/2016.
- */
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.luke.lukef.lukeapp.R;
@@ -15,23 +13,20 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.osmdroid.util.GeoPoint;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Scanner;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 
 
 /**
@@ -67,25 +62,45 @@ public class Submission {
         this.context = context;
     }
 
+    private JSONObject convertToJson() {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject
+                    .put("longitude", Submission.this.location.getLongitude())
+                    .put("latitude", Submission.this.location.getLatitude())
+                    .put("altitude", Submission.this.location.getAltitude())
+                    .put("description", Submission.this.description)
+                    .put("categoryId", convertCategoriesToJsonArray()).toString();
+
+
+            if (!TextUtils.isEmpty(Submission.this.title)) {
+                jsonObject.put("title", Submission.this.title);
+            }
+            // TODO: 25/11/2016 When image implementation on server is done, add image to json object if not null
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return jsonObject;
+    }
+
     /**
      * Writes the submission object to the server
      */
-    public void submitToServer() {
-        Runnable r = new Runnable() {
+    public boolean submitToServer() {
+
+        Callable<Boolean> booleanCallable = new Callable<Boolean>() {
             @Override
-            public void run() {
+            public Boolean call() throws Exception {
                 HttpURLConnection conn = null;
                 try {
-                    //create a json object from this submission to be sent to the server
-                    String urlParameters = new JSONObject()
-                            .put("longitude", Submission.this.location.getLongitude())
-                            .put("latitude", Submission.this.location.getLatitude())
-                            .put("altitude", Submission.this.location.getAltitude())
-                            .put("description", Submission.this.description)
-                            .put("categoryId", convertCategoriesToJsonArray()).toString();
+                    //create a json object from this submission to be sent to the server and convert it to string
+                    String urlParameters = Submission.this.convertToJson().toString();
+
                     URL url = new URL("http://www.balticapp.fi/lukeA/report/create");
                     conn = (HttpURLConnection) url.openConnection();
                     //set header values, (tokens, content type and charset)
+                    // TODO: 25/11/2016 check if tokens are valid
                     conn.setRequestProperty(context.getString(R.string.authorization), context.getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
                     conn.setRequestProperty(context.getString(R.string.acstoken), SessionSingleton.getInstance().getAccessToken());
                     conn.setRequestProperty("Content-Type", "application/json");
@@ -96,66 +111,66 @@ public class Submission {
                     //get the output stream of the connection
                     OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
 
-
-                    //write the JSONobject to the connection
+                    //write the JSONobject to the connections output
                     writer.write(urlParameters);
                     //flush and close the writer
                     writer.flush();
                     writer.close();
 
-                    //do something with the response, in this case check if 200 or error, for testing purposes
+                    //get the response, if succesful, get inurstream, if unsuccesful get errorstream
+                    BufferedReader bufferedReader;
                     if (conn.getResponseCode() != 200) {
-                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
-                        String jsonString = "";
-                        StringBuilder stringBuilder = new StringBuilder();
-                        String line2;
-                        while ((line2 = bufferedReader.readLine()) != null) {
-                            stringBuilder.append(line2 + "\n");
-                        }
-                        bufferedReader.close();
-                        jsonString = stringBuilder.toString();
+                        bufferedReader = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
 
-                        Log.e(TAG, "run: ERROR WITH CATEGORIES : " + jsonString);
                     } else {
-                        Log.e(TAG, "run: was success");
-                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                        String jsonString = "";
-                        StringBuilder stringBuilder = new StringBuilder();
-                        String line2;
-                        while ((line2 = bufferedReader.readLine()) != null) {
-                            stringBuilder.append(line2 + "\n");
-                        }
-                        bufferedReader.close();
-                        jsonString = stringBuilder.toString();
-
-                        Log.e(TAG, "run: SUCCESS BITCH!!!" + jsonString);
+                        // TODO: 25/11/2016 check for authorization error, respons accordingly
+                        bufferedReader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                     }
+                    String jsonString = "";
+                    StringBuilder stringBuilder = new StringBuilder();
+                    String line2;
+                    while ((line2 = bufferedReader.readLine()) != null) {
+                        stringBuilder.append(line2 + "\n");
+                    }
+                    bufferedReader.close();
+                    jsonString = stringBuilder.toString();
 
-                    Log.e(TAG, "run: RESPONSECODE:" + conn.getResponseCode() + " " + conn.getResponseMessage());
+                    Log.e(TAG, "run: Result : " + jsonString);
 
 
                 } catch (UnsupportedEncodingException e) {
                     Log.e(TAG, "submitToServer: ", e);
+                    return false;
                 } catch (ProtocolException e) {
                     Log.e(TAG, "submitToServer: ", e);
+                    return false;
                 } catch (MalformedURLException e) {
                     Log.e(TAG, "submitToServer: ", e);
+                    return false;
                 } catch (IOException e) {
                     Log.e(TAG, "submitToServer: ", e);
-                } catch (JSONException e) {
-                    Log.e(TAG, "submitToServer: ", e);
+                    return false;
                 }
 
                 //disconnect from the urlConnection
-                if(conn != null) {
+                if (conn != null) {
                     conn.disconnect();
                 }
-
+                return true;
             }
         };
 
-        Thread t = new Thread(r);
-        t.start();
+        FutureTask<Boolean> futureTask = new FutureTask<Boolean>(booleanCallable);
+        try {
+            return futureTask.get();
+        } catch (InterruptedException e) {
+            Log.e(TAG, "submitToServer: ", e);
+            return false;
+        } catch (ExecutionException e) {
+            Log.e(TAG, "submitToServer: ", e);
+            return false;
+        }
+
     }
 
     private JSONArray convertCategoriesToJsonArray() {

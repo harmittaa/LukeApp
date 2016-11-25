@@ -218,7 +218,11 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         if(checkFieldsValidity()){
             // TODO: 22/11/2016 create submission object, make httprequest and send to server(put this request into submission?)
             Submission newSub = new Submission(getMainActivity(),this.selectedCategries,new Date(),submissionDescription.getText().toString(),this.location);
-            newSub.submitToServer();
+            if (newSub.submitToServer()) {
+                Log.e(TAG, "makeSubmission: Submission sent succesfully");
+            } else {
+                Log.e(TAG, "makeSubmission: Error submitting");
+            }
         }else {
             Log.e(TAG, "makeSubmission: FIELDS NOT VALID\nFIELDS NOT VALID" );
         }

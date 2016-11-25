@@ -137,7 +137,7 @@ public class MapFragment extends Fragment implements View.OnClickListener, Locat
         if (ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             //// TODO: 21/11/2016 ask for permission
         }
-        Location lastKnownLocation = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        Location lastKnownLocation = lm.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
         this.lastKnownLoc = lastKnownLocation;
         IMapController mapController = map.getController();
         mapController.setZoom(100);
