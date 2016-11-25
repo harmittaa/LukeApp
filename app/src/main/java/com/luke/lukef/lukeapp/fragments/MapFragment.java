@@ -1,68 +1,61 @@
 package com.luke.lukef.lukeapp.fragments;
 
 import android.Manifest;
-import android.app.Dialog;
 import android.app.Fragment;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.location.Location;
 import android.location.LocationManager;
-import android.media.Image;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.PopupWindow;
-import android.widget.TextView;
 
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
-import com.luke.lukef.lukeapp.NewUserActivity;
 import com.luke.lukef.lukeapp.R;
-import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.model.Submission;
 import com.luke.lukef.lukeapp.tools.PopupMaker;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.osmdroid.api.IMapController;
+import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.ItemizedIconOverlay;
 import org.osmdroid.views.overlay.ItemizedOverlayWithFocus;
 import org.osmdroid.views.overlay.OverlayItem;
-import org.osmdroid.views.overlay.ScaleBarOverlay;
 import org.osmdroid.views.overlay.compass.CompassOverlay;
 import org.osmdroid.views.overlay.compass.InternalCompassOrientationProvider;
-import org.osmdroid.views.overlay.gestures.RotationGestureDetector;
 import org.osmdroid.views.overlay.gestures.RotationGestureOverlay;
-import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
-import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
+/**
+ * Handles the Map view, fetches submission
+ */
 public class MapFragment extends Fragment implements View.OnClickListener {
     private static final String TAG = "MapFragment";
     private View fragmentView;
-    private Button pointOfInterestButton;
     private Button newSubmissionButton;
     private Button leaderboardButton;
     private MapView map;
@@ -153,10 +146,10 @@ public class MapFragment extends Fragment implements View.OnClickListener {
         mRotationGestureOverlay.setEnabled(true);
         map.setMultiTouchControls(true);
         map.getOverlays().add(mRotationGestureOverlay);
-/*scale bar, looks wonky
+        /*scale bar, looks wonky
         ScaleBarOverlay mScaleBarOverlay = new ScaleBarOverlay(map);
         mScaleBarOverlay.setCentred(true);
-//play around with these values to get the location on screen in the right place for your applicatio
+        //play around with these values to get the location on screen in the right place for your applicatio
         mScaleBarOverlay.setScaleBarOffset(map.getWidth(), 10);
         map.getOverlays().add(mScaleBarOverlay);*/
     }
@@ -171,7 +164,7 @@ public class MapFragment extends Fragment implements View.OnClickListener {
         }
         items.add(newOI); // Lat/Lon decimal degrees
 
-//the overlay
+        //the overlay
         ItemizedOverlayWithFocus<OverlayItem> mOverlay = new ItemizedOverlayWithFocus<OverlayItem>(items,
                 new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {
                     @Override
@@ -189,21 +182,26 @@ public class MapFragment extends Fragment implements View.OnClickListener {
                     }
                 }, getMainActivity());
         mOverlay.setFocusItemsOnTap(true);
-
         map.getOverlays().add(mOverlay);
     }
 
+
+    /**
+     * Function that has anonymous runnable class which fetches all reports from the server.
+     * Creates submission objects from JSON fetched from the server and adds them to the list.
+     */
     private void getSubmissions() {
-        Log.e(TAG, "Getting submissions");
         Runnable getSubmissions = new Runnable() {
             String jsonString;
-            List submissions;
 
             @Override
             public void run() {
                 try {
-                    URL checkUsernameUrl = new URL("http://www.balticapp.fi/lukeA/report");
-                    HttpURLConnection httpURLConnection = (HttpURLConnection) checkUsernameUrl.openConnection();
+                    // Gets the center of current map
+                    IGeoPoint currentCenterPoint = map.getMapCenter();
+                    Log.e(TAG, "Center is: lat" + currentCenterPoint.getLatitude() + " and long " + currentCenterPoint.getLongitude());
+                    URL getReportsUrl = new URL("http://www.balticapp.fi/lukeA/report?long=" + currentCenterPoint.getLongitude() + "?lat=" + currentCenterPoint.getLatitude());
+                    HttpURLConnection httpURLConnection = (HttpURLConnection) getReportsUrl.openConnection();
                     if (httpURLConnection.getResponseCode() == 200) {
                         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
                         jsonString = "";
@@ -214,22 +212,20 @@ public class MapFragment extends Fragment implements View.OnClickListener {
                         }
                         bufferedReader.close();
                         jsonString = stringBuilder.toString();
-                        Log.e(TAG, "The jsonString " + jsonString);
                         JSONObject jsonObject;
                         JSONArray jsonArray;
-                        submissions = new ArrayList<Submission>();
-                        List submissionIds = new ArrayList<Submission>();
+                        List<Submission> submissions = new ArrayList<>();
+                        List<Object> submissionCategoryIdList = new ArrayList<>();
                         try {
+                            // make new JSONArray from the server's reply
                             jsonArray = new JSONArray(jsonString);
-                            Log.e(TAG, "JsonArray length " + jsonArray.length());
                             if (jsonArray.length() > 0) {
                                 for (int i = 0; i < jsonArray.length(); i++) {
                                     jsonObject = jsonArray.getJSONObject(i);
-                                    Log.e(TAG, "Parsed jsonObject: " + jsonObject);
 
-
+                                    // parse Submission's categories
                                     for (int j = 0; j < jsonObject.getJSONArray("categoryId").length(); j++) {
-                                        submissionIds.add(jsonObject.getJSONArray("categoryId").get(i));
+                                        submissionCategoryIdList.add(jsonObject.getJSONArray("categoryId").get(i));
                                     }
 
                                     Bitmap image;
@@ -237,24 +233,32 @@ public class MapFragment extends Fragment implements View.OnClickListener {
                                     location.setLongitude(jsonObject.getDouble("longitude"));
                                     location.setLatitude(jsonObject.getDouble("latitude"));
 
-                                    // TODO: 18/11/2016 FIX IMAGE
-                                //    submissions.add(new Submission(jsonObject.getString("id"), jsonObject.getString("title"), submissionIds, jsonObject.getString("date"),
-                                //                    jsonObject.getString("description"), image, location));
+                                    // TODO: 25/11/2016 Once images are implemented, create submission objects with Images
+                                    //   submissions.add(new Submission(jsonObject.getString("id"), jsonObject.getString("title"), submissionCategoryIdList, jsonObject.getString("date"),
+                                    //                    jsonObject.getString("description"), image, location));
 
+                                    DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH);
+                                    Date date = format.parse(jsonObject.getString("date"));
+
+                                    submissions.add(new Submission(submissionCategoryIdList, date, jsonObject.getString("description"), location));
                                 }
-                            } else {
+                                addSubmissionsToMap(submissions);
 
+                            } else {
+                                // TODO: 25/11/2016 No submissions, show info to user
+                                Log.e(TAG, "No submissions");
                             }
 
-
+                            // TODO: 25/11/2016 Handle exceptions
                         } catch (JSONException e) {
                             Log.e(TAG, "onPostExecute: ", e);
+                        } catch (ParseException e) {
+                            Log.e(TAG, "run: ERROR ", e);
                         }
                     } else {
-
+                        // TODO: 25/11/2016 Show error when responsecode is not 200
+                        Log.e(TAG, "Responsecode = " + httpURLConnection.getResponseCode());
                     }
-                } catch (MalformedURLException e) {
-                    Log.e(TAG, "doInBackground: ", e);
                 } catch (IOException e) {
                     Log.e(TAG, "doInBackground: ", e);
                 }
@@ -263,5 +267,38 @@ public class MapFragment extends Fragment implements View.OnClickListener {
 
         Thread thread = new Thread(getSubmissions);
         thread.start();
+    }
+
+    /**
+     * Parses through provided list of submissions, creates OverlayItems and adds them to the map
+     * @param submissions List of Submission objects
+     */
+    private void addSubmissionsToMap(List<Submission> submissions) {
+        List<OverlayItem> overlayItemsList = new ArrayList();
+        // go through the submissions list, create OverlayItem objects and set the markers
+        for (Submission s : submissions) {
+            OverlayItem overlayItem = new OverlayItem("", "", new GeoPoint(s.getLocation().getLatitude(), s.getLocation().getLongitude()));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                overlayItem.setMarker(getMainActivity().getDrawable(android.R.drawable.btn_star));
+            }
+            overlayItemsList.add(overlayItem);
+        }
+        ItemizedOverlayWithFocus<OverlayItem> mOverlay = new ItemizedOverlayWithFocus<OverlayItem>(overlayItemsList,
+                new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {
+                    @Override
+                    public boolean onItemSingleTapUp(final int index, final OverlayItem item) {
+                        PopupMaker popMaker = new PopupMaker(getMainActivity());
+                        popMaker.createPopupTest();
+                        return true;
+                    }
+
+                    @Override
+                    public boolean onItemLongPress(final int index, final OverlayItem item) {
+                        return false;
+                    }
+                }, getMainActivity());
+        mOverlay.setFocusItemsOnTap(true);
+        map.getOverlays().add(mOverlay);
+
     }
 }

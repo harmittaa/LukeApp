@@ -38,7 +38,7 @@ public class Submission {
     }
 
     //only mandatory values
-    public Submission(List category, Date date, String description) {
+    public Submission(List category, Date date, String description, Location location) {
         this.category = new ArrayList();
         this.location = location;
         this.category = category;
