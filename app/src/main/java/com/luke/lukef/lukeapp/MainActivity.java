@@ -10,6 +10,7 @@ import android.app.FragmentTransaction;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Build;
 import android.support.v4.content.ContextCompat;
 import android.graphics.drawable.Drawable;
@@ -46,7 +47,6 @@ import com.luke.lukef.lukeapp.model.SessionSingleton;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.osmdroid.util.GeoPoint;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -175,7 +175,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Bundle constructBundleFromMap(MapFragment mf) {
         Bundle bundle = new Bundle();
-        GeoPoint gettedLoc = mf.getLastLoc();
+        Location gettedLoc = mf.getLastLoc();
         bundle.putDouble("latitude",gettedLoc.getLatitude());
         bundle.putDouble("longitude",gettedLoc.getLongitude());
         bundle.putDouble("altitude",gettedLoc.getAltitude());

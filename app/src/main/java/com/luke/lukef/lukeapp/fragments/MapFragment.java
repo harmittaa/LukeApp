@@ -18,6 +18,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
@@ -27,13 +30,6 @@ import com.luke.lukef.lukeapp.tools.PopupMaker;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.osmdroid.api.IGeoPoint;
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
-import org.osmdroid.util.GeoPoint;
-import org.osmdroid.views.MapView;
-import org.osmdroid.views.overlay.ItemizedIconOverlay;
-import org.osmdroid.views.overlay.ItemizedOverlayWithFocus;
-import org.osmdroid.views.overlay.OverlayItem;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -52,34 +48,47 @@ import java.util.Locale;
 /**
  * Handles the Map view, fetches submission
  */
-public class MapFragment extends Fragment implements View.OnClickListener, LocationListener {
+public class MapFragment extends Fragment implements View.OnClickListener, LocationListener, OnMapReadyCallback {
     private static final String TAG = "MapFragment";
     private View fragmentView;
     private Button leaderboardButton;
-    private MapView map;
     Location lastLoc;
     Location lastKnownLoc;
+    GoogleMap googleMap;
+    MapView googleMapView;
 
-    public GeoPoint getLastLoc(){
+    public Location getLastLoc(){
         if (this.lastLoc != null) {
-            return new GeoPoint(this.lastLoc.getLatitude(), this.lastLoc.getLongitude(), this.lastLoc.getAltitude());
+            Location jeeben = new Location("");
+            jeeben.setAltitude(this.lastLoc.getAltitude());
+            jeeben.setLatitude(this.lastLoc.getLatitude());
+            jeeben.setLongitude(this.lastLoc.getLongitude());
+            return jeeben;
         } else if (this.lastKnownLoc != null) {
-            return new GeoPoint(this.lastKnownLoc.getLatitude(), this.lastKnownLoc.getLongitude(), this.lastKnownLoc.getAltitude());
+            Location jeeben = new Location("");
+            jeeben.setAltitude(this.lastKnownLoc.getAltitude());
+            jeeben.setLatitude(this.lastKnownLoc.getLatitude());
+            jeeben.setLongitude(this.lastKnownLoc.getLongitude());
+            return jeeben;
         } else {
             return null;
         }
     }
 
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Log.e(TAG, "onCreateView: MAP fragment");
         fragmentView = inflater.inflate(R.layout.fragment_map, container, false);
         leaderboardButton = (Button) fragmentView.findViewById(R.id.leaderboard_button);
         setupButtons();
         getMainActivity().setBottomBarButtons(Constants.bottomActionBarStates.MAP_CAMERA);
         setupOSMap();
         getSubmissions();
+
+        googleMapView = (MapView)fragmentView.findViewById(R.id.mapView);
+        googleMapView.onCreate(savedInstanceState);
+        googleMapView.getMapAsync(this);
         return fragmentView;
     }
 
@@ -102,12 +111,7 @@ public class MapFragment extends Fragment implements View.OnClickListener, Locat
     }
 
     private void setupLocationListener() {
-        LocationManager locationManager = (LocationManager) getMainActivity().getSystemService(Context.LOCATION_SERVICE);
-        if (ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 1.0f, this);
-            return;
-        }
+
     }
 
     /**
@@ -117,11 +121,6 @@ public class MapFragment extends Fragment implements View.OnClickListener, Locat
      */
     private void setupOSMap() {
         //init map
-        map = (MapView) fragmentView.findViewById(R.id.mapMain);
-        map.setTileSource(TileSourceFactory.MAPNIK);
-        //enable pinch zoom
-        map.setBuiltInZoomControls(true);
-        map.setMultiTouchControls(true);
         //get current phone position and zoom to location
         LocationManager lm = (LocationManager) getMainActivity().getSystemService(Context.LOCATION_SERVICE);
 
@@ -159,34 +158,7 @@ public class MapFragment extends Fragment implements View.OnClickListener, Locat
     }
 
     private void mapPinTest(Location l) {
-        ArrayList<OverlayItem> items = new ArrayList<OverlayItem>();
-        OverlayItem newOI = new OverlayItem("", "", new GeoPoint(l.getLatitude(), l.getLongitude()));
-        //PIN DRAWABLE CAN BE CHANGED, this can be used to make different colored pins for categories / submission types
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            newOI.setMarker(getMainActivity().getDrawable(android.R.drawable.btn_star));
-            newOI.setMarkerHotspot(OverlayItem.HotspotPlace.RIGHT_CENTER);
-        }
-        items.add(newOI); // Lat/Lon decimal degrees
 
-        //the overlay
-        ItemizedOverlayWithFocus<OverlayItem> mOverlay = new ItemizedOverlayWithFocus<OverlayItem>(items,
-                new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {
-                    @Override
-                    public boolean onItemSingleTapUp(final int index, final OverlayItem item) {
-                        //do something
-                        //getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_POINT_OF_INTEREST);
-                        PopupMaker popMaker = new PopupMaker(getMainActivity());
-                        popMaker.createPopupTest();
-                        return true;
-                    }
-
-                    @Override
-                    public boolean onItemLongPress(final int index, final OverlayItem item) {
-                        return false;
-                    }
-                }, getMainActivity());
-        mOverlay.setFocusItemsOnTap(true);
-        map.getOverlays().add(mOverlay);
     }
 
 
@@ -202,7 +174,7 @@ public class MapFragment extends Fragment implements View.OnClickListener, Locat
             public void run() {
                 try {
                     // Gets the center of current map
-                    IGeoPoint currentCenterPoint = map.getMapCenter();
+                    /*IGeoPoint currentCenterPoint = map.getMapCenter();
                     Log.e(TAG, "Center is: lat" + currentCenterPoint.getLatitude() + " and long " + currentCenterPoint.getLongitude());
                     URL getReportsUrl = new URL("http://www.balticapp.fi/lukeA/report?long=" + currentCenterPoint.getLongitude() + "?lat=" + currentCenterPoint.getLatitude());
                     HttpURLConnection httpURLConnection = (HttpURLConnection) getReportsUrl.openConnection();
@@ -267,7 +239,7 @@ public class MapFragment extends Fragment implements View.OnClickListener, Locat
                         // TODO: 25/11/2016 Show error when responsecode is not 200
                         Log.e(TAG, "Responsecode = " + httpURLConnection.getResponseCode());
                     }
-                } catch (IOException e) {
+                */} catch (Exception e) {
                     Log.e(TAG, "doInBackground: ", e);
                 }
             }
@@ -281,7 +253,7 @@ public class MapFragment extends Fragment implements View.OnClickListener, Locat
      * Parses through provided list of submissions, creates OverlayItems and adds them to the map
      * @param submissions List of Submission objects
      */
-    private void addSubmissionsToMap(List<Submission> submissions) {
+    private void addSubmissionsToMap(List<Submission> submissions) {/*
         List<OverlayItem> overlayItemsList = new ArrayList();
         // go through the submissions list, create OverlayItem objects and set the markers
         for (Submission s : submissions) {
@@ -306,7 +278,7 @@ public class MapFragment extends Fragment implements View.OnClickListener, Locat
                     }
                 }, getMainActivity());
         mOverlay.setFocusItemsOnTap(true);
-        map.getOverlays().add(mOverlay);
+        map.getOverlays().add(mOverlay);*/
 
     }
 
@@ -331,4 +303,9 @@ public class MapFragment extends Fragment implements View.OnClickListener, Locat
 
     }
 
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        this.googleMap = googleMap;
+        this.googleMap.getUiSettings().setZoomControlsEnabled(true);
+    }
 }
