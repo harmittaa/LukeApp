@@ -21,6 +21,7 @@ import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.GoogleMap.OnCameraIdleListener;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
@@ -49,7 +50,7 @@ import java.util.Locale;
 /**
  * Handles the Map view, fetches submission
  */
-public class MapViewFragment extends Fragment implements View.OnClickListener, LocationListener, OnMapReadyCallback {
+public class MapViewFragment extends Fragment implements View.OnClickListener, LocationListener, OnMapReadyCallback, OnCameraIdleListener {
     private static final String TAG = "MapViewFragment";
     private View fragmentView;
     private Button leaderboardButton;
@@ -57,6 +58,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
     Location lastKnownLoc;
     GoogleMap googleMap;
     private MapFragment mapFragment;
+    private LatLng currentCameraPosition;
 
     public Location getLastLoc() {
         if (this.lastLoc != null) {
@@ -133,17 +135,20 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
     }
 
     private void zoomMap() {
+        // TODO: 27/11/2016 Check permission, so no crash
         /*CameraUpdate center = CameraUpdateFactory.newLatLng(new LatLng(getLastLoc().getLatitude(), getLastLoc().getLongitude()));
         CameraUpdate cu = CameraUpdateFactory.zoomTo(15);
         googleMap.moveCamera(center);
         googleMap.animateCamera(cu);
 
         googleMap.animateCamera(CameraUpdateFactory.zoomTo(15));*/
+
         CameraPosition cameraPosition = new CameraPosition.Builder()
                 .target(new LatLng(getLastLoc().getLatitude(), getLastLoc().getLongitude()))      // Sets the center of the map to Mountain View
                 .zoom(17)                  // Sets the tilt of the camera to 30 degrees
                 .build();                   // Creates a CameraPosition from the builder
         googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        currentCameraPosition = googleMap.getCameraPosition().target;
     }
 
 
@@ -162,10 +167,8 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
                 try {
 
                     // Gets the center of current map
-
-                    LatLng latLng = googleMap.getCameraPosition().target;
-                    Log.e(TAG, "Center is: lat" + latLng.latitude + " and long " + latLng.longitude);
-                    URL getReportsUrl = new URL("http://www.balticapp.fi/lukeA/report?long=" + latLng.longitude + "?lat=" + latLng.latitude);
+                    Log.e(TAG, "Center is: lat" + currentCameraPosition.latitude + " and long " + currentCameraPosition.longitude);
+                    URL getReportsUrl = new URL("http://www.balticapp.fi/lukeA/report?long=" + currentCameraPosition.longitude + "?lat=" + currentCameraPosition.latitude);
                     HttpURLConnection httpURLConnection = (HttpURLConnection) getReportsUrl.openConnection();
                     if (httpURLConnection.getResponseCode() == 200) {
                         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
@@ -241,7 +244,8 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
      *
      * @param submissions List of Submission objects
      */
-    private void addSubmissionsToMap(List<Submission> submissions) {/*
+    private void addSubmissionsToMap(List<Submission> submissions) {
+        /*
         List<OverlayItem> overlayItemsList = new ArrayList();
         // go through the submissions list, create OverlayItem objects and set the markers
         for (Submission s : submissions) {
@@ -295,6 +299,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
     public void onMapReady(GoogleMap googleMap) {
         this.googleMap = googleMap;
         this.googleMap.getUiSettings().setZoomControlsEnabled(true);
+        this.googleMap.setOnCameraIdleListener(this);
         zoomMap();
         if (ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -308,5 +313,15 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
         }
         this.googleMap.setMyLocationEnabled(true);
         getSubmissions();
+    }
+
+    /**
+     * Gets called when user has stopped moving the map
+     */
+    @Override
+    public void onCameraIdle() {
+        // TODO: 27/11/2016 Make a call to fetch new submissions from the server or populate the map based on initial request
+        Log.e(TAG, "onCameraIdle: setting current camera position");
+        currentCameraPosition = googleMap.getCameraPosition().target;
     }
 }
