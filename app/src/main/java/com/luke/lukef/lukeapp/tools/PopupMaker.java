@@ -36,7 +36,7 @@ public class PopupMaker {
         dialog.findViewById(R.id.submissionSubmitterProfileImage).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mainActivity.fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_PROFILE);
+                mainActivity.fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_PROFILE,null);
                 dialog.dismiss();
             }
         });

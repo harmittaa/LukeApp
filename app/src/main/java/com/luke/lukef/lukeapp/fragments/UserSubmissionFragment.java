@@ -18,7 +18,6 @@ import com.luke.lukef.lukeapp.model.Submission;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.google.android.gms.internal.zzs.TAG;
 
 /**
  * Created by Bang Nguyen on 11/15/2016.
@@ -43,7 +42,6 @@ public class UserSubmissionFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         fragmentView = inflater.inflate(R.layout.fragment_user_submission, container, false);
-        fragmentView.setTag(TAG);
 
         return fragmentView;
     }
