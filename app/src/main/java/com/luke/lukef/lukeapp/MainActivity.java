@@ -47,6 +47,7 @@ import com.luke.lukef.lukeapp.fragments.UserSubmissionFragment;
 
 import com.luke.lukef.lukeapp.model.Category;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
+import com.luke.lukef.lukeapp.model.Submission;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -56,7 +57,11 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
@@ -126,8 +131,10 @@ public class MainActivity extends AppCompatActivity {
         //activate map fragment as default
         fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP, null);
 
+        }
 
-    }
+
+
 
 
     @Override
@@ -159,7 +166,6 @@ public class MainActivity extends AppCompatActivity {
             case FRAGMENT_NEW_SUBMISSION:
                 if(getCurrentFragment(fragmentManager) instanceof MapViewFragment){
                     bundleToSend = constructBundleFromMap((MapViewFragment)getCurrentFragment(fragmentManager));
-
                 }
                 fragment = new NewSubmissionFragment();
                 break;

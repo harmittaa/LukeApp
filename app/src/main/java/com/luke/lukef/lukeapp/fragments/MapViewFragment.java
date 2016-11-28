@@ -44,6 +44,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -68,6 +69,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     private GoogleApiClient googleApiClient;
     LocationRequest locationRequest;
     LatLng currentCameraPosition;
+    Button testbutton;
 
     public Location getLastLoc() {
         if (this.lastLoc != null) {
@@ -112,7 +114,8 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         /* map is already there, just return view as it is  */
             mapFragment.getMapAsync(this);
         }
-
+        testbutton = (Button) fragmentView.findViewById(R.id.button2);
+        testbutton.setOnClickListener(this);
         return fragmentView;
     }
 
@@ -134,6 +137,23 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
+            case R.id.button2:
+                GoogleMap.SnapshotReadyCallback callback = new GoogleMap.SnapshotReadyCallback() {
+                    Bitmap bitmap;
+
+                    @Override
+                    public void onSnapshotReady(Bitmap snapshot) {
+                        bitmap = snapshot;
+                        try {
+                            FileOutputStream out = new FileOutputStream("/mnt/sdcard/Download/TeleSensors.png");
+                            bitmap.compress(Bitmap.CompressFormat.PNG, 90, out);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                };
+
+                googleMap.snapshot(callback);
 
         }
     }
@@ -328,7 +348,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     }
 
 
-
     @Override
     public void onMapReady(GoogleMap googleMap) {
         this.googleMap = googleMap;
@@ -391,7 +410,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
 
     @Override
     public void onConnectionSuspended(int i) {
-        Log.e(TAG, "onConnectionSuspended: google api connection suspended" );
+        Log.e(TAG, "onConnectionSuspended: google api connection suspended");
     }
 
     @Override

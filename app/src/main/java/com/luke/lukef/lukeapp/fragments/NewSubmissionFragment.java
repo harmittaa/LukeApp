@@ -12,15 +12,13 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.FileProvider;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -28,26 +26,19 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
-import com.luke.lukef.lukeapp.NewUserActivity;
 import com.luke.lukef.lukeapp.R;
 import com.luke.lukef.lukeapp.model.Category;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.model.Submission;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -58,12 +49,12 @@ import static android.app.Activity.RESULT_OK;
 
 public class NewSubmissionFragment extends Fragment implements View.OnClickListener {
     View fragmentView;
-    Button cameraButton;
     Button categoryButton;
     EditText submissionTitle;
     EditText submissionDescription;
     static final int REQUEST_IMAGE_CAPTURE = 1;
     ImageView photoThumbnail;
+    ImageView mapThumbnail;
     private final static String TAG = NewSubmissionFragment.class.toString();
     private Bitmap bitmap;
     private String mCurrentPhotoPath;
@@ -75,32 +66,47 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         fragmentView = inflater.inflate(R.layout.fragment_new_submission, container, false);
-        cameraButton = (Button) fragmentView.findViewById(R.id.activateCameraButton);
         categoryButton = (Button) fragmentView.findViewById(R.id.buttonCategory);
         submittt = (Button) fragmentView.findViewById(R.id.button_submit_test);
         submissionDescription = (EditText) fragmentView.findViewById(R.id.newSubmissionEditTextDescrption);
         submissionTitle = (EditText) fragmentView.findViewById(R.id.newSubmissionEditTextTitle);
-        setupButtons();
+        setupClickListeners();
         getMainActivity().setBottomBarButtons(Constants.bottomActionBarStates.BACK_TICK);
         this.setBottomButtonListeners();
         fetchBundleFromArguments();
-        setupThumbnailMap();
         selectedCategries = new ArrayList<>();
+        setupThumbnailMap();
+        ViewTreeObserver vto = mapThumbnail.getViewTreeObserver();
+        vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                getMapThumbnail(location,mapThumbnail.getWidth(),mapThumbnail.getHeight());
+                photoThumbnail.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+            }
+        });
+
         return fragmentView;
     }
 
     @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+    }
+
+
+
+    @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.activateCameraButton:
-                // TODO: 18/11/2016 activate camera
-                dispatchTakePictureIntent();
-                break;
             case R.id.buttonCategory:
                 makeCategoryListPopup();
                 break;
             case R.id.button_submit_test:
                 makeSubmission();
+                break;
+            case R.id.photoThumbnail:
+                dispatchTakePictureIntent();
+                break;
         }
     }
 
@@ -108,8 +114,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         return (MainActivity) getActivity();
     }
 
-    private void setupButtons() {
-        cameraButton.setOnClickListener(this);
+    private void setupClickListeners() {
         categoryButton.setOnClickListener(this);
         submittt.setOnClickListener(this);
     }
@@ -117,8 +122,11 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     private void fetchBundleFromArguments() {
         Bundle b = getArguments();  // getMainActivity().getIntent().getExtras();
         if (b != null) {
-            //location = new GeoPoint(b.getDouble("latitude"), b.getDouble("longitude"), b.getDouble("altitude"));
-            //Log.e(TAG, "onCreateView: bundle received: " + location.toString());
+            location = new Location("jes");
+            location.setLatitude(b.getDouble("latitude"));
+            location.setLongitude(b.getDouble("longitude"));
+            location.setAltitude(b.getDouble("altitude"));
+            Log.e(TAG, "onCreateView: bundle received: " + location.toString());
         }
     }
 
@@ -135,8 +143,9 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
 
     private void setupThumbnailMap() {
         photoThumbnail = (ImageView) fragmentView.findViewById(R.id.photoThumbnail);
-
-
+        mapThumbnail = (ImageView)fragmentView.findViewById(R.id.newSubmissionMapThumbnail);
+        //getMapThumbnail(location,mapThumbnail.getWidth(),mapThumbnail.getHeight());
+        photoThumbnail.setOnClickListener(this);
     }
 
     //activates camera intent
@@ -191,7 +200,38 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         }
     }
 
+    private void getMapThumbnail(final Location center, final int width, final int height){
+        //https://maps.googleapis.com/maps/api/staticmap?center=29.390946,%2076.963502&zoom=10&size=600x300&maptype=normal
+        final String urlString1 = "https://maps.googleapis.com/maps/api/staticmap?center=";
+        Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    URL url = new URL(urlString1 + center.getLatitude() + ",%20" + center.getLongitude() + "&zoom=18&size="+width+"x"+height+"&maptype=normal");
+                    Log.e(TAG, "run: MAPS COME FROM HERE " + url.toString());
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.setDoInput(true);
+                    connection.connect();
+                    InputStream input = connection.getInputStream();
+                    changeMapThumbnail(BitmapFactory.decodeStream(input));
+                } catch (IOException e) {
+                    // Log exception
+                }
+            }
+        };
 
+        Thread t = new Thread(r);
+        t.start();
+    }
+
+    private void changeMapThumbnail(final Bitmap bm){
+        getMainActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mapThumbnail.setImageBitmap(bm);
+            }
+        });
+    }
 
 
     private File createImageFile() throws IOException {
