@@ -1,4 +1,4 @@
-package com.luke.lukef.lukeapp;
+package com.luke.lukef.lukeapp.model;
 
 /**
  * Created by tehetenamasresha on 01/11/2016.

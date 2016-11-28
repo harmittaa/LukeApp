@@ -48,4 +48,8 @@ captures/
 
 /captures
 
+<<<<<<< HEAD
 .externalNativeBuild
+=======
+.externalNativeBuild
+>>>>>>> master

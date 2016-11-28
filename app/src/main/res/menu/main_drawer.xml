@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/achievements"
+            android:title="Achievements" />
+        <item
+            android:id="@+id/my_findings"
+            android:title="My Findings" />
+        <item
+            android:id="@+id/leaderboard"
+            android:title="Leaderboard" />
+        <item
+            android:id="@+id/notification"
+            app:actionLayout="@layout/notification_switch"
+            android:title="Notification" />
+    </group>
+
+    <item android:title="Communicate">
+        <menu>
+            <item
+                android:id="@+id/nav_share"
+                android:icon="@drawable/ic_menu_share"
+                android:title="Share" />
+            <item
+                android:id="@+id/nav_send"
+                android:icon="@drawable/ic_menu_send"
+                android:title="Send" />
+        </menu>
+    </item>
+
+</menu>
