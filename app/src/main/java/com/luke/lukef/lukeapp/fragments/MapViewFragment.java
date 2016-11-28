@@ -4,7 +4,6 @@ import android.Manifest;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -24,37 +23,28 @@ import com.google.android.gms.maps.GoogleMap.OnCameraIdleListener;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.maps.android.clustering.Cluster;
+import com.google.maps.android.clustering.ClusterManager;
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
 import com.luke.lukef.lukeapp.model.Submission;
+import com.luke.lukef.lukeapp.model.SubmissionMarker;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Handles the Map view, fetches submission
  */
-public class MapViewFragment extends Fragment implements View.OnClickListener, LocationListener, OnMapReadyCallback, OnCameraIdleListener {
+public class MapViewFragment extends Fragment implements View.OnClickListener, LocationListener, OnMapReadyCallback, OnCameraIdleListener, ClusterManager.OnClusterClickListener<SubmissionMarker> {
     private static final String TAG = "MapViewFragment";
     private View fragmentView;
     private Button leaderboardButton;
     Location lastLoc;
     Location lastKnownLoc;
     GoogleMap googleMap;
+    private ClusterManager<SubmissionMarker> clusterManager;
     private MapFragment mapFragment;
     private LatLng currentCameraPositionLatLng;
     private float currentCameraZoom;
@@ -152,93 +142,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
 
 
     /**
-     * Function that has anonymous runnable class which fetches all reports from the server.
-     * Creates submission objects from JSON fetched from the server and adds them to the list.
-     */
-    private void getSubmissions() {
-        Log.e(TAG, "getSubmissions: be starting");
-
-        Runnable getSubmissions = new Runnable() {
-            String jsonString;
-
-            @Override
-            public void run() {
-                try {
-
-                    // Gets the center of current map
-                    Log.e(TAG, "Center is: lat" + currentCameraPositionLatLng.latitude + " and long " + currentCameraPositionLatLng.longitude);
-                    URL getReportsUrl = new URL("http://www.balticapp.fi/lukeA/report?long=" + currentCameraPositionLatLng.longitude + "?lat=" + currentCameraPositionLatLng.latitude);
-                    HttpURLConnection httpURLConnection = (HttpURLConnection) getReportsUrl.openConnection();
-                    if (httpURLConnection.getResponseCode() == 200) {
-                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
-                        jsonString = "";
-                        StringBuilder stringBuilder = new StringBuilder();
-                        String line;
-                        while ((line = bufferedReader.readLine()) != null) {
-                            stringBuilder.append(line + "\n");
-                        }
-                        bufferedReader.close();
-                        jsonString = stringBuilder.toString();
-                        JSONObject jsonObject;
-                        JSONArray jsonArray;
-                        List<Submission> submissions = new ArrayList<>();
-                        List<Object> submissionCategoryIdList = new ArrayList<>();
-                        try {
-                            // make new JSONArray from the server's reply
-                            jsonArray = new JSONArray(jsonString);
-                            if (jsonArray.length() > 0) {
-                                for (int i = 0; i < jsonArray.length(); i++) {
-                                    jsonObject = jsonArray.getJSONObject(i);
-
-                                    // parse Submission's categories
-                                    for (int j = 0; j < jsonObject.getJSONArray("categoryId").length(); j++) {
-                                        submissionCategoryIdList.add(jsonObject.getJSONArray("categoryId").get(i));
-                                        Log.e(TAG, "Category parse: " + submissionCategoryIdList.add(jsonObject.getJSONArray("categoryId").get(i)));
-                                    }
-
-                                    Bitmap image;
-                                    Location location = new Location("");
-                                    location.setLongitude(jsonObject.getDouble("longitude"));
-                                    location.setLatitude(jsonObject.getDouble("latitude"));
-
-                                    // TODO: 25/11/2016 Once images are implemented, create submission objects with Images
-                                    //   submissions.add(new Submission(jsonObject.getString("id"), jsonObject.getString("title"), submissionCategoryIdList, jsonObject.getString("date"),
-                                    //                    jsonObject.getString("description"), image, location));
-
-                                    DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH);
-                                    Date date = format.parse(jsonObject.getString("date"));
-
-                                    // submissions.add(new Submission(getMainActivity().getApplicationContext(), submissionCategoryIdList, date, jsonObject.getString("description"), location));
-                                }
-                                addSubmissionsToMap(submissions);
-
-                            } else {
-                                // TODO: 25/11/2016 No submissions, show info to user
-                                Log.e(TAG, "No submissions");
-                            }
-
-                            // TODO: 25/11/2016 Handle exceptions
-                        } catch (JSONException e) {
-                            Log.e(TAG, "onPostExecute: ", e);
-                        } catch (ParseException e) {
-                            Log.e(TAG, "run: ERROR ", e);
-                        }
-                    } else {
-                        // TODO: 25/11/2016 Show error when responsecode is not 200
-                        Log.e(TAG, "Responsecode = " + httpURLConnection.getResponseCode());
-                    }
-                } catch (Exception e) {
-                    Log.e(TAG, "run: EXCEPTION", e);
-                    Log.e(TAG, "doInBackground: ", e);
-                }
-            }
-        };
-
-        Thread thread = new Thread(getSubmissions);
-        thread.start();
-    }
-
-    /**
      * Parses through provided list of submissions, creates OverlayItems and adds them to the map
      *
      * @param submissions List of Submission objects
@@ -298,7 +201,8 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
     public void onMapReady(GoogleMap googleMap) {
         this.googleMap = googleMap;
         this.googleMap.getUiSettings().setZoomControlsEnabled(true);
-        this.googleMap.setOnCameraIdleListener(this);
+
+
         zoomMap();
         if (ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -310,8 +214,13 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
+        // setup ClusterManager
+        this.clusterManager = new ClusterManager<SubmissionMarker>(getActivity(), this.googleMap);
+        CompositeListener compositeListener = new CompositeListener();
+        compositeListener.registerListener(this.clusterManager);
+        googleMap.setOnCameraIdleListener(compositeListener);
+        this.clusterManager.setOnClusterClickListener(this);
         this.googleMap.setMyLocationEnabled(true);
-        getSubmissions();
     }
 
     /**
@@ -325,6 +234,35 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
         currentCameraPositionLatLng = googleMap.getCameraPosition().target;
         currentCameraZoom = googleMap.getCameraPosition().zoom;
 
-        Log.e(TAG, "Camera middle is  " + currentCameraPositionLatLng + " and zoom is " + currentCameraZoom );
+        Log.e(TAG, "Camera middle is  " + currentCameraPositionLatLng + " and zoom is " + currentCameraZoom);
     }
+
+
+    @Override
+    public boolean onClusterClick(Cluster<SubmissionMarker> cluster) {
+        return false;
+    }
+
+    /**
+     * Provides objects possibility to listen to OnCameraIdle events by calling {@link #registerListener(OnCameraIdleListener listener)}
+     */
+    class CompositeListener implements OnCameraIdleListener {
+        private List<OnCameraIdleListener> registeredListeners = new ArrayList<>();
+
+        /**
+         * Adds OnCameraIdleListener type object to the <code>List<OnCameraIdleListener> registeredListeners</code>
+         * @param listener OnCameraIdleListener type object
+         */
+        void registerListener(OnCameraIdleListener listener) {
+            registeredListeners.add(listener);
+        }
+
+        @Override
+        public void onCameraIdle() {
+            for (int i = 0; i < registeredListeners.size(); i++) {
+                registeredListeners.get(i).onCameraIdle();
+            }
+        }
+    }
+
 }
