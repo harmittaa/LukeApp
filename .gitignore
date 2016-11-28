@@ -47,9 +47,3 @@ captures/
 /build
 
 /captures
-
-<<<<<<< HEAD
-.externalNativeBuild
-=======
-.externalNativeBuild
->>>>>>> master
