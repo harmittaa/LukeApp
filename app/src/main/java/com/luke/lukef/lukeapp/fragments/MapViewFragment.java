@@ -17,7 +17,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -25,7 +24,6 @@ import com.google.android.gms.maps.GoogleMap.OnCameraIdleListener;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
@@ -58,7 +56,8 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
     Location lastKnownLoc;
     GoogleMap googleMap;
     private MapFragment mapFragment;
-    private LatLng currentCameraPosition;
+    private LatLng currentCameraPositionLatLng;
+    private float currentCameraZoom;
 
     public Location getLastLoc() {
         if (this.lastLoc != null) {
@@ -148,7 +147,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
                 .zoom(17)                  // Sets the tilt of the camera to 30 degrees
                 .build();                   // Creates a CameraPosition from the builder
         googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-        currentCameraPosition = googleMap.getCameraPosition().target;
+        currentCameraPositionLatLng = googleMap.getCameraPosition().target;
     }
 
 
@@ -167,8 +166,8 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
                 try {
 
                     // Gets the center of current map
-                    Log.e(TAG, "Center is: lat" + currentCameraPosition.latitude + " and long " + currentCameraPosition.longitude);
-                    URL getReportsUrl = new URL("http://www.balticapp.fi/lukeA/report?long=" + currentCameraPosition.longitude + "?lat=" + currentCameraPosition.latitude);
+                    Log.e(TAG, "Center is: lat" + currentCameraPositionLatLng.latitude + " and long " + currentCameraPositionLatLng.longitude);
+                    URL getReportsUrl = new URL("http://www.balticapp.fi/lukeA/report?long=" + currentCameraPositionLatLng.longitude + "?lat=" + currentCameraPositionLatLng.latitude);
                     HttpURLConnection httpURLConnection = (HttpURLConnection) getReportsUrl.openConnection();
                     if (httpURLConnection.getResponseCode() == 200) {
                         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
@@ -322,6 +321,10 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
     public void onCameraIdle() {
         // TODO: 27/11/2016 Make a call to fetch new submissions from the server or populate the map based on initial request
         Log.e(TAG, "onCameraIdle: setting current camera position");
-        currentCameraPosition = googleMap.getCameraPosition().target;
+
+        currentCameraPositionLatLng = googleMap.getCameraPosition().target;
+        currentCameraZoom = googleMap.getCameraPosition().zoom;
+
+        Log.e(TAG, "Camera middle is  " + currentCameraPositionLatLng + " and zoom is " + currentCameraZoom );
     }
 }

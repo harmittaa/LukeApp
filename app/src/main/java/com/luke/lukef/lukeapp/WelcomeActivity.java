@@ -69,6 +69,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         requestPermission();
 
+        startService(new Intent(this, SubmissionFetchService.class));
+
     }
 
     private void requestPermission() {
