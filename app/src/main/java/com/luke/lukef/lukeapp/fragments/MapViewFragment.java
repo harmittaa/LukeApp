@@ -9,6 +9,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
@@ -17,6 +18,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -50,15 +55,15 @@ import java.util.Locale;
 /**
  * Handles the Map view, fetches submission
  */
-public class MapViewFragment extends Fragment implements View.OnClickListener, LocationListener, OnMapReadyCallback, OnCameraIdleListener {
+public class MapViewFragment extends Fragment implements View.OnClickListener, OnMapReadyCallback, OnCameraIdleListener, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks, com.google.android.gms.location.LocationListener {
     private static final String TAG = "MapViewFragment";
     private View fragmentView;
-    private Button leaderboardButton;
     Location lastLoc;
     Location lastKnownLoc;
     GoogleMap googleMap;
     private MapFragment mapFragment;
-    private LatLng currentCameraPosition;
+    private GoogleApiClient googleApiClient;
+    LocationRequest locationRequest;
 
     public Location getLastLoc() {
         if (this.lastLoc != null) {
@@ -83,7 +88,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         fragmentView = inflater.inflate(R.layout.fragment_map, container, false);
-        leaderboardButton = (Button) fragmentView.findViewById(R.id.leaderboard_button);
         setupButtons();
         getMainActivity().setBottomBarButtons(Constants.bottomActionBarStates.MAP_CAMERA);
         setupGoogleMap();
@@ -91,15 +95,16 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
         mapFragment = (MapFragment) getChildFragmentManager().findFragmentById(R.id.mapFragment);
         mapFragment.getMapAsync(this);
 
+        connectToGoogleApi();
+        createLocationRequest();
+
         return fragmentView;
     }
 
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.leaderboard_button:
-                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_LEADERBOARD, null);
-                break;
+
         }
     }
 
@@ -108,7 +113,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
     }
 
     private void setupButtons() {
-        leaderboardButton.setOnClickListener(this);
     }
 
     /**
@@ -143,14 +147,33 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
 
         googleMap.animateCamera(CameraUpdateFactory.zoomTo(15));*/
 
-        CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(new LatLng(getLastLoc().getLatitude(), getLastLoc().getLongitude()))      // Sets the center of the map to Mountain View
-                .zoom(17)                  // Sets the tilt of the camera to 30 degrees
-                .build();                   // Creates a CameraPosition from the builder
-        googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-        currentCameraPosition = googleMap.getCameraPosition().target;
+        if (getLastLoc() != null) {
+            CameraPosition cameraPosition = new CameraPosition.Builder()
+                    .target(new LatLng(getLastLoc().getLatitude(), getLastLoc().getLongitude()))      // Sets the center of the map to Mountain View
+                    .zoom(17)                  // Sets the tilt of the camera to 30 degrees
+                    .build();                   // Creates a CameraPosition from the builder
+            googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+            currentCameraPosition = googleMap.getCameraPosition().target;
+        }
     }
 
+    private void connectToGoogleApi() {
+        googleApiClient = new GoogleApiClient.Builder(getMainActivity()).addConnectionCallbacks(this).addOnConnectionFailedListener(this).addApi(LocationServices.API).build();
+        googleApiClient.connect();
+    }
+
+    protected void createLocationRequest() {
+        locationRequest = new LocationRequest();
+        locationRequest.setInterval(5000);
+        locationRequest.setFastestInterval(2000);
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
+
+    @Override
+    public void onStop() {
+        googleApiClient.disconnect();
+        super.onStop();
+    }
 
     /**
      * Function that has anonymous runnable class which fetches all reports from the server.
@@ -167,8 +190,8 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
                 try {
 
                     // Gets the center of current map
-                    Log.e(TAG, "Center is: lat" + currentCameraPosition.latitude + " and long " + currentCameraPosition.longitude);
-                    URL getReportsUrl = new URL("http://www.balticapp.fi/lukeA/report?long=" + currentCameraPosition.longitude + "?lat=" + currentCameraPosition.latitude);
+                    Log.e(TAG, "Center is: lat" + lastLoc.getLatitude() + " and long " + lastLoc.getLongitude());
+                    URL getReportsUrl = new URL("http://www.balticapp.fi/lukeA/report?long=" + lastLoc.getLongitude() + "?lat=" + lastLoc.getLatitude());
                     HttpURLConnection httpURLConnection = (HttpURLConnection) getReportsUrl.openConnection();
                     if (httpURLConnection.getResponseCode() == 200) {
                         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
@@ -275,25 +298,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
     }
 
 
-    @Override
-    public void onLocationChanged(Location location) {
-        this.lastLoc = location;
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-
-    }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -312,7 +316,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
             return;
         }
         this.googleMap.setMyLocationEnabled(true);
-        getSubmissions();
     }
 
     /**
@@ -323,5 +326,46 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
         // TODO: 27/11/2016 Make a call to fetch new submissions from the server or populate the map based on initial request
         Log.e(TAG, "onCameraIdle: setting current camera position");
         currentCameraPosition = googleMap.getCameraPosition().target;
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.e(TAG, "onConnectionFailed: connection failed");
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        Log.e(TAG, "onConnected: connected to google api");
+        if (ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        this.lastKnownLoc = LocationServices.FusedLocationApi.getLastLocation(
+                googleApiClient);
+        if (this.lastKnownLoc != null) {
+            this.lastLoc = this.lastKnownLoc;
+        }
+
+        LocationServices.FusedLocationApi.requestLocationUpdates(
+                googleApiClient, locationRequest, this);
+
+        getSubmissions();
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.e(TAG, "onConnectionSuspended: google api connection suspended" );
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        this.lastLoc = location;
     }
 }
