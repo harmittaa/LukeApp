@@ -192,6 +192,8 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     }
 
 
+
+
     private File createImageFile() throws IOException {
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());

@@ -2,6 +2,8 @@ package com.luke.lukef.lukeapp.fragments;
 
 import android.Manifest;
 import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -13,6 +15,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
+import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -88,19 +91,45 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        fragmentView = inflater.inflate(R.layout.fragment_map, container, false);
+        //fragmentView = inflater.inflate(R.layout.fragment_map, container, false);
         setupButtons();
         getMainActivity().setBottomBarButtons(Constants.bottomActionBarStates.MAP_CAMERA);
         setupGoogleMap();
 
-        mapFragment = (MapFragment) getChildFragmentManager().findFragmentById(R.id.mapFragment);
-        mapFragment.getMapAsync(this);
-
         connectToGoogleApi();
         createLocationRequest();
 
+        if (fragmentView != null) {
+            ViewGroup parent = (ViewGroup) fragmentView.getParent();
+            if (parent != null)
+                parent.removeView(fragmentView);
+        }
+        try {
+            fragmentView = inflater.inflate(R.layout.fragment_map, container, false);
+            mapFragment = (MapFragment) getChildFragmentManager().findFragmentById(R.id.googleMapFragment);
+            mapFragment.getMapAsync(this);
+        } catch (InflateException e) {
+        /* map is already there, just return view as it is  */
+            mapFragment.getMapAsync(this);
+        }
+
         return fragmentView;
     }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        /*Log.e(TAG, "onDestroyView: ondestroy called" );
+        MapFragment f = (MapFragment) getChildFragmentManager()
+                .findFragmentById(R.id.googleMapFragment);
+        if (f != null) {
+            Log.e(TAG, "onDestroyView: removing map fragment");
+            getFragmentManager().beginTransaction().remove(f).commit();
+        } else {
+            Log.e(TAG, "onPause: no fragment found" );
+        }*/
+    }
+
 
     @Override
     public void onClick(View view) {
