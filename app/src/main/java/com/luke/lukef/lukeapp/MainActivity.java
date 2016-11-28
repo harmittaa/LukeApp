@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
+import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.graphics.drawable.Drawable;
 import android.support.design.widget.NavigationView;
@@ -23,12 +24,14 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 
 import android.os.Bundle;
+
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -41,6 +44,7 @@ import com.luke.lukef.lukeapp.fragments.NewSubmissionFragment;
 import com.luke.lukef.lukeapp.fragments.PointOfInterestFragment;
 import com.luke.lukef.lukeapp.fragments.ProfileFragment;
 import com.luke.lukef.lukeapp.fragments.UserSubmissionFragment;
+
 import com.luke.lukef.lukeapp.model.Category;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 
@@ -48,15 +52,18 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
@@ -76,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
         navigationView = (NavigationView) findViewById(R.id.nav_view);
         setupDrawerContent(navigationView);
         Menu menu = navigationView.getMenu();
+
         //Notification switch handler
         MenuItem menuItem = menu.findItem(R.id.notification);
         View actionView = MenuItemCompat.getActionView(menuItem);
@@ -104,22 +112,23 @@ public class MainActivity extends AppCompatActivity {
         animation.start();
 
         leftButton = (ImageButton) findViewById(R.id.button_left);
-
         setBottomBarButtonsListeners();
+
         leftButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                drawerLayout.openDrawer(navigationView);
+            @Override
+            public void onClick(View view) {
+                drawerLayout.openDrawer(GravityCompat.START);
             }
         });
 
         getCategories();
 
         //activate map fragment as default
-        fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP,null);
-
+        fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP, null);
 
 
     }
+
 
     @Override
     protected void onResume() {
@@ -132,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
      * fragment which is chosen.
      *
      * @param fragmentToChange Constants enum type defined for each fragment
-     * @param bundleToSend Optional bundle to send along with the transaction
+     * @param bundleToSend     Optional bundle to send along with the transaction
      */
     public void fragmentSwitcher(Constants.fragmentTypes fragmentToChange, Bundle bundleToSend) {
         FragmentManager fragmentManager = getFragmentManager();
@@ -150,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
             case FRAGMENT_NEW_SUBMISSION:
                 if(getCurrentFragment(fragmentManager) instanceof MapViewFragment){
                     bundleToSend = constructBundleFromMap((MapViewFragment)getCurrentFragment(fragmentManager));
+
                 }
                 fragment = new NewSubmissionFragment();
                 break;
@@ -164,8 +174,8 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
         //replace the fragment
-        if(fragment != null){
-            if(bundleToSend != null){
+        if (fragment != null) {
+            if (bundleToSend != null) {
                 fragment.setArguments(bundleToSend);
             }
             fragmentTransaction.replace(R.id.fragment_container, fragment).addToBackStack("BackStack").commit();
@@ -181,7 +191,7 @@ public class MainActivity extends AppCompatActivity {
         return bundle;
     }
 
-    private Fragment getCurrentFragment(FragmentManager fm){
+    private Fragment getCurrentFragment(FragmentManager fm) {
         return fm.findFragmentById(R.id.fragment_container);
     }
 
@@ -235,7 +245,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (SessionSingleton.getInstance().isUserLogged()) {
-                    fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_NEW_SUBMISSION,null);
+                    fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_NEW_SUBMISSION, null);
                 } else {
                     // TODO: 21/11/2016 popup to login
                     AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
@@ -349,9 +359,6 @@ public class MainActivity extends AppCompatActivity {
                             case R.id.leaderboard:
                                 fragmentClass = LeaderboardFragment.class;
                                 break;
-//                            case R.id.notification:
-//                                fragmentSwitcher();
-//                                break;
                             default:
                                 fragmentClass = MapViewFragment.class;
                         }
@@ -361,8 +368,8 @@ public class MainActivity extends AppCompatActivity {
                             e.printStackTrace();
                         }
                         // Insert the fragment by replacing any existing fragment
-                         FragmentManager fragmentManager = getFragmentManager();
-                         fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment).addToBackStack("BackStack").commit();
+                        FragmentManager fragmentManager = getFragmentManager();
+                        fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment).addToBackStack("BackStack").commit();
                         // Highlight the selected item has been done by NavigationView
                         item.setChecked(true);
 
@@ -385,12 +392,10 @@ public class MainActivity extends AppCompatActivity {
                 drawerLayout.openDrawer(GravityCompat.START);
                 return true;
         }
-
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -403,8 +408,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //returns the bottom button bar, this can be later used in fragments, to set them as the click listener
-    public LinearLayout getBottomBar(){
-        return (LinearLayout)this.findViewById(R.id.linearLayout);
+    public LinearLayout getBottomBar() {
+        return (LinearLayout) this.findViewById(R.id.linearLayout);
     }
 
     private void getCategories() {
@@ -434,15 +439,15 @@ public class MainActivity extends AppCompatActivity {
                             jsonArr = new JSONArray(jsonString);
                             Log.e(TAG, "run: CATEGORIES JSON: " + jsonArr.toString());
 
-                            for(int i = 0;i<jsonArr.length();i++){
+                            for (int i = 0; i < jsonArr.length(); i++) {
                                 JSONObject jsonCategory = jsonArr.getJSONObject(i);
                                 Category c = new Category();
                                 c.setDescription(jsonCategory.getString("description"));
                                 c.setId(jsonCategory.getString("id"));
-                                if(!TextUtils.isEmpty(jsonCategory.getString("title"))){
+                                if (!TextUtils.isEmpty(jsonCategory.getString("title"))) {
                                     c.setTitle(jsonCategory.getString("title"));
                                 }
-                                if(!TextUtils.isEmpty(jsonCategory.getString("image_url"))){
+                                if (!TextUtils.isEmpty(jsonCategory.getString("image_url"))) {
                                     //// TODO: 22/11/2016 parse image into bitmap
                                 }
                                 Log.e(TAG, "run: created category\n" + c.toString());

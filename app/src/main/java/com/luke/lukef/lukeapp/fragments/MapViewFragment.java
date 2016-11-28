@@ -64,6 +64,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     private MapFragment mapFragment;
     private GoogleApiClient googleApiClient;
     LocationRequest locationRequest;
+    LatLng currentCameraPosition;
 
     public Location getLastLoc() {
         if (this.lastLoc != null) {
