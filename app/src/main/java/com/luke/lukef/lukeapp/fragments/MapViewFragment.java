@@ -70,22 +70,27 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     LocationRequest locationRequest;
     LatLng currentCameraPosition;
     Button testbutton;
+    Location longPressLoc;
 
     public Location getLastLoc() {
-        if (this.lastLoc != null) {
-            Location jeeben = new Location("");
-            jeeben.setAltitude(this.lastLoc.getAltitude());
-            jeeben.setLatitude(this.lastLoc.getLatitude());
-            jeeben.setLongitude(this.lastLoc.getLongitude());
-            return jeeben;
-        } else if (this.lastKnownLoc != null) {
-            Location jeeben = new Location("");
-            jeeben.setAltitude(this.lastKnownLoc.getAltitude());
-            jeeben.setLatitude(this.lastKnownLoc.getLatitude());
-            jeeben.setLongitude(this.lastKnownLoc.getLongitude());
-            return jeeben;
+        if (longPressLoc == null) {
+            if (this.lastLoc != null) {
+                Location jeeben = new Location("");
+                jeeben.setAltitude(this.lastLoc.getAltitude());
+                jeeben.setLatitude(this.lastLoc.getLatitude());
+                jeeben.setLongitude(this.lastLoc.getLongitude());
+                return jeeben;
+            } else if (this.lastKnownLoc != null) {
+                Location jeeben = new Location("");
+                jeeben.setAltitude(this.lastKnownLoc.getAltitude());
+                jeeben.setLatitude(this.lastKnownLoc.getLatitude());
+                jeeben.setLongitude(this.lastKnownLoc.getLongitude());
+                return jeeben;
+            } else {
+                return null;
+            }
         } else {
-            return null;
+            return longPressLoc;
         }
     }
 
@@ -365,6 +370,16 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
             return;
         }
         this.googleMap.setMyLocationEnabled(true);
+        this.googleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+            @Override
+            public void onMapLongClick(LatLng latLng) {
+                longPressLoc = new Location("jippii");
+                longPressLoc.setLatitude(latLng.latitude);
+                longPressLoc.setLongitude(latLng.longitude);
+                longPressLoc.setAltitude(0);
+                getMainActivity().makeSubmission();
+            }
+        });
     }
 
     /**

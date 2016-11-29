@@ -197,6 +197,23 @@ public class MainActivity extends AppCompatActivity {
         return bundle;
     }
 
+    public void makeSubmission(){
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        Fragment fragment = null;
+        Bundle bundleToSend = null;
+        if(getCurrentFragment(fragmentManager) instanceof MapViewFragment){
+            bundleToSend = constructBundleFromMap((MapViewFragment)getCurrentFragment(fragmentManager));
+        }
+        fragment = new NewSubmissionFragment();
+        if (fragment != null) {
+            if (bundleToSend != null) {
+                fragment.setArguments(bundleToSend);
+            }
+            fragmentTransaction.replace(R.id.fragment_container, fragment).addToBackStack("BackStack").commit();
+        }
+    }
+
     private Fragment getCurrentFragment(FragmentManager fm) {
         return fm.findFragmentById(R.id.fragment_container);
     }
