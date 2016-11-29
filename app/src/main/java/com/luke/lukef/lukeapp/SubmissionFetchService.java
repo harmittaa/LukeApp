@@ -44,7 +44,10 @@ public class SubmissionFetchService extends Service {
             @Override
             public void run() {
                 Log.e(TAG, "run:Running service");
-                getReports();
+                submissionDatabase = new SubmissionDatabase(getApplicationContext());
+                submissionDatabase.clearCache();
+                getSubmissions();
+                getAdminMarkers();
             }
         });
 
@@ -52,10 +55,12 @@ public class SubmissionFetchService extends Service {
         return START_STICKY_COMPATIBILITY;
     }
 
-    private void getReports() {
+    /**
+     * Fetches all submissions from the server, and passes the resulting JSONArray to SQLiteHelper
+     */
+    private void getSubmissions() {
         String jsonString;
         try {
-            // Gets the center of current map
             URL getReportsUrl = new URL("http://www.balticapp.fi/lukeA/report");
             HttpURLConnection httpURLConnection = (HttpURLConnection) getReportsUrl.openConnection();
             if (httpURLConnection.getResponseCode() == 200) {
@@ -71,11 +76,10 @@ public class SubmissionFetchService extends Service {
                 JSONObject jsonObject;
                 JSONArray jsonArray;
 
-
                 try {
                     // make new JSONArray from the server's reply
                     jsonArray = new JSONArray(jsonString);
-                    this.submissionDatabase = new SubmissionDatabase(getApplicationContext(), "LukeBase", 1);
+                    this.submissionDatabase = new SubmissionDatabase(getApplicationContext());
                     this.submissionDatabase.addSubmissions(jsonArray);
 
                     // TODO: 25/11/2016 Handle exceptions
@@ -90,9 +94,47 @@ public class SubmissionFetchService extends Service {
             Log.e(TAG, "run: EXCEPTION", e);
             Log.e(TAG, "doInBackground: ", e);
         }
-
-
     }
+
+    private void getAdminMarkers() {
+        String jsonString;
+        try {
+            URL getReportsUrl = new URL("http://www.balticapp.fi/lukeA/marker");
+            HttpURLConnection httpURLConnection = (HttpURLConnection) getReportsUrl.openConnection();
+            if (httpURLConnection.getResponseCode() == 200) {
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
+                jsonString = "";
+                StringBuilder stringBuilder = new StringBuilder();
+                String line;
+                while ((line = bufferedReader.readLine()) != null) {
+                    stringBuilder.append(line).append("\n");
+                }
+                bufferedReader.close();
+                jsonString = stringBuilder.toString();
+                JSONObject jsonObject;
+                JSONArray jsonArray;
+
+                try {
+                    // make new JSONArray from the server's reply
+                    jsonArray = new JSONArray(jsonString);
+                    this.submissionDatabase = new SubmissionDatabase(getApplicationContext());
+                    this.submissionDatabase.addAdminMarkers(jsonArray);
+                    this.submissionDatabase.closeDbConnection();
+
+                    // TODO: 25/11/2016 Handle exceptions
+                } catch (JSONException e) {
+                    Log.e(TAG, "onPostExecute: ", e);
+                }
+            } else {
+                // TODO: 25/11/2016 Show error when responsecode is not 200
+                Log.e(TAG, "Responsecode = " + httpURLConnection.getResponseCode());
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "run: EXCEPTION", e);
+            Log.e(TAG, "doInBackground: ", e);
+        }
+    }
+
 
     @Nullable
     @Override

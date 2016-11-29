@@ -9,7 +9,7 @@ import com.google.maps.android.clustering.ClusterItem;
 public class SubmissionMarker implements ClusterItem {
     private final LatLng markerPosition;
 
-    public SubmissionMarker(double lat, double lng) {
+    public SubmissionMarker(String submission_id, double lat, double lng) {
         this.markerPosition = new LatLng(lat, lng);
     }
 
