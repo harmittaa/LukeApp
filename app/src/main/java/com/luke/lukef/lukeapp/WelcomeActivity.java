@@ -130,7 +130,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     SessionSingleton.getInstance().setUserLogged(true);
                     finish();
                 } else {
-                    System.out.println("jeenem");
+                    Log.e(TAG, "onAuthentication: booleanFutureTask failed" );
                     finish();
                 }
             } catch (InterruptedException e) {

@@ -14,6 +14,7 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.content.FileProvider;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,6 +35,7 @@ import com.luke.lukef.lukeapp.model.Category;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.model.Submission;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -55,8 +57,8 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     static final int REQUEST_IMAGE_CAPTURE = 1;
     ImageView photoThumbnail;
     ImageView mapThumbnail;
+    Bitmap currentPhoto;
     private final static String TAG = NewSubmissionFragment.class.toString();
-    private Bitmap bitmap;
     private String mCurrentPhotoPath;
     ArrayList<String> selectedCategries;
     Button submittt;
@@ -162,6 +164,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
             // Continue only if the File was successfully created
             if (photoFile != null) {
                 Uri photoURI = FileProvider.getUriForFile(getMainActivity(), "com.luke.lukef.lukeapp", photoFile);
+                Log.e(TAG, "dispatchTakePictureIntent: uri file path" + photoURI.toString());
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
             }
@@ -171,33 +174,53 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     private void compressImage() {
         File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
         Bitmap b = getBitmapFromStorage();
-
+        Log.e(TAG, "compressImage: Byte count of UNcompressed image" + b.getByteCount());
         //b = MediaStore.Images.Media.getBitmap(getMainActivity().getContentResolver(), this.imagePath);
-        Bitmap out = Bitmap.createScaledBitmap(b, 1920, 1080, false);
-        File file = new File(dir, this.mCurrentPhotoPath.toString());
+        Bitmap out = Bitmap.createScaledBitmap(b, 720, 560, false);
+        Log.e(TAG, "compressImage: Byte count of compressed image" + out.getByteCount());
+        File file = new File(this.mCurrentPhotoPath.toString());
         FileOutputStream fOut;
         try {
             fOut = new FileOutputStream(file);
-            out.compress(Bitmap.CompressFormat.JPEG, 100, fOut);
+            out.compress(Bitmap.CompressFormat.JPEG, 0, fOut);
+            Log.e(TAG, "compressImage: Byte count of compressformat image" + BitmapFactory.decodeFile(this.mCurrentPhotoPath).getByteCount());
             fOut.flush();
             fOut.close();
             b.recycle();
             out.recycle();
         } catch (Exception e) {
+            Log.e(TAG, "compressImage: ", e);
         }
-
 
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            Log.e(TAG, "onActivityResult: original image size" + getBitmapFromStorage().getByteCount());
             compressImage();
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inSampleSize = 8;
             final Bitmap imageBitmap = BitmapFactory.decodeFile(this.mCurrentPhotoPath.toString(), options);
             photoThumbnail.setImageBitmap(imageBitmap);
+            this.currentPhoto = imageBitmap;
         }
+    }
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String imageFileName = "lukeImage";//"JPEG_" + timeStamp + "_";
+        File storageDir = getMainActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        mCurrentPhotoPath = image.getAbsolutePath();
+        Log.e(TAG, "createImageFile: FILEPATH : "+ mCurrentPhotoPath );
+        return image;
     }
 
     private void getMapThumbnail(final Location center, final int width, final int height){
@@ -224,6 +247,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         t.start();
     }
 
+
     private void changeMapThumbnail(final Bitmap bm){
         getMainActivity().runOnUiThread(new Runnable() {
             @Override
@@ -231,23 +255,6 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
                 mapThumbnail.setImageBitmap(bm);
             }
         });
-    }
-
-
-    private File createImageFile() throws IOException {
-        // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "lukeImage";//"JPEG_" + timeStamp + "_";
-        File storageDir = getMainActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
-        );
-
-        // Save a file: path for use with ACTION_VIEW intents
-        mCurrentPhotoPath = image.getAbsolutePath();
-        return image;
     }
 
     private Bitmap getBitmapFromStorage() {
@@ -260,9 +267,11 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     private void makeSubmission() {
         if (checkFieldsValidity()) {
             // TODO: 22/11/2016 create submission object, make httprequest and send to server(put this request into submission?)
-            this.selectedCategries.removeAll(this.selectedCategries);
-            this.selectedCategries.add("2");
             Submission newSub = new Submission(getMainActivity(), this.selectedCategries, new Date(), submissionDescription.getText().toString(), this.location);
+            newSub.setFilePath(this.mCurrentPhotoPath);
+            if(currentPhoto != null){
+                newSub.setImage(this.currentPhoto);
+            }
             if (newSub.submitToServer()) {
                 Log.e(TAG, "makeSubmission: Submission sent succesfully");
             } else {
@@ -273,7 +282,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         }
     }
 
-    private boolean checkFieldsValidity() {/*
+    private boolean checkFieldsValidity() {
         // TODO: 22/11/2016 check if location != null , check if
         if (!TextUtils.isEmpty(submissionDescription.getText().toString())) {
             if (location != null) {
@@ -287,8 +296,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
             }
         } else {
             return false;
-        }*/
-        return true;
+        }
     }
 
 
@@ -310,7 +318,8 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 //NewSubmissionFragment.this.selectedCategries.add(cla.getItem(which));
-                NewSubmissionFragment.this.selectedCategries.add("1");
+                Category c = SessionSingleton.getInstance().getCategoryList().get(which);
+                NewSubmissionFragment.this.selectedCategries.add(c.getId());
                 Log.e(TAG, "onClick: added to selected: " + cla.getItem(which) + " size now at " + selectedCategries.size());
                 dialog.dismiss();
             }
