@@ -55,6 +55,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
     Location lastKnownLoc;
     GoogleMap googleMap;
     private ClusterManager<SubmissionMarker> clusterManager;
+    private ClusterManager<SubmissionMarker> adminClusterManager;
     private MapFragment mapFragment;
     private VisibleRegion visibleRegion;
     private List<String> submissionMarkerIdList;
@@ -169,6 +170,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
      */
     private void setupClustering() {
         this.clusterManager = new ClusterManager<SubmissionMarker>(getActivity(), this.googleMap);
+        this.adminClusterManager = new ClusterManager<SubmissionMarker>(getActivity(), this.googleMap);
         CompositeOnCameraIdleListener compositeOnCameraIdleListener = new CompositeOnCameraIdleListener();
         CompositeOnMarkerClickListener compositeOnMarkerClickListener = new CompositeOnMarkerClickListener();
         googleMap.setOnCameraIdleListener(compositeOnCameraIdleListener);
@@ -178,6 +180,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
         compositeOnMarkerClickListener.registerMarkerOnClickListener(this.clusterManager);
         compositeOnMarkerClickListener.registerMarkerOnClickListener(this);
         this.clusterManager.setOnClusterClickListener(this);
+        this.clusterManager.setOnClusterItemClickListener(this);
     }
 
     /**
@@ -242,7 +245,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
                     this.submissionMarkerIdList.add(queryCursor.getString(queryCursor.getColumnIndexOrThrow("submission_id")));
                     this.clusterManager.addItem(submissionMarker);
                 } else {
-                    Log.e(TAG, "addSubmissionsToMap: Submission already on the map");
+                   // Log.e(TAG, "addSubmissionsToMap: Submission already on the map");
                 }
             }
             this.clusterManager.cluster();
@@ -269,8 +272,10 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
     @Override
     public boolean onMarkerClick(Marker marker) {
         Log.e(TAG, "onMarkerClick: marker clicked");
-        //PopupMaker popMaker = new PopupMaker(getMainActivity());
-        //popMaker.createPopupTest();
+/*        if (marker.getTitle().isEmpty()) {
+            PopupMaker popMaker = new PopupMaker(getMainActivity());
+            popMaker.createPopupTest();
+        }*/
         return false;
     }
 
@@ -306,7 +311,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
         private List<GoogleMap.OnMarkerClickListener> registeredListeners = new ArrayList<>();
 
         /**
-         * Adds OnCameraIdleListener type object to the <code>List<OnCameraIdleListener> registeredListeners</code>
+         * Adds OnMarkerClickListener type object to the <code>List<OnMarkerClickListener> registeredListeners</code>
          *
          * @param listener OnCameraIdleListener type object
          */
