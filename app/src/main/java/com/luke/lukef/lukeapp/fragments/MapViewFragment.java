@@ -5,6 +5,9 @@ import android.app.Fragment;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -22,6 +25,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.GoogleMap.OnCameraIdleListener;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
@@ -30,6 +34,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.VisibleRegion;
 import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterManager;
+import com.google.maps.android.clustering.view.DefaultClusterRenderer;
+import com.google.maps.android.ui.IconGenerator;
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
@@ -41,7 +47,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Handles the Map view, fetches submission
+ * Handles the Map view, fetches submissions, populates map with Submissions and Admin markers
  */
 public class MapViewFragment extends Fragment implements View.OnClickListener, LocationListener, OnMapReadyCallback, OnCameraIdleListener,
         GoogleMap.OnMarkerClickListener,
@@ -55,7 +61,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
     Location lastKnownLoc;
     GoogleMap googleMap;
     private ClusterManager<SubmissionMarker> clusterManager;
-    private ClusterManager<SubmissionMarker> adminClusterManager;
     private MapFragment mapFragment;
     private VisibleRegion visibleRegion;
     private List<String> submissionMarkerIdList;
@@ -170,17 +175,17 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
      */
     private void setupClustering() {
         this.clusterManager = new ClusterManager<SubmissionMarker>(getActivity(), this.googleMap);
-        this.adminClusterManager = new ClusterManager<SubmissionMarker>(getActivity(), this.googleMap);
         CompositeOnCameraIdleListener compositeOnCameraIdleListener = new CompositeOnCameraIdleListener();
         CompositeOnMarkerClickListener compositeOnMarkerClickListener = new CompositeOnMarkerClickListener();
-        googleMap.setOnCameraIdleListener(compositeOnCameraIdleListener);
-        googleMap.setOnMarkerClickListener(compositeOnMarkerClickListener);
+        this.googleMap.setOnCameraIdleListener(compositeOnCameraIdleListener);
+        this.googleMap.setOnMarkerClickListener(compositeOnMarkerClickListener);
         compositeOnCameraIdleListener.registerListener(this.clusterManager);
         compositeOnCameraIdleListener.registerListener(this);
         compositeOnMarkerClickListener.registerMarkerOnClickListener(this.clusterManager);
         compositeOnMarkerClickListener.registerMarkerOnClickListener(this);
         this.clusterManager.setOnClusterClickListener(this);
         this.clusterManager.setOnClusterItemClickListener(this);
+        this.clusterManager.setRenderer(new MarkerRenderer(getActivity(), this.googleMap, this.clusterManager));
     }
 
     /**
@@ -192,10 +197,12 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
             if (this.visibleRegion == null) {
                 this.visibleRegion = this.googleMap.getProjection().getVisibleRegion();
                 addSubmissionsToMap(this.visibleRegion);
+                addAdminMarkersToMap();
             } else {
                 // TODO: 29/11/2016 check here if the camera has moved enough to get new stuff from the DB or not
                 this.visibleRegion = this.googleMap.getProjection().getVisibleRegion();
                 addSubmissionsToMap(this.visibleRegion);
+                addAdminMarkersToMap();
             }
         }
     }
@@ -209,17 +216,23 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
         Cursor queryCursor = submissionDatabase.queryAdminMarkers();
         queryCursor.moveToFirst();
         if (queryCursor.getCount() > 0) {
-            Log.e(TAG, "addAdminMarkersToMap: AdminMarkers query amount is " + queryCursor.getCount());
             while (queryCursor.moveToNext()) {
-                LatLng adminMarkerLatLng = new LatLng(queryCursor.getDouble(queryCursor.getColumnIndexOrThrow("admin_marker_longitude")),
-                        queryCursor.getDouble(queryCursor.getColumnIndexOrThrow("admin_marker_latitude")));
-                this.googleMap.addMarker(new MarkerOptions()
-                        .position(adminMarkerLatLng)
-                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
-                        .title(queryCursor.getString(queryCursor.getColumnIndexOrThrow("admin_marker_title"))));
-                Log.e(TAG, "addAdminMarkersToMap: Added marker");
+                if (!this.submissionMarkerIdList.contains(queryCursor.getString(queryCursor.getColumnIndexOrThrow("admin_marker_id")))) {
+                    SubmissionMarker adminMarker = new SubmissionMarker(
+                            queryCursor.getString(queryCursor.getColumnIndexOrThrow("admin_marker_id")),
+                            queryCursor.getDouble(queryCursor.getColumnIndexOrThrow("admin_marker_latitude")),
+                            queryCursor.getDouble(queryCursor.getColumnIndexOrThrow("admin_marker_longitude")),
+                            queryCursor.getString(queryCursor.getColumnIndexOrThrow("admin_marker_title")));
+                    Log.e(TAG, "addSubmissionsToMap: Added adminMarker");
+                    this.submissionMarkerIdList.add(queryCursor.getString(queryCursor.getColumnIndexOrThrow("admin_marker_id")));
+                    this.clusterManager.addItem(adminMarker);
+                } else {
+                    // Log.e(TAG, "addSubmissionsToMap: Submission already on the map");
+                }
             }
+            this.clusterManager.cluster();
         }
+        submissionDatabase.closeDbConnection();
     }
 
     /**
@@ -233,24 +246,24 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
         Cursor queryCursor = submissionDatabase.querySubmissions(visibleRegion);
         queryCursor.moveToFirst();
         if (queryCursor.getCount() > 0) {
-            Log.e(TAG, "addSubmissionsToMap: Submissions amount is "+queryCursor.getCount() );
+            //Log.e(TAG, "addSubmissionsToMap: Submissions amount is " + queryCursor.getCount());
             while (queryCursor.moveToNext()) {
                 if (!this.submissionMarkerIdList.contains(queryCursor.getString(queryCursor.getColumnIndexOrThrow("submission_id")))) {
                     SubmissionMarker submissionMarker = new SubmissionMarker(
                             queryCursor.getString(queryCursor.getColumnIndexOrThrow("submission_id")),
                             queryCursor.getDouble(queryCursor.getColumnIndexOrThrow("submission_latitude")),
-                            queryCursor.getDouble(queryCursor.getColumnIndexOrThrow("submission_longitude"))
-                    );
+                            queryCursor.getDouble(queryCursor.getColumnIndexOrThrow("submission_longitude")),
+                            "");
                     Log.e(TAG, "addSubmissionsToMap: Added submission");
                     this.submissionMarkerIdList.add(queryCursor.getString(queryCursor.getColumnIndexOrThrow("submission_id")));
                     this.clusterManager.addItem(submissionMarker);
                 } else {
-                   // Log.e(TAG, "addSubmissionsToMap: Submission already on the map");
+                    // Log.e(TAG, "addSubmissionsToMap: Submission already on the map");
                 }
             }
             this.clusterManager.cluster();
-            submissionDatabase.closeDbConnection();
         }
+        submissionDatabase.closeDbConnection();
     }
 
 
@@ -264,18 +277,18 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
     public boolean onClusterItemClick(SubmissionMarker submissionMarker) {
         Log.e(TAG, "onClusterItemClick: Cluster item clicked");
         System.out.println("OnClusterItemClick");
-        PopupMaker popMaker = new PopupMaker(getMainActivity());
-        popMaker.createPopupTest();
+        if (!submissionMarker.getAdminMarkerTitle().isEmpty()) {
+            Log.e(TAG, "onClusterItemClick: TITLE OF THE MARKER IS " + submissionMarker.getAdminMarkerTitle());
+        } else {
+            PopupMaker popMaker = new PopupMaker(getMainActivity());
+            popMaker.createPopupTest();
+        }
         return false;
     }
 
     @Override
     public boolean onMarkerClick(Marker marker) {
         Log.e(TAG, "onMarkerClick: marker clicked");
-/*        if (marker.getTitle().isEmpty()) {
-            PopupMaker popMaker = new PopupMaker(getMainActivity());
-            popMaker.createPopupTest();
-        }*/
         return false;
     }
 
@@ -326,6 +339,86 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
                 registeredListeners.get(i).onMarkerClick(marker);
             }
             return false;
+        }
+    }
+
+    /**
+     * Draws profile photos inside markers (using IconGenerator).
+     * When there are multiple people in the cluster, draw multiple photos (using MultiDrawable).
+     */
+    private class MarkerRenderer extends DefaultClusterRenderer<SubmissionMarker> {
+        private final IconGenerator mIconGenerator = new IconGenerator(getActivity());
+        private final IconGenerator mClusterIconGenerator = new IconGenerator(getActivity());
+
+        public MarkerRenderer(Context context, GoogleMap map, ClusterManager<SubmissionMarker> clusterManager) {
+            super(context, map, clusterManager);
+        }
+
+        @Override
+        protected void onBeforeClusterItemRendered(SubmissionMarker item, MarkerOptions markerOptions) {
+            /*
+             * Change Marker color if it's an admin marker
+             */
+            if (!item.getAdminMarkerTitle().isEmpty()) {
+                BitmapDescriptor markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA);
+                markerOptions.icon(markerDescriptor);
+            } else {
+                BitmapDescriptor markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW);
+                markerOptions.icon(markerDescriptor);
+            }
+        }
+
+        @Override
+        protected void onClusterItemRendered(SubmissionMarker clusterItem, Marker marker) {
+            super.onClusterItemRendered(clusterItem, marker);
+        }
+
+        @Override
+        protected void onBeforeClusterRendered(Cluster<SubmissionMarker> cluster, MarkerOptions markerOptions) {
+            // super.onBeforeClusterRendered(cluster, markerOptions);
+            boolean containsAdmin = false;
+
+            // see if cluster has admin marker inside
+            for (SubmissionMarker marker : cluster.getItems()) {
+                if (!marker.getAdminMarkerTitle().isEmpty()) {
+                    Log.e(TAG, "onBeforeClusterRendered: CHECKING");
+                    containsAdmin = true;
+                    break;
+                }
+            }
+
+            /*
+             * Checks whether the cluster has an admin marker inside or not, changed cluster color
+             * if it has
+             */
+            if (containsAdmin) {
+                final Drawable clusterIcon = getResources().getDrawable(R.drawable.ic_circle);
+                clusterIcon.setColorFilter(getResources().getColor(android.R.color.black), PorterDuff.Mode.SRC_ATOP);
+                mClusterIconGenerator.setBackground(clusterIcon);
+                //modify padding for one or two digit numbers
+                if (cluster.getSize() < 10) {
+                    mClusterIconGenerator.setContentPadding(20, 10, 0, 0);
+                } else {
+                    mClusterIconGenerator.setContentPadding(15, 10, 0, 0);
+                }
+                Bitmap icon = mClusterIconGenerator.makeIcon(String.valueOf(cluster.getSize()));
+                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(icon));
+            } else {
+                // possible to change the cluster color, image and so on...
+                final Drawable clusterIcon = getResources().getDrawable(R.drawable.ic_circle);
+                clusterIcon.setColorFilter(getResources().getColor(android.R.color.holo_red_dark), PorterDuff.Mode.SRC_ATOP);
+                mClusterIconGenerator.setBackground(clusterIcon);
+                //modify padding for one or two digit numbers
+                if (cluster.getSize() < 10) {
+                    mClusterIconGenerator.setContentPadding(20, 10, 0, 0);
+                } else {
+                    mClusterIconGenerator.setContentPadding(15, 10, 0, 0);
+                }
+                Bitmap icon = mClusterIconGenerator.makeIcon(String.valueOf(cluster.getSize()));
+                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(icon));
+            }
+
+
         }
     }
 

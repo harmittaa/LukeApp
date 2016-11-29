@@ -119,9 +119,7 @@ public class SubmissionDatabase extends SQLiteOpenHelper {
                         //put the values into the ContentValues
                         values.put(SUBMISSION_ID, jsonObject.getString("id"));
                         values.put(SUBMISSION_LONGITUDE, jsonObject.getString("longitude"));
-                        Log.e(TAG, "addSubmissions: Longitude " + jsonObject.getString("longitude"));
                         values.put(SUBMISSION_LATITUDE, jsonObject.getString("latitude"));
-                        Log.e(TAG, "addSubmissions: Latitude " + jsonObject.getString("latitude"));
                         // check optional values
                         if (jsonObject.has("img_url")) {
                             values.put(SUBMISSION_IMG_URL, jsonObject.getString("img_url"));
