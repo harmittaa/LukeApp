@@ -26,6 +26,7 @@ import com.auth0.android.lock.Lock;
 import com.auth0.android.lock.LockCallback;
 import com.auth0.android.lock.utils.LockException;
 import com.auth0.android.result.Credentials;
+import com.luke.lukef.lukeapp.model.Session;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 
 import org.json.JSONException;
@@ -82,13 +83,21 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.skipLoginButton:
-                //TODO: switch to mainactivity
-                SessionSingleton.getInstance().setUserLogged(false);
-                startActivity(new Intent(WelcomeActivity.this, MainActivity.class));
+                if(SessionSingleton.getInstance().checkGpsStatus(this)){
+                    if(SessionSingleton.getInstance().checkInternetStatus(this)){
+                        SessionSingleton.getInstance().setUserLogged(false);
+                        startActivity(new Intent(WelcomeActivity.this, MainActivity.class));
+                    }
+                }
                 break;
             case R.id.loginButton:
-                SetupTask setupTask = new SetupTask(getString(R.string.auth0URL));
-                setupTask.execute();
+                if(SessionSingleton.getInstance().checkGpsStatus(this)){
+                    if(SessionSingleton.getInstance().checkInternetStatus(this)){
+                        SessionSingleton.getInstance().setUserLogged(false);
+                        SetupTask setupTask = new SetupTask(getString(R.string.auth0URL));
+                        setupTask.execute();
+                    }
+                }
                 break;
         }
     }

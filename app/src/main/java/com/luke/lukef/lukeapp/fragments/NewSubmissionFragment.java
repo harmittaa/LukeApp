@@ -20,6 +20,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -75,6 +76,8 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         submittt = (Button) fragmentView.findViewById(R.id.button_submit_test);
         submissionDescription = (EditText) fragmentView.findViewById(R.id.newSubmissionEditTextDescrption);
         submissionTitle = (EditText) fragmentView.findViewById(R.id.newSubmissionEditTextTitle);
+        submissionDescription.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        submissionTitle.setImeOptions(EditorInfo.IME_ACTION_DONE);
         setupClickListeners();
         getMainActivity().setBottomBarButtons(Constants.bottomActionBarStates.BACK_TICK);
         this.setBottomButtonListeners();
