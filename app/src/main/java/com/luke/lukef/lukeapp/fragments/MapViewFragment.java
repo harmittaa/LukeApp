@@ -8,13 +8,18 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LayerDrawable;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.OvalShape;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,11 +41,11 @@ import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterManager;
 import com.google.maps.android.clustering.view.DefaultClusterRenderer;
 import com.google.maps.android.ui.IconGenerator;
+import com.google.maps.android.ui.SquareTextView;
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
 import com.luke.lukef.lukeapp.SubmissionDatabase;
-import com.luke.lukef.lukeapp.model.Submission;
 import com.luke.lukef.lukeapp.model.SubmissionMarker;
 import com.luke.lukef.lukeapp.tools.PopupMaker;
 
@@ -229,7 +234,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
                             queryCursor.getDouble(queryCursor.getColumnIndexOrThrow("admin_marker_longitude")),
                             queryCursor.getString(queryCursor.getColumnIndexOrThrow("admin_marker_title")),
                             "");
-                    Log.e(TAG, "addSubmissionsToMap: Added adminMarker");
                     this.submissionMarkerIdList.add(queryCursor.getString(queryCursor.getColumnIndexOrThrow("admin_marker_id")));
                     this.clusterManager.addItem(adminMarker);
                 } else {
@@ -261,7 +265,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
                             queryCursor.getDouble(queryCursor.getColumnIndexOrThrow("submission_longitude")),
                             "",
                             queryCursor.getString(queryCursor.getColumnIndexOrThrow("submission_positive")));
-                    Log.e(TAG, "addSubmissionsToMap: Added submission");
                     this.submissionMarkerIdList.add(queryCursor.getString(queryCursor.getColumnIndexOrThrow("submission_id")));
                     this.clusterManager.addItem(submissionMarker);
                 }
@@ -352,9 +355,19 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
      * When there are multiple people in the cluster, draw multiple photos (using MultiDrawable).
      */
     private class MarkerRenderer extends DefaultClusterRenderer<SubmissionMarker> {
+        private final IconGenerator mIconGenerator;
+        private ShapeDrawable mColoredCircleBackground;
+        private SparseArray<BitmapDescriptor> mIcons = new SparseArray();
+        private final float mDensity;
+
 
         MarkerRenderer(Context context, GoogleMap map, ClusterManager<SubmissionMarker> clusterManager) {
             super(context, map, clusterManager);
+            this.mDensity = context.getResources().getDisplayMetrics().density;
+            this.mIconGenerator = new IconGenerator(context);
+            this.mIconGenerator.setContentView(this.makeSquareTextView(context));
+            this.mIconGenerator.setTextAppearance(com.google.maps.android.R.style.amu_ClusterIcon_TextAppearance);
+            this.mIconGenerator.setBackground(this.makeClusterBackground(R.color.quill_gray));
         }
 
         @Override
@@ -382,63 +395,121 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
 
         @Override
         protected void onBeforeClusterRendered(Cluster<SubmissionMarker> cluster, MarkerOptions markerOptions) {
-            boolean containsAdmin = false;
-            boolean containsNegative = false;
-            boolean containsNeutral = false;
-            boolean containsPositive = false;
-
-            // See what markers the cluster has inside
+            // set default cluster border color
+            this.mIconGenerator.setBackground(this.makeClusterBackground(R.color.storm_dust_gray));
+            // check if cluster has admin marker inside and change circle outline color if it has
             for (SubmissionMarker marker : cluster.getItems()) {
                 if (!marker.getAdminMarkerTitle().isEmpty()) {
-                    containsAdmin = true;
-                } else if (marker.getPositive().equals("false")) {
-                    containsNegative = true;
-                } else if (marker.getPositive().equals("neutral")) {
-                    containsNeutral = true;
-                } else if (marker.getPositive().equals("true")) {
-                    containsPositive = true;
+                    this.mIconGenerator.setBackground(this.makeClusterBackground(R.color.super_red));
+                    break;
                 }
             }
 
-            // checks what's inside the cluster and colors it based on that
-            if (containsAdmin) {
-                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(createCluster(cluster, android.R.color.black)));
-                Log.e(TAG, "onBeforeClusterRendered: Contains admin marker");
-            } else if (!containsNegative && containsNeutral && containsPositive) {
-                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(createCluster(cluster, android.R.color.holo_blue_bright)));
-                Log.e(TAG, "onBeforeClusterRendered: all");
-            } else if (containsNegative && !containsNeutral && containsPositive) {
-                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(createCluster(cluster, android.R.color.holo_green_light)));
-                Log.e(TAG, "onBeforeClusterRendered: all");
-            } else if (!containsNegative && containsNeutral && !containsPositive) {
-                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(createCluster(cluster, android.R.color.holo_orange_dark)));
-                Log.e(TAG, "onBeforeClusterRendered: Only neutral");
-            } else if (!containsNegative && !containsNeutral && containsPositive) {
-                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(createCluster(cluster, android.R.color.holo_green_dark)));
-                Log.e(TAG, "onBeforeClusterRendered: Only positive");
-            } else if (containsNegative && !containsNeutral && !containsPositive) {
-                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(createCluster(cluster, android.R.color.holo_red_dark)));
-                Log.e(TAG, "onBeforeClusterRendered: Only negative");
-            } else if (containsNegative && containsNeutral && containsPositive) {
-                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(createCluster(cluster, android.R.color.holo_blue_dark)));
-                Log.e(TAG, "onBeforeClusterRendered: all");
+            int clusterColor;
+            Boolean mostOccurrences = findElementWithMostOccurrences(cluster);
+            // Set cluster color based on what items there's the most
+            if (mostOccurrences == null) {
+                clusterColor = ContextCompat.getColor(getContext(), R.color.quill_gray);
+            } else if (mostOccurrences) {
+                clusterColor = ContextCompat.getColor(getContext(), R.color.shamrock);
             } else {
-                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(createCluster(cluster, android.R.color.holo_purple)));
-                Log.e(TAG, "onBeforeClusterRendered: else");
+                clusterColor = ContextCompat.getColor(getContext(), R.color.bittersweet);
             }
+
+            int bucket = this.getBucket(cluster);
+            //BitmapDescriptor descriptor = this.mIcons.get(bucket);
+            this.mColoredCircleBackground.getPaint().setColor(clusterColor);
+            BitmapDescriptor descriptor = BitmapDescriptorFactory.fromBitmap(
+                    this.mIconGenerator.makeIcon(this.getClusterText(bucket)));
+            this.mIcons.put(bucket, descriptor);
+            markerOptions.icon(descriptor);
         }
 
         /**
+         * Finds the element type with most occurrences.
+         *
+         * @param cluster Cluster of SubmissionMarkers
+         * @return Boolean.TRUE if there was mostly positives, Boolean.FALSE if negatives, <code>null</code> otherwise
+         */
+        private Boolean findElementWithMostOccurrences(Cluster<SubmissionMarker> cluster) {
+            int negative = 0;
+            int neutral = 0;
+            int positive = 0;
+
+            double clusterSize = ((double) cluster.getSize()) / 2;
+            for (SubmissionMarker marker : cluster.getItems()) {
+                switch (marker.getPositive()) {
+                    case "false":
+                        negative++;
+                        break;
+                    case "neutral":
+                        neutral++;
+                        break;
+                    case "true":
+                        positive++;
+                        break;
+                }
+                if (negative > clusterSize || neutral > clusterSize || positive > clusterSize) {
+                    break;
+                }
+            }
+
+            int biggest = Math.max(negative, Math.max(neutral, positive));
+            if (neutral == biggest) {
+                return null;
+            } else if (negative == biggest) {
+                return Boolean.FALSE;
+            } else if (positive == biggest) {
+                return Boolean.TRUE;
+            } else {
+                return null;
+            }
+        }
+
+
+        private SquareTextView makeSquareTextView(Context context) {
+            SquareTextView squareTextView = new SquareTextView(context);
+            ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(-2, -2);
+            squareTextView.setLayoutParams(layoutParams);
+            // changed text
+            squareTextView.setId(com.google.maps.android.R.id.amu_text);
+            int twelveDpi = (int) (12.0F * this.mDensity);
+            squareTextView.setPadding(twelveDpi, twelveDpi, twelveDpi, twelveDpi);
+            return squareTextView;
+        }
+
+        /**
+         * Defines the cluster background, including outline, shape and color
+         * @param borderColor Color of the cluster border
+         * @return Returns type <code>LayerDrawable</code> background for the cluster
+         */
+        private LayerDrawable makeClusterBackground(int borderColor) {
+            // Outline color
+            int clusterOutlineColor = ContextCompat.getColor(getContext(), borderColor);
+
+            this.mColoredCircleBackground = new ShapeDrawable(new OvalShape());
+            ShapeDrawable outline = new ShapeDrawable(new OvalShape());
+            outline.getPaint().setColor(clusterOutlineColor);
+            LayerDrawable background = new LayerDrawable(
+                    new Drawable[]{outline, this.mColoredCircleBackground});
+            int strokeWidth = (int) (this.mDensity * 3.0F);
+            background.setLayerInset(1, strokeWidth, strokeWidth, strokeWidth, strokeWidth);
+            return background;
+        }
+
+
+        /**
          * Generates the cluster Bitmaps based on color
+         *
          * @param cluster The cluster for which the bitmap is generated, used to fetch the item count
-         * @param color The color that the bitmap should be
+         * @param color   The color that the bitmap should be
          * @return The coloured and numbered Bitmap for the cluster
          */
         Bitmap createCluster(Cluster cluster, int color) {
             IconGenerator mIconGenerator = new IconGenerator(getActivity());
             IconGenerator mClusterIconGenerator = new IconGenerator(getActivity());
-            final Drawable clusterIcon = getResources().getDrawable(R.drawable.ic_circle);
-            clusterIcon.setColorFilter(getResources().getColor(color), PorterDuff.Mode.SRC_ATOP);
+            final Drawable clusterIcon = ContextCompat.getDrawable(getContext(), R.drawable.ic_circle);
+            clusterIcon.setColorFilter(ContextCompat.getColor(getContext(), color), PorterDuff.Mode.SRC_ATOP);
             mClusterIconGenerator.setBackground(clusterIcon);
             //modify padding for one or two digit numbers
             if (cluster.getSize() < 10) {

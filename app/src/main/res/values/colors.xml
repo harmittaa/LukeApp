@@ -4,4 +4,11 @@
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#1de9b6</color>
     <color name="black">#000000</color>
+    <color name="quill_gray">#D0D0CC</color>
+    <color name="shamrock">#4CCC92</color>
+    <color name="bittersweet">#FF7E6B</color>
+    <color name="vintage_vanilla_white">#e4e4e4</color>
+    <color name="super_red">#ff0000</color>
+    <color name="storm_dust_gray">#535352</color>
+
 </resources>
