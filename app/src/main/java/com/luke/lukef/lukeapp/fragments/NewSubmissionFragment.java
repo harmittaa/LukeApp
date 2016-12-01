@@ -203,15 +203,16 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
             try {
                 Log.e(TAG, "onActivityResult: photo file before write" + this.photofile.length());
                 FileOutputStream fo = new FileOutputStream(this.photofile);
-                imageBitmap.compress(Bitmap.CompressFormat.JPEG,100,fo);
+                imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fo);
                 Log.e(TAG, "onActivityResult: photo file after write" + this.photofile.length());
             } catch (FileNotFoundException e) {
-                Log.e(TAG, "onActivityResult: ",e );
+                Log.e(TAG, "onActivityResult: ", e);
             }
 
             imageBitmap = BitmapFactory.decodeFile(photoPath, options);
 
-            if (imageBitmap != null) Log.e(TAG, "onActivityResult: photo exists, size : " + imageBitmap.getByteCount());
+            if (imageBitmap != null)
+                Log.e(TAG, "onActivityResult: photo exists, size : " + imageBitmap.getByteCount());
             photoThumbnail.setImageBitmap(imageBitmap);
             this.currentPhoto = imageBitmap;
         }
@@ -263,8 +264,10 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
             }
             if (newSub.submitToServer()) {
                 Log.e(TAG, "makeSubmission: Submission sent succesfully");
+                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP, null);
+                getMainActivity().makeToast("Success!");
             } else {
-                Log.e(TAG, "makeSubmission: Error submitting");
+                getMainActivity().makeToast("Error Submitting");
             }
         } else {
             Log.e(TAG, "makeSubmission: FIELDS NOT VALID\nFIELDS NOT VALID");
