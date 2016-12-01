@@ -40,6 +40,7 @@ import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
 import com.luke.lukef.lukeapp.SubmissionDatabase;
+import com.luke.lukef.lukeapp.model.Submission;
 import com.luke.lukef.lukeapp.model.SubmissionMarker;
 import com.luke.lukef.lukeapp.tools.PopupMaker;
 
@@ -205,6 +206,10 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
                 addAdminMarkersToMap();
             }
         }
+
+        if (this.googleMap.getCameraPosition().zoom < 5) {
+
+        }
     }
 
     /**
@@ -222,7 +227,8 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
                             queryCursor.getString(queryCursor.getColumnIndexOrThrow("admin_marker_id")),
                             queryCursor.getDouble(queryCursor.getColumnIndexOrThrow("admin_marker_latitude")),
                             queryCursor.getDouble(queryCursor.getColumnIndexOrThrow("admin_marker_longitude")),
-                            queryCursor.getString(queryCursor.getColumnIndexOrThrow("admin_marker_title")));
+                            queryCursor.getString(queryCursor.getColumnIndexOrThrow("admin_marker_title")),
+                            "");
                     Log.e(TAG, "addSubmissionsToMap: Added adminMarker");
                     this.submissionMarkerIdList.add(queryCursor.getString(queryCursor.getColumnIndexOrThrow("admin_marker_id")));
                     this.clusterManager.addItem(adminMarker);
@@ -253,12 +259,11 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
                             queryCursor.getString(queryCursor.getColumnIndexOrThrow("submission_id")),
                             queryCursor.getDouble(queryCursor.getColumnIndexOrThrow("submission_latitude")),
                             queryCursor.getDouble(queryCursor.getColumnIndexOrThrow("submission_longitude")),
-                            "");
+                            "",
+                            queryCursor.getString(queryCursor.getColumnIndexOrThrow("submission_positive")));
                     Log.e(TAG, "addSubmissionsToMap: Added submission");
                     this.submissionMarkerIdList.add(queryCursor.getString(queryCursor.getColumnIndexOrThrow("submission_id")));
                     this.clusterManager.addItem(submissionMarker);
-                } else {
-                    // Log.e(TAG, "addSubmissionsToMap: Submission already on the map");
                 }
             }
             this.clusterManager.cluster();
@@ -347,23 +352,25 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
      * When there are multiple people in the cluster, draw multiple photos (using MultiDrawable).
      */
     private class MarkerRenderer extends DefaultClusterRenderer<SubmissionMarker> {
-        private final IconGenerator mIconGenerator = new IconGenerator(getActivity());
-        private final IconGenerator mClusterIconGenerator = new IconGenerator(getActivity());
 
-        public MarkerRenderer(Context context, GoogleMap map, ClusterManager<SubmissionMarker> clusterManager) {
+        MarkerRenderer(Context context, GoogleMap map, ClusterManager<SubmissionMarker> clusterManager) {
             super(context, map, clusterManager);
         }
 
         @Override
         protected void onBeforeClusterItemRendered(SubmissionMarker item, MarkerOptions markerOptions) {
-            /*
-             * Change Marker color if it's an admin marker
-             */
+            // change marker color based on the marker values
             if (!item.getAdminMarkerTitle().isEmpty()) {
                 BitmapDescriptor markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA);
                 markerOptions.icon(markerDescriptor);
-            } else {
-                BitmapDescriptor markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW);
+            } else if (item.getPositive().equals("true")) {
+                BitmapDescriptor markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN);
+                markerOptions.icon(markerDescriptor);
+            } else if (item.getPositive().equals("false")) {
+                BitmapDescriptor markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE);
+                markerOptions.icon(markerDescriptor);
+            } else if (item.getPositive().equals("neutral")) {
+                BitmapDescriptor markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET);
                 markerOptions.icon(markerDescriptor);
             }
         }
@@ -375,52 +382,74 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
 
         @Override
         protected void onBeforeClusterRendered(Cluster<SubmissionMarker> cluster, MarkerOptions markerOptions) {
-            // super.onBeforeClusterRendered(cluster, markerOptions);
             boolean containsAdmin = false;
+            boolean containsNegative = false;
+            boolean containsNeutral = false;
+            boolean containsPositive = false;
 
-            // see if cluster has admin marker inside
+            // See what markers the cluster has inside
             for (SubmissionMarker marker : cluster.getItems()) {
                 if (!marker.getAdminMarkerTitle().isEmpty()) {
-                    Log.e(TAG, "onBeforeClusterRendered: CHECKING");
                     containsAdmin = true;
-                    break;
+                } else if (marker.getPositive().equals("false")) {
+                    containsNegative = true;
+                } else if (marker.getPositive().equals("neutral")) {
+                    containsNeutral = true;
+                } else if (marker.getPositive().equals("true")) {
+                    containsPositive = true;
                 }
             }
 
-            /*
-             * Checks whether the cluster has an admin marker inside or not, changed cluster color
-             * if it has
-             */
+            // checks what's inside the cluster and colors it based on that
             if (containsAdmin) {
-                final Drawable clusterIcon = getResources().getDrawable(R.drawable.ic_circle);
-                clusterIcon.setColorFilter(getResources().getColor(android.R.color.black), PorterDuff.Mode.SRC_ATOP);
-                mClusterIconGenerator.setBackground(clusterIcon);
-                //modify padding for one or two digit numbers
-                if (cluster.getSize() < 10) {
-                    mClusterIconGenerator.setContentPadding(20, 10, 0, 0);
-                } else {
-                    mClusterIconGenerator.setContentPadding(15, 10, 0, 0);
-                }
-                Bitmap icon = mClusterIconGenerator.makeIcon(String.valueOf(cluster.getSize()));
-                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(icon));
+                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(createCluster(cluster, android.R.color.black)));
+                Log.e(TAG, "onBeforeClusterRendered: Contains admin marker");
+            } else if (!containsNegative && containsNeutral && containsPositive) {
+                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(createCluster(cluster, android.R.color.holo_blue_bright)));
+                Log.e(TAG, "onBeforeClusterRendered: all");
+            } else if (containsNegative && !containsNeutral && containsPositive) {
+                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(createCluster(cluster, android.R.color.holo_green_light)));
+                Log.e(TAG, "onBeforeClusterRendered: all");
+            } else if (!containsNegative && containsNeutral && !containsPositive) {
+                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(createCluster(cluster, android.R.color.holo_orange_dark)));
+                Log.e(TAG, "onBeforeClusterRendered: Only neutral");
+            } else if (!containsNegative && !containsNeutral && containsPositive) {
+                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(createCluster(cluster, android.R.color.holo_green_dark)));
+                Log.e(TAG, "onBeforeClusterRendered: Only positive");
+            } else if (containsNegative && !containsNeutral && !containsPositive) {
+                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(createCluster(cluster, android.R.color.holo_red_dark)));
+                Log.e(TAG, "onBeforeClusterRendered: Only negative");
+            } else if (containsNegative && containsNeutral && containsPositive) {
+                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(createCluster(cluster, android.R.color.holo_blue_dark)));
+                Log.e(TAG, "onBeforeClusterRendered: all");
             } else {
-                // possible to change the cluster color, image and so on...
-                final Drawable clusterIcon = getResources().getDrawable(R.drawable.ic_circle);
-                clusterIcon.setColorFilter(getResources().getColor(android.R.color.holo_red_dark), PorterDuff.Mode.SRC_ATOP);
-                mClusterIconGenerator.setBackground(clusterIcon);
-                //modify padding for one or two digit numbers
-                if (cluster.getSize() < 10) {
-                    mClusterIconGenerator.setContentPadding(20, 10, 0, 0);
-                } else {
-                    mClusterIconGenerator.setContentPadding(15, 10, 0, 0);
-                }
-                Bitmap icon = mClusterIconGenerator.makeIcon(String.valueOf(cluster.getSize()));
-                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(icon));
+                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(createCluster(cluster, android.R.color.holo_purple)));
+                Log.e(TAG, "onBeforeClusterRendered: else");
             }
+        }
 
-
+        /**
+         * Generates the cluster Bitmaps based on color
+         * @param cluster The cluster for which the bitmap is generated, used to fetch the item count
+         * @param color The color that the bitmap should be
+         * @return The coloured and numbered Bitmap for the cluster
+         */
+        Bitmap createCluster(Cluster cluster, int color) {
+            IconGenerator mIconGenerator = new IconGenerator(getActivity());
+            IconGenerator mClusterIconGenerator = new IconGenerator(getActivity());
+            final Drawable clusterIcon = getResources().getDrawable(R.drawable.ic_circle);
+            clusterIcon.setColorFilter(getResources().getColor(color), PorterDuff.Mode.SRC_ATOP);
+            mClusterIconGenerator.setBackground(clusterIcon);
+            //modify padding for one or two digit numbers
+            if (cluster.getSize() < 10) {
+                mClusterIconGenerator.setContentPadding(20, 10, 0, 0);
+            } else {
+                mClusterIconGenerator.setContentPadding(15, 10, 0, 0);
+            }
+            return mClusterIconGenerator.makeIcon(String.valueOf(cluster.getSize()));
         }
     }
+
 
     @Override
     public void onLocationChanged(Location location) {

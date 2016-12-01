@@ -40,6 +40,7 @@ public class SubmissionDatabase extends SQLiteOpenHelper {
     private static final String SUBMISSION_DATE = "submission_date";
     private static final String SUBMISSION_RATING = "submission_rating";
     private static final String SUBMISSION_SUBMITTER_ID = "submission_submitterId";
+    private static final String SUBMISSION_POSITIVE = "submission_positive";
 
     private static final String TABLE_ADMIN_MARKER = "admin_marker";
     private static final String ADMIN_MARKER_ID = "admin_marker_id";
@@ -61,6 +62,7 @@ public class SubmissionDatabase extends SQLiteOpenHelper {
                     SUBMISSION_DESCRIPTION + " text not null, " +
                     SUBMISSION_DATE + " real not null, " +
                     SUBMISSION_RATING + " real, " +
+                    SUBMISSION_POSITIVE + " text, " +
                     SUBMISSION_SUBMITTER_ID + " text);";
 
     private static final String SQL_CREATE_TABLE_ADMIN_MARKER =
@@ -79,6 +81,7 @@ public class SubmissionDatabase extends SQLiteOpenHelper {
     }
 
     public void clearCache() {
+        Log.e(TAG, "clearCache: Emptying the cache");
         this.database = this.getWritableDatabase();
         this.database.execSQL("DROP TABLE IF EXISTS submission");
         this.database.execSQL("DROP TABLE IF EXISTS admin_marker");
@@ -128,6 +131,14 @@ public class SubmissionDatabase extends SQLiteOpenHelper {
                             values.put(SUBMISSION_TITLE, jsonObject.getString("title"));
                         }
                         values.put(SUBMISSION_DESCRIPTION, jsonObject.getString("description"));
+
+                        // see if the submission has positive value true/false, if not put neutral
+                        if (jsonObject.has("positive")) {
+                            values.put(SUBMISSION_POSITIVE, jsonObject.getString("positive"));
+                        } else {
+                            values.put(SUBMISSION_POSITIVE, "neutral");
+                        }
+                        values.put(SUBMISSION_DESCRIPTION, jsonObject.getString("description"));
                         // parse the date into a Date object
                         Date date = format.parse(jsonObject.getString("date"));
                         // save milliseconds of the date to the db
@@ -135,9 +146,6 @@ public class SubmissionDatabase extends SQLiteOpenHelper {
                         values.put(SUBMISSION_SUBMITTER_ID, jsonObject.getString("submitterId"));
                         // insert values
                         this.database.insert(TABLE_SUBMISSION, null, values);
-
-                        //exampleQuery();
-
                     } catch (JSONException e) {
                         Log.e(TAG, "A JSON value was not found: ", e);
                     } catch (ParseException e) {
@@ -224,7 +232,7 @@ public class SubmissionDatabase extends SQLiteOpenHelper {
 
 
         this.cursor = this.database.rawQuery(
-                "SELECT " + SUBMISSION_ID + ", " + SUBMISSION_LATITUDE + ", " + SUBMISSION_LONGITUDE + ", " + SUBMISSION_DATE +
+                "SELECT " + SUBMISSION_ID + ", " + SUBMISSION_LATITUDE + ", " + SUBMISSION_LONGITUDE + ", " + SUBMISSION_DATE + ", " + SUBMISSION_POSITIVE +
                         " FROM " + TABLE_SUBMISSION +
                         " WHERE " + SUBMISSION_LATITUDE +
                         " BETWEEN " + swLat + " AND " + neLat +
