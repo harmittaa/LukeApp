@@ -479,7 +479,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
         }
 
         /**
-         * Defines the cluster background, including outline, shape and color
+         * Defines the cluster background, including outline, shape and colorl
          * @param borderColor Color of the cluster border
          * @return Returns type <code>LayerDrawable</code> background for the cluster
          */
