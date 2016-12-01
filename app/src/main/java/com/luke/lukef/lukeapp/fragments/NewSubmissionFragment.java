@@ -61,6 +61,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     Bitmap currentPhoto;
     private final static String TAG = NewSubmissionFragment.class.toString();
     ArrayList<String> selectedCategries;
+    ArrayList<Category> selectedCategriesObjects;
     Button submittt;
     Location location;
     private File photofile;
@@ -79,6 +80,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         this.setBottomButtonListeners();
         fetchBundleFromArguments();
         selectedCategries = new ArrayList<>();
+        this.selectedCategriesObjects = new ArrayList<>();
         setupThumbnailMap();
         ViewTreeObserver vto = mapThumbnail.getViewTreeObserver();
         vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -254,7 +256,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     private void makeSubmission() {
         if (checkFieldsValidity()) {
             // TODO: 22/11/2016 create submission object, make httprequest and send to server(put this request into submission?)
-            Submission newSub = new Submission(getMainActivity(), this.selectedCategries, new Date(), submissionDescription.getText().toString(), this.location);
+            Submission newSub = new Submission(getMainActivity(), this.selectedCategriesObjects, new Date(), submissionDescription.getText().toString(), this.location);
             newSub.setFile(this.photofile);
             if (currentPhoto != null) {
                 newSub.setImage(this.currentPhoto);
@@ -307,6 +309,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
                 //NewSubmissionFragment.this.selectedCategries.add(cla.getItem(which));
                 Category c = SessionSingleton.getInstance().getCategoryList().get(which);
                 NewSubmissionFragment.this.selectedCategries.add(c.getId());
+                NewSubmissionFragment.this.selectedCategriesObjects.add(c);
                 Log.e(TAG, "onClick: added to selected: " + cla.getItem(which) + " size now at " + selectedCategries.size());
                 dialog.dismiss();
             }

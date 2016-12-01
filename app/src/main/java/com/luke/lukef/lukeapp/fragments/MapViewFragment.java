@@ -271,8 +271,8 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
 
                                     // parse Submission's categories
                                     for (int j = 0; j < jsonObject.getJSONArray("categoryId").length(); j++) {
-                                        submissionCategoryIdList.add(jsonObject.getJSONArray("categoryId").get(i));
-                                        Log.e(TAG, "Category parse: " + submissionCategoryIdList.add(jsonObject.getJSONArray("categoryId").get(i)));
+                                        submissionCategoryIdList.add(jsonObject.getJSONArray("categoryId").get(j));
+                                        Log.e(TAG, "Category parse: " + submissionCategoryIdList.add(jsonObject.getJSONArray("categoryId").get(j)));
                                     }
 
                                     Bitmap image;

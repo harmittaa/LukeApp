@@ -46,6 +46,7 @@ import com.luke.lukef.lukeapp.fragments.ProfileFragment;
 import com.luke.lukef.lukeapp.fragments.UserSubmissionFragment;
 
 import com.luke.lukef.lukeapp.model.Category;
+import com.luke.lukef.lukeapp.model.Session;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.model.Submission;
 
@@ -268,7 +269,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (SessionSingleton.getInstance().isUserLogged()) {
-                    fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_NEW_SUBMISSION, null);
+                    if(SessionSingleton.getInstance().checkGpsStatus(MainActivity.this)){
+                        fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_NEW_SUBMISSION, null);
+                    };
                 } else {
                     // TODO: 21/11/2016 popup to login
                     AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);

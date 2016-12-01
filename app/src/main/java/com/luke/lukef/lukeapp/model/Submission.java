@@ -52,28 +52,55 @@ public class Submission {
     private Date date;
     private String description;
     private static final String TAG = "Submission";
-    Context context;
-    File file;
+    private Context context;
+    private File file;
+    private Boolean positive;
+    private ArrayList<Category> categories;
 
     //all values present
-    public Submission(Context context, String title, ArrayList<String> category, Date date, String description, Bitmap image, Location location) {
+    public Submission(Context context, String title, ArrayList<Category> category, Date date, String description, Bitmap image, Location location) {
         this.image = image;
         this.location = location;
         this.title = title;
-        this.category = category;
+        this.categories = category;
         this.date = date;
         this.description = description;
         this.context = context;
+        this.positive = positive;
     }
 
     public Submission() {
         //For testing the dummy cardView
     }
 
+    private Boolean parsePositive() {
+        int positiveCategories = 0;
+        int negativeCategories = 0;
+        int neutralCategories = 0;
+        for (Category c : categories) {
+            if (c.getPositive() == null ) {
+                neutralCategories++;
+            } else if (!c.getPositive()) {
+                negativeCategories++;
+            } else if (c.getPositive()) {
+                positiveCategories++;
+            }
+        }
+        if (positiveCategories > negativeCategories && positiveCategories > neutralCategories) {
+            return Boolean.TRUE;
+        } else if (negativeCategories > positiveCategories && negativeCategories > neutralCategories) {
+            return Boolean.FALSE;
+        } else if (neutralCategories > positiveCategories && neutralCategories > negativeCategories) {
+            return null;
+        } else {
+            return null;
+        }
+    }
+
     //only mandatory values
-    public Submission(Context context, ArrayList<String> category, Date date, String description, Location location) {
+    public Submission(Context context, ArrayList<Category> category, Date date, String description, Location location) {
         this.location = location;
-        this.category = category;
+        this.categories = category;
         this.date = date;
         this.description = description;
         this.context = context;
@@ -95,8 +122,8 @@ public class Submission {
             jsonObject.put("description", Submission.this.description);
             jsonObject.put("categoryId", convertCategoriesToJsonArray());
 
-            if (!TextUtils.isEmpty(Submission.this.title)) {
-                jsonObject.put("title", Submission.this.title);
+            if(parsePositive() != null){
+                jsonObject.put("positive",parsePositive()+"");
             }
             // TODO: 25/11/2016 When image implementation on server is done, add image to json object if not null
             Log.e(TAG, "convertToJson: Created json object that looks like: " + jsonObject.toString());
@@ -136,10 +163,10 @@ public class Submission {
 
     }
 
-    private String bitapToBase64String(Bitmap bmap){
+    private String bitapToBase64String(Bitmap bmap) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         bmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
-        byte[] byteArray = byteArrayOutputStream .toByteArray();
+        byte[] byteArray = byteArrayOutputStream.toByteArray();
 
         return Base64.encodeToString(byteArray, Base64.DEFAULT);
     }
@@ -256,7 +283,6 @@ public class Submission {
             }
 
 
-
         };
 
         /*
@@ -302,7 +328,7 @@ public class Submission {
         t.start();
 
         try {
-            boolean b = futureTask.get();
+            Boolean b = futureTask.get();
             return b;
         } catch (InterruptedException e) {
             Log.e(TAG, "submitToServer: ", e);
@@ -315,8 +341,8 @@ public class Submission {
 
     private JSONArray convertCategoriesToJsonArray() {
         JSONArray jsn = new JSONArray();
-        for (String c : this.category) {
-            jsn.put(c);
+        for (Category c : this.categories) {
+            jsn.put(c.getId());
         }
         Log.e(TAG, "convertCategoriesToJsonArray: categories array" + jsn);
         return jsn;
@@ -380,5 +406,21 @@ public class Submission {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Boolean getPositive() {
+        return positive;
+    }
+
+    public void setPositive(Boolean positive) {
+        this.positive = positive;
+    }
+
+    public ArrayList<Category> getCategories() {
+        return categories;
+    }
+
+    public void setCategories(ArrayList<Category> categories) {
+        this.categories = categories;
     }
 }

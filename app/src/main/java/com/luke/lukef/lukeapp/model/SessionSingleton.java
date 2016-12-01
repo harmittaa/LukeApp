@@ -1,7 +1,13 @@
 package com.luke.lukef.lukeapp.model;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Bitmap;
+import android.location.LocationManager;
 import android.util.Log;
+
 import java.util.ArrayList;
 
 /**
@@ -15,7 +21,7 @@ public class SessionSingleton {
     }
 
 
-    private static final String TAG ="Session";
+    private static final String TAG = "Session";
     private String userId;
     private String accessToken;
     private String idToken;
@@ -27,7 +33,7 @@ public class SessionSingleton {
     private ArrayList<Category> categories;
 
     // optimal case when all the parameters can be gotten from the server
-    public void setValues(String username, int xp, int level, Bitmap userImage, String userId, String accessToken, String idToken){
+    public void setValues(String username, int xp, int level, Bitmap userImage, String userId, String accessToken, String idToken) {
         this.username = username;
         this.xp = xp;
         this.level = level;
@@ -35,36 +41,67 @@ public class SessionSingleton {
         this.userId = userId;
         this.accessToken = accessToken;
         this.idToken = idToken;
-        Log.e(TAG, "setValues: acstoken " + accessToken );
+        Log.e(TAG, "setValues: acstoken " + accessToken);
         Log.e(TAG, "setValues: idtoken " + idToken);
     }
 
-    private SessionSingleton(){
+    private SessionSingleton() {
         this.categories = new ArrayList<>();
     }
 
-    public void addCategory(Category c){
-        Log.e(TAG, "addCategory: added " + c + " to list of categories, size of list now " + this.categories.size() );
+    public void addCategory(Category c) {
+        Log.e(TAG, "addCategory: added " + c + " to list of categories, size of list now " + this.categories.size());
         this.categories.add(c);
     }
 
-    public void removeCategory(Category c){
+    public void removeCategory(Category c) {
         this.categories.remove(c);
     }
 
-    public void removeCategoryByIndex(int i){
+    public boolean checkGpsStatus(Context context) {
+        final LocationManager manager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+
+        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            buildAlertMessageNoGps(context);
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    private void buildAlertMessageNoGps(final Context context) {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setMessage("Making a submission requires GPS to be enabled. Enable GPS now?")
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        context.startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+        final AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+
+    public void removeCategoryByIndex(int i) {
         this.categories.remove(i);
     }
 
-    public void setCategories(ArrayList<Category> newCategories){
+    public void setCategories(ArrayList<Category> newCategories) {
         this.categories = newCategories;
     }
 
-    public ArrayList<Category> getCategoryList(){
+    public ArrayList<Category> getCategoryList() {
         return this.categories;
     }
 
-    public void emptyCategories(){
+    public void emptyCategories() {
         this.categories.clear();
     }
 
@@ -99,7 +136,9 @@ public class SessionSingleton {
         return level;
     }
 
-    public void setLevel(int level) { this.level = level; }
+    public void setLevel(int level) {
+        this.level = level;
+    }
 
     public Bitmap getUserImage() {
         return userImage;
@@ -124,7 +163,7 @@ public class SessionSingleton {
     public void setIdToken(String idToken) {
         this.idToken = idToken;
 
-        Log.e(TAG, "setidToken: idtoken token set to " + this.idToken );
+        Log.e(TAG, "setidToken: idtoken token set to " + this.idToken);
     }
 
     public String getAccessToken() {
@@ -134,7 +173,7 @@ public class SessionSingleton {
     public void setAccessToken(String accessToken) {
         this.accessToken = accessToken;
 
-        Log.e(TAG, "setidToken: accestoken set to " + this.accessToken );
+        Log.e(TAG, "setidToken: accestoken set to " + this.accessToken);
     }
 
     public void setUsername(String username) {
