@@ -37,6 +37,7 @@ import com.luke.lukef.lukeapp.model.Submission;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -59,10 +60,11 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     ImageView mapThumbnail;
     Bitmap currentPhoto;
     private final static String TAG = NewSubmissionFragment.class.toString();
-    private String mCurrentPhotoPath;
     ArrayList<String> selectedCategries;
     Button submittt;
     Location location;
+    private File photofile;
+    private String photoPath;
 
     @Nullable
     @Override
@@ -82,7 +84,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                getMapThumbnail(location,mapThumbnail.getWidth(),mapThumbnail.getHeight());
+                getMapThumbnail(location, mapThumbnail.getWidth(), mapThumbnail.getHeight());
                 photoThumbnail.getViewTreeObserver().removeOnGlobalLayoutListener(this);
             }
         });
@@ -91,11 +93,10 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        createImageFile();
     }
-
-
 
     @Override
     public void onClick(View view) {
@@ -145,7 +146,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
 
     private void setupThumbnailMap() {
         photoThumbnail = (ImageView) fragmentView.findViewById(R.id.photoThumbnail);
-        mapThumbnail = (ImageView)fragmentView.findViewById(R.id.newSubmissionMapThumbnail);
+        mapThumbnail = (ImageView) fragmentView.findViewById(R.id.newSubmissionMapThumbnail);
         //getMapThumbnail(location,mapThumbnail.getWidth(),mapThumbnail.getHeight());
         photoThumbnail.setOnClickListener(this);
     }
@@ -155,82 +156,71 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getMainActivity().getPackageManager()) != null) {
             // Create the File where the photo should go
-            File photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException ex) {
 
-            }
-            // Continue only if the File was successfully created
-            if (photoFile != null) {
-                Uri photoURI = FileProvider.getUriForFile(getMainActivity(), "com.luke.lukef.lukeapp", photoFile);
-                Log.e(TAG, "dispatchTakePictureIntent: uri file path" + photoURI.toString());
+            if (photofile != null) {
+                this.photoPath = photofile.getAbsolutePath();
+                // Continue only if the File was successfully created
+                Uri photoURI = FileProvider.getUriForFile(getMainActivity(), "com.luke.lukef.lukeapp", photofile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            } else {
+                createImageFile();
+                dispatchTakePictureIntent();
             }
         }
     }
 
-    private void compressImage() {
-        File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
-        Bitmap b = getBitmapFromStorage();
-        Log.e(TAG, "compressImage: Byte count of UNcompressed image" + b.getByteCount());
-        //b = MediaStore.Images.Media.getBitmap(getMainActivity().getContentResolver(), this.imagePath);
-        Bitmap out = Bitmap.createScaledBitmap(b, 720, 560, false);
-        Log.e(TAG, "compressImage: Byte count of compressed image" + out.getByteCount());
-        File file = new File(this.mCurrentPhotoPath.toString());
-        FileOutputStream fOut;
+    private void createImageFile() {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getMainActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = null;
         try {
-            fOut = new FileOutputStream(file);
-            out.compress(Bitmap.CompressFormat.JPEG, 0, fOut);
-            Log.e(TAG, "compressImage: Byte count of compressformat image" + BitmapFactory.decodeFile(this.mCurrentPhotoPath).getByteCount());
-            fOut.flush();
-            fOut.close();
-            b.recycle();
-            out.recycle();
-        } catch (Exception e) {
-            Log.e(TAG, "compressImage: ", e);
+            image = File.createTempFile(
+                    imageFileName,  /* prefix */
+                    ".jpg",         /* suffix */
+                    storageDir      /* directory */
+            );
+        } catch (IOException e) {
+            Log.e(TAG, "createImageFile: ", e);
         }
 
+        // Save a file: path for use with ACTION_VIEW intents
+        this.photoPath = image.getAbsolutePath();
+        this.photofile = image;
     }
+
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            Log.e(TAG, "onActivityResult: original image size" + getBitmapFromStorage().getByteCount());
-            compressImage();
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inSampleSize = 8;
-            final Bitmap imageBitmap = BitmapFactory.decodeFile(this.mCurrentPhotoPath.toString(), options);
+            final Bitmap imageBitmap = BitmapFactory.decodeFile(this.photoPath.toString(), options);
+            try {
+                Log.e(TAG, "onActivityResult: photo file before write" + this.photofile.length());
+                FileOutputStream fo = new FileOutputStream(this.photofile);
+                imageBitmap.compress(Bitmap.CompressFormat.JPEG,20,fo);
+                Log.e(TAG, "onActivityResult: photo file after write" + this.photofile.length());
+            } catch (FileNotFoundException e) {
+                Log.e(TAG, "onActivityResult: ",e );
+            }
+            if (imageBitmap != null) Log.e(TAG, "onActivityResult: photo exists, size : " + imageBitmap.getByteCount());
             photoThumbnail.setImageBitmap(imageBitmap);
             this.currentPhoto = imageBitmap;
         }
     }
 
-    private File createImageFile() throws IOException {
-        // Create an image file name
-        String imageFileName = "lukeImage";//"JPEG_" + timeStamp + "_";
-        File storageDir = getMainActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
-        );
 
-        // Save a file: path for use with ACTION_VIEW intents
-        mCurrentPhotoPath = image.getAbsolutePath();
-        Log.e(TAG, "createImageFile: FILEPATH : "+ mCurrentPhotoPath );
-        return image;
-    }
-
-    private void getMapThumbnail(final Location center, final int width, final int height){
+    private void getMapThumbnail(final Location center, final int width, final int height) {
         //https://maps.googleapis.com/maps/api/staticmap?center=29.390946,%2076.963502&zoom=10&size=600x300&maptype=normal
         final String urlString1 = "https://maps.googleapis.com/maps/api/staticmap?center=";
         Runnable r = new Runnable() {
             @Override
             public void run() {
                 try {
-                    URL url = new URL(urlString1 + center.getLatitude() + ",%20" + center.getLongitude() + "&zoom=18&size="+width+"x"+height+"&maptype=normal");
+                    URL url = new URL(urlString1 + center.getLatitude() + ",%20" + center.getLongitude() + "&zoom=18&size=" + width + "x" + height + "&maptype=normal");
                     Log.e(TAG, "run: MAPS COME FROM HERE " + url.toString());
                     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                     connection.setDoInput(true);
@@ -248,7 +238,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     }
 
 
-    private void changeMapThumbnail(final Bitmap bm){
+    private void changeMapThumbnail(final Bitmap bm) {
         getMainActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -257,19 +247,13 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         });
     }
 
-    private Bitmap getBitmapFromStorage() {
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inSampleSize = 8;
-        final Bitmap b = BitmapFactory.decodeFile(this.mCurrentPhotoPath, options);
-        return b;
-    }
 
     private void makeSubmission() {
         if (checkFieldsValidity()) {
             // TODO: 22/11/2016 create submission object, make httprequest and send to server(put this request into submission?)
             Submission newSub = new Submission(getMainActivity(), this.selectedCategries, new Date(), submissionDescription.getText().toString(), this.location);
-            newSub.setFilePath(this.mCurrentPhotoPath);
-            if(currentPhoto != null){
+            newSub.setFile(this.photofile);
+            if (currentPhoto != null) {
                 newSub.setImage(this.currentPhoto);
             }
             if (newSub.submitToServer()) {

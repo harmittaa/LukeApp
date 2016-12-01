@@ -8,6 +8,7 @@ import android.util.Base64;
 import android.util.Log;
 
 import com.luke.lukef.lukeapp.R;
+import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.Headers;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.MultipartBuilder;
@@ -52,7 +53,7 @@ public class Submission {
     private String description;
     private static final String TAG = "Submission";
     Context context;
-    String filepath;
+    File file;
 
     //all values present
     public Submission(Context context, String title, ArrayList<String> category, Date date, String description, Bitmap image, Location location) {
@@ -109,6 +110,7 @@ public class Submission {
         MultipartBuilder builder = new MultipartBuilder();
         builder.type(MultipartBuilder.FORM);
 
+
         if (this.title != null) {
             builder.addFormDataPart("title", this.title);
         }
@@ -117,12 +119,10 @@ public class Submission {
                 .addFormDataPart("latitude", Submission.this.location.getLatitude() + "")
                 .addFormDataPart("altitude", Submission.this.location.getAltitude() + "");
         if (this.image != null) {
-            File file = new File(this.filepath);
             Log.e(TAG, "convertToJson: Created file with lenght" + file.length());
             Log.e(TAG, "convertToJson: Created file with total space" + file.getTotalSpace());
-            RequestBody requestBody = RequestBody.create(MediaType.parse("image/jpg"), file);
+            RequestBody requestBody = RequestBody.create(MediaType.parse("image/jpg"), this.file);
             builder.addPart(requestBody);
-
         }
         builder.addFormDataPart("description", Submission.this.description);
         builder.addFormDataPart("categoryId", convertCategoriesToJsonArray().toString());
@@ -130,7 +130,6 @@ public class Submission {
         if (!TextUtils.isEmpty(Submission.this.title)) {
             builder.addFormDataPart("title", Submission.this.title);
         }
-
         return builder.build();
 
     }
@@ -205,15 +204,6 @@ public class Submission {
                      * END FILE MADNESS
                      */
                     /*
-                     *FILE MADNESS 2
-                     */
-
-
-
-
-                    /*
-                     * END FILE MADNESS 2
-                     *//*
 
                     //flush and close the writer
                     writer.flush();
@@ -269,28 +259,35 @@ public class Submission {
                 OkHttpClient client = new OkHttpClient();
 
                 Request request = new Request.Builder().url("http://www.balticapp.fi/lukeA/report/create")
+                        //.method("POST", convertToJson())
                         .addHeader("Authorization", "Bearer " + SessionSingleton.getInstance().getIdToken())
                         .addHeader("acstoken", SessionSingleton.getInstance().getAccessToken())
                         .addHeader("charset", "utf-8")
                         //.addHeader("Content-Type", "application/json")
                         .post(convertToJson())
                         .build();
-                Log.e(TAG, "call: " + request.toString());
+                Log.e(TAG, "call: " + request);
 
-                try {
-                    Response response = client.newCall(request).execute();
-                    if (response.isSuccessful()) {
-                        Log.e(TAG, "call: Success" + response.message());
-                        return true;
-                    } else {
-                        Log.e(TAG, "call: FAilure" + response.message());
-                        return false;
+
+                //Response response = client.newCall(request).execute();
+                client.newCall(request).enqueue(new Callback() {
+                    @Override
+                    public void onFailure(Request request, IOException e) {
+
                     }
-                    // Do something with the response.
-                } catch (IOException e) {
-                    Log.e(TAG, "call: ", e );
-                    return false;
-                }
+
+                    @Override
+                    public void onResponse(Response response) throws IOException {
+                        if (response.isSuccessful()) {
+                            Log.e(TAG, "call: Success" + response.message());
+                        } else {
+                            Log.e(TAG, "call: FAilure" + response.message() + "\n" + response.toString() + response.body().toString());
+                        }
+                    }
+                });
+                // Do something with the response.
+
+                return true;
             }
         };
 
@@ -319,12 +316,12 @@ public class Submission {
         return jsn;
     }
 
-    public void setFilePath(String filepath){
-        this.filepath = filepath;
+    public void setFile(File file) {
+        this.file = file;
     }
 
-    public String getFilePath(){
-        return this.filepath;
+    public File getFile() {
+        return this.file;
     }
 
     //editing an existing submission
