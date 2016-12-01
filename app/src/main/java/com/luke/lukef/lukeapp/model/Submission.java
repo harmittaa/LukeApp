@@ -79,8 +79,8 @@ public class Submission {
         this.context = context;
     }
 
-    private RequestBody convertToJson() {
-        /*JSONObject jsonObject = new JSONObject();
+    private JSONObject convertToJson() {
+        JSONObject jsonObject = new JSONObject();
         try {
             if (this.title != null) {
                 jsonObject.put("title", this.title);
@@ -89,9 +89,9 @@ public class Submission {
                     .put("longitude", Submission.this.location.getLongitude())
                     .put("latitude", Submission.this.location.getLatitude())
                     .put("altitude", Submission.this.location.getAltitude());
-            /*if (this.image != null) {
-                jsonObject.put("image", imageToBase64String());
-            }*//*
+            if (this.image != null) {
+                jsonObject.put("image", bitapToBase64String(this.getImage()));
+            }
             jsonObject.put("description", Submission.this.description);
             jsonObject.put("categoryId", convertCategoriesToJsonArray());
 
@@ -104,8 +104,10 @@ public class Submission {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        return jsonObject;*/
+        return jsonObject;
 
+        /*
+         * MULTIPART MADNESS
 
         MultipartBuilder builder = new MultipartBuilder();
         builder.type(MultipartBuilder.FORM);
@@ -130,8 +132,16 @@ public class Submission {
         if (!TextUtils.isEmpty(Submission.this.title)) {
             builder.addFormDataPart("title", Submission.this.title);
         }
-        return builder.build();
+        return builder.build();*/
 
+    }
+
+    private String bitapToBase64String(Bitmap bmap){
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        bmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
+        byte[] byteArray = byteArrayOutputStream .toByteArray();
+
+        return Base64.encodeToString(byteArray, Base64.DEFAULT);
     }
 
     /**
@@ -143,18 +153,12 @@ public class Submission {
             @Override
             public Boolean call() throws Exception {
 
-                /*String attachmentName = "bitmap";
-                String attachmentFileName = "bitmap.bmp";
-                String crlf = "\r\n";
-                String twoHyphens = "--";
-                String boundary = "*****";
-
                 HttpURLConnection conn = null;
                 try {
                     //create a json object from this submission to be sent to the server and convert it to string
                     String urlParameters = Submission.this.convertToJson().toString();
 
-                    URL url = new URL("http://www.balticapp.fi/lukeA/report/create");
+                    URL url = new URL("http://www.balticapp.fi/lukeA/report/createBase");
                     conn = (HttpURLConnection) url.openConnection();
                     //set header values, (tokens, content type and charset)
                     // TODO: 25/11/2016 check if tokens are valid
@@ -163,7 +167,6 @@ public class Submission {
                     conn.setRequestProperty(context.getString(R.string.acstoken), SessionSingleton.getInstance().getAccessToken());
                     conn.setRequestProperty("Content-Type", "application/json");
                     conn.setRequestProperty("charset", "utf-8");
-                    conn.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
                     conn.setDoOutput(true);
 
                     //get the output stream of the connection
@@ -171,7 +174,7 @@ public class Submission {
 
                     //write the JSONobject to the connections output
                     writer.write(urlParameters);
-*/
+
                     /*
                      * FILE MADNESS
                      *//*
@@ -203,7 +206,7 @@ public class Submission {
                     *//*
                      * END FILE MADNESS
                      */
-                    /*
+
 
                     //flush and close the writer
                     writer.flush();
@@ -211,6 +214,7 @@ public class Submission {
 
                     //get the response, if succesful, get inurstream, if unsuccesful get errorstream
                     BufferedReader bufferedReader;
+                    Log.e(TAG, "call: RESPONSE CODE:" + conn.getResponseCode());
                     if (conn.getResponseCode() != 200) {
                         bufferedReader = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
 
@@ -255,7 +259,9 @@ public class Submission {
 
         };
 
-        */
+        /*
+        *
+        * OKHTTP MADNESS
                 OkHttpClient client = new OkHttpClient();
 
                 Request request = new Request.Builder().url("http://www.balticapp.fi/lukeA/report/create")
@@ -289,7 +295,7 @@ public class Submission {
 
                 return true;
             }
-        };
+        };*/
 
         FutureTask<Boolean> futureTask = new FutureTask<Boolean>(booleanCallable);
         Thread t = new Thread(futureTask);

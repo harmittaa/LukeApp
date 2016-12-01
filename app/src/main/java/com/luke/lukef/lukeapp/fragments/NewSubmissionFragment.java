@@ -196,16 +196,19 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inSampleSize = 8;
-            final Bitmap imageBitmap = BitmapFactory.decodeFile(this.photoPath.toString(), options);
+            options.inSampleSize = 4;
+            Bitmap imageBitmap = BitmapFactory.decodeFile(this.photoPath.toString(), options);
             try {
                 Log.e(TAG, "onActivityResult: photo file before write" + this.photofile.length());
                 FileOutputStream fo = new FileOutputStream(this.photofile);
-                imageBitmap.compress(Bitmap.CompressFormat.JPEG,20,fo);
+                imageBitmap.compress(Bitmap.CompressFormat.JPEG,100,fo);
                 Log.e(TAG, "onActivityResult: photo file after write" + this.photofile.length());
             } catch (FileNotFoundException e) {
                 Log.e(TAG, "onActivityResult: ",e );
             }
+
+            imageBitmap = BitmapFactory.decodeFile(photoPath, options);
+
             if (imageBitmap != null) Log.e(TAG, "onActivityResult: photo exists, size : " + imageBitmap.getByteCount());
             photoThumbnail.setImageBitmap(imageBitmap);
             this.currentPhoto = imageBitmap;
