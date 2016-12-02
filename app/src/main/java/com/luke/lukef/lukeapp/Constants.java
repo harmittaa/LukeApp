@@ -12,4 +12,8 @@ public class Constants {
     public enum loginFragmentTypes{
         LOGIN_FRAGMENT_WELCOME, LOGIN_FRAGMENT_AUTH0,LOGIN_FRAGMENT_USERDATA
     }
+
+    public enum markerCategories{
+        POSITIVE, NEUTRAL, NEGATIVE
+    }
 }

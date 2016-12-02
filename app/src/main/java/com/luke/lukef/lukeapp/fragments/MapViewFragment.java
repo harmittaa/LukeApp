@@ -6,7 +6,13 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LayerDrawable;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.OvalShape;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -14,7 +20,9 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,12 +39,26 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.GoogleMap.OnCameraIdleListener;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.VisibleRegion;
+import com.google.maps.android.clustering.Cluster;
+import com.google.maps.android.clustering.ClusterManager;
+import com.google.maps.android.clustering.view.DefaultClusterRenderer;
+import com.google.maps.android.ui.IconGenerator;
+import com.google.maps.android.ui.SquareTextView;
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
+
+import com.luke.lukef.lukeapp.SubmissionDatabase;
+import com.luke.lukef.lukeapp.model.SubmissionMarker;
+import com.luke.lukef.lukeapp.tools.PopupMaker;
+
 import com.luke.lukef.lukeapp.model.Submission;
 
 import org.json.JSONArray;
@@ -52,20 +74,24 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 /**
- * Handles the Map view, fetches submission
+ * Handles the Map view, fetches submissions, populates map with Submissions and Admin markers
  */
-public class MapViewFragment extends Fragment implements View.OnClickListener, OnMapReadyCallback, OnCameraIdleListener, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks, com.google.android.gms.location.LocationListener {
+public class MapViewFragment extends Fragment implements View.OnClickListener, OnMapReadyCallback, OnCameraIdleListener, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks, com.google.android.gms.location.LocationListener,
+        GoogleMap.OnMarkerClickListener,
+        ClusterManager.OnClusterClickListener<SubmissionMarker>,
+        ClusterManager.OnClusterItemClickListener<SubmissionMarker>{
     private static final String TAG = "MapViewFragment";
     private View fragmentView;
     Location lastLoc;
     Location lastKnownLoc;
     GoogleMap googleMap;
+    private ClusterManager<SubmissionMarker> clusterManager;
     private MapFragment mapFragment;
+    private VisibleRegion visibleRegion;
+    private List<String> submissionMarkerIdList;
     private GoogleApiClient googleApiClient;
     LocationRequest locationRequest;
     LatLng currentCameraPosition;
@@ -103,8 +129,14 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         getMainActivity().setBottomBarButtons(Constants.bottomActionBarStates.MAP_CAMERA);
         setupGoogleMap();
 
+        this.submissionMarkerIdList = new ArrayList<>();
+        mapFragment = (MapFragment) getChildFragmentManager().findFragmentById(R.id.mapFragment);
+        mapFragment.getMapAsync(this);
+
+
         connectToGoogleApi();
         createLocationRequest();
+
 
         if (fragmentView != null) {
             ViewGroup parent = (ViewGroup) fragmentView.getParent();
@@ -127,15 +159,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        /*Log.e(TAG, "onDestroyView: ondestroy called" );
-        MapFragment f = (MapFragment) getChildFragmentManager()
-                .findFragmentById(R.id.googleMapFragment);
-        if (f != null) {
-            Log.e(TAG, "onDestroyView: removing map fragment");
-            getFragmentManager().beginTransaction().remove(f).commit();
-        } else {
-            Log.e(TAG, "onPause: no fragment found" );
-        }*/
     }
 
 
@@ -184,24 +207,12 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
             // TODO: 21/11/2016 ask for permission
         }
 
-        Location lastKnownLocation = lm.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
-        this.lastKnownLoc = lastKnownLocation;
-
-    }
-
-    private void mapPinTest(Location l) {
+        this.lastKnownLoc = lm.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
 
     }
 
     private void zoomMap() {
         // TODO: 27/11/2016 Check permission, so no crash
-        /*CameraUpdate center = CameraUpdateFactory.newLatLng(new LatLng(getLastLoc().getLatitude(), getLastLoc().getLongitude()));
-        CameraUpdate cu = CameraUpdateFactory.zoomTo(15);
-        googleMap.moveCamera(center);
-        googleMap.animateCamera(cu);
-
-        googleMap.animateCamera(CameraUpdateFactory.zoomTo(15));*/
-
         if (getLastLoc() != null) {
             CameraPosition cameraPosition = new CameraPosition.Builder()
                     .target(new LatLng(getLastLoc().getLatitude(), getLastLoc().getLongitude()))      // Sets the center of the map to Mountain View
@@ -210,6 +221,25 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
             googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
             currentCameraPosition = googleMap.getCameraPosition().target;
         }
+    }
+
+
+    /**
+     * Setup method for Marker clustering
+     */
+    private void setupClustering() {
+        this.clusterManager = new ClusterManager<SubmissionMarker>(getActivity(), this.googleMap);
+        CompositeOnCameraIdleListener compositeOnCameraIdleListener = new CompositeOnCameraIdleListener();
+        CompositeOnMarkerClickListener compositeOnMarkerClickListener = new CompositeOnMarkerClickListener();
+        this.googleMap.setOnCameraIdleListener(compositeOnCameraIdleListener);
+        this.googleMap.setOnMarkerClickListener(compositeOnMarkerClickListener);
+        compositeOnCameraIdleListener.registerListener(this.clusterManager);
+        compositeOnCameraIdleListener.registerListener(this);
+        compositeOnMarkerClickListener.registerMarkerOnClickListener(this.clusterManager);
+        compositeOnMarkerClickListener.registerMarkerOnClickListener(this);
+        this.clusterManager.setOnClusterClickListener(this);
+        this.clusterManager.setOnClusterItemClickListener(this);
+        this.clusterManager.setRenderer(new MarkerRenderer(getActivity(), this.googleMap, this.clusterManager));
     }
 
     private void connectToGoogleApi() {
@@ -231,125 +261,340 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     }
 
     /**
-     * Function that has anonymous runnable class which fetches all reports from the server.
-     * Creates submission objects from JSON fetched from the server and adds them to the list.
+     * Gets called when user has stopped moving the map
      */
-    private void getSubmissions() {
-        Log.e(TAG, "getSubmissions: be starting");
-
-        Runnable getSubmissions = new Runnable() {
-            String jsonString;
-
-            @Override
-            public void run() {
-                try {
-
-                    // Gets the center of current map
-                    Log.e(TAG, "Center is: lat" + lastLoc.getLatitude() + " and long " + lastLoc.getLongitude());
-                    URL getReportsUrl = new URL("http://www.balticapp.fi/lukeA/report?long=" + lastLoc.getLongitude() + "?lat=" + lastLoc.getLatitude());
-                    HttpURLConnection httpURLConnection = (HttpURLConnection) getReportsUrl.openConnection();
-                    if (httpURLConnection.getResponseCode() == 200) {
-                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
-                        jsonString = "";
-                        StringBuilder stringBuilder = new StringBuilder();
-                        String line;
-                        while ((line = bufferedReader.readLine()) != null) {
-                            stringBuilder.append(line + "\n");
-                        }
-                        bufferedReader.close();
-                        jsonString = stringBuilder.toString();
-                        JSONObject jsonObject;
-                        JSONArray jsonArray;
-                        List<Submission> submissions = new ArrayList<>();
-                        List<Object> submissionCategoryIdList = new ArrayList<>();
-                        try {
-                            // make new JSONArray from the server's reply
-                            jsonArray = new JSONArray(jsonString);
-                            if (jsonArray.length() > 0) {
-                                for (int i = 0; i < jsonArray.length(); i++) {
-                                    jsonObject = jsonArray.getJSONObject(i);
-
-                                    // parse Submission's categories
-                                    for (int j = 0; j < jsonObject.getJSONArray("categoryId").length(); j++) {
-                                        submissionCategoryIdList.add(jsonObject.getJSONArray("categoryId").get(i));
-                                        Log.e(TAG, "Category parse: " + submissionCategoryIdList.add(jsonObject.getJSONArray("categoryId").get(i)));
-                                    }
-
-                                    Bitmap image;
-                                    Location location = new Location("");
-                                    location.setLongitude(jsonObject.getDouble("longitude"));
-                                    location.setLatitude(jsonObject.getDouble("latitude"));
-
-                                    // TODO: 25/11/2016 Once images are implemented, create submission objects with Images
-                                    //   submissions.add(new Submission(jsonObject.getString("id"), jsonObject.getString("title"), submissionCategoryIdList, jsonObject.getString("date"),
-                                    //                    jsonObject.getString("description"), image, location));
-
-                                    DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH);
-                                    Date date = format.parse(jsonObject.getString("date"));
-
-                                    // submissions.add(new Submission(getMainActivity().getApplicationContext(), submissionCategoryIdList, date, jsonObject.getString("description"), location));
-                                }
-                                addSubmissionsToMap(submissions);
-
-                            } else {
-                                // TODO: 25/11/2016 No submissions, show info to user
-                                Log.e(TAG, "No submissions");
-                            }
-
-                            // TODO: 25/11/2016 Handle exceptions
-                        } catch (JSONException e) {
-                            Log.e(TAG, "onPostExecute: ", e);
-                        } catch (ParseException e) {
-                            Log.e(TAG, "run: ERROR ", e);
-                        }
-                    } else {
-                        // TODO: 25/11/2016 Show error when responsecode is not 200
-                        Log.e(TAG, "Responsecode = " + httpURLConnection.getResponseCode());
-                    }
-                } catch (Exception e) {
-                    Log.e(TAG, "run: EXCEPTION", e);
-                    Log.e(TAG, "doInBackground: ", e);
-                }
+    @Override
+    public void onCameraIdle() {
+        if (this.googleMap != null) {
+            if (this.visibleRegion == null) {
+                this.visibleRegion = this.googleMap.getProjection().getVisibleRegion();
+                addSubmissionsToMap(this.visibleRegion);
+                addAdminMarkersToMap();
+            } else {
+                // TODO: 29/11/2016 check here if the camera has moved enough to get new stuff from the DB or not
+                this.visibleRegion = this.googleMap.getProjection().getVisibleRegion();
+                addSubmissionsToMap(this.visibleRegion);
+                addAdminMarkersToMap();
             }
-        };
+        }
 
-        Thread thread = new Thread(getSubmissions);
-        thread.start();
+        if (this.googleMap.getCameraPosition().zoom < 5) {
+
+        }
     }
 
     /**
-     * Parses through provided list of submissions, creates OverlayItems and adds them to the map
-     *
-     * @param submissions List of Submission objects
+     * Adds admin markers into the map as basic markers that won't be grouped.
+     * Calls the SQLite {@link SubmissionDatabase#queryAdminMarkers()} for a cursor with admin markers
      */
-    private void addSubmissionsToMap(List<Submission> submissions) {
-        /*
-        List<OverlayItem> overlayItemsList = new ArrayList();
-        // go through the submissions list, create OverlayItem objects and set the markers
-        for (Submission s : submissions) {
-            OverlayItem overlayItem = new OverlayItem("", "", new GeoPoint(s.getLocation().getLatitude(), s.getLocation().getLongitude()));
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                overlayItem.setMarker(getMainActivity().getDrawable(android.R.drawable.btn_star));
+    private void addAdminMarkersToMap() {
+        SubmissionDatabase submissionDatabase = new SubmissionDatabase(getActivity());
+        Cursor queryCursor = submissionDatabase.queryAdminMarkers();
+        queryCursor.moveToFirst();
+        if (queryCursor.getCount() > 0) {
+            while (queryCursor.moveToNext()) {
+                if (!this.submissionMarkerIdList.contains(queryCursor.getString(queryCursor.getColumnIndexOrThrow("admin_marker_id")))) {
+                    SubmissionMarker adminMarker = new SubmissionMarker(
+                            queryCursor.getString(queryCursor.getColumnIndexOrThrow("admin_marker_id")),
+                            queryCursor.getDouble(queryCursor.getColumnIndexOrThrow("admin_marker_latitude")),
+                            queryCursor.getDouble(queryCursor.getColumnIndexOrThrow("admin_marker_longitude")),
+                            queryCursor.getString(queryCursor.getColumnIndexOrThrow("admin_marker_title")),
+                            "");
+                    this.submissionMarkerIdList.add(queryCursor.getString(queryCursor.getColumnIndexOrThrow("admin_marker_id")));
+                    this.clusterManager.addItem(adminMarker);
+                } else {
+                    // Log.e(TAG, "addSubmissionsToMap: Submission already on the map");
+                }
             }
-            overlayItemsList.add(overlayItem);
+            this.clusterManager.cluster();
         }
-        ItemizedOverlayWithFocus<OverlayItem> mOverlay = new ItemizedOverlayWithFocus<OverlayItem>(overlayItemsList,
-                new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {
-                    @Override
-                    public boolean onItemSingleTapUp(final int index, final OverlayItem item) {
-                        PopupMaker popMaker = new PopupMaker(getMainActivity());
-                        popMaker.createPopupTest();
-                        return true;
-                    }
+        submissionDatabase.closeDbConnection();
+    }
 
-                    @Override
-                    public boolean onItemLongPress(final int index, final OverlayItem item) {
-                        return false;
-                    }
-                }, getMainActivity());
-        mOverlay.setFocusItemsOnTap(true);
-        map.getOverlays().add(mOverlay);*/
+    /**
+     * Adds submissions to the map based on the provided <code>VisibleRegion</code>. Passes the VisibleRegion
+     * to the {@link com.luke.lukef.lukeapp.SubmissionDatabase#querySubmissions(VisibleRegion visibleRegion)}
+     *
+     * @param visibleRegion The region currently visible on the map
+     */
+    private void addSubmissionsToMap(VisibleRegion visibleRegion) {
+        SubmissionDatabase submissionDatabase = new SubmissionDatabase(getActivity());
+        Cursor queryCursor = submissionDatabase.querySubmissions(visibleRegion);
+        queryCursor.moveToFirst();
+        if (queryCursor.getCount() > 0) {
+            //Log.e(TAG, "addSubmissionsToMap: Submissions amount is " + queryCursor.getCount());
+            while (queryCursor.moveToNext()) {
+                if (!this.submissionMarkerIdList.contains(queryCursor.getString(queryCursor.getColumnIndexOrThrow("submission_id")))) {
+                    SubmissionMarker submissionMarker = new SubmissionMarker(
+                            queryCursor.getString(queryCursor.getColumnIndexOrThrow("submission_id")),
+                            queryCursor.getDouble(queryCursor.getColumnIndexOrThrow("submission_latitude")),
+                            queryCursor.getDouble(queryCursor.getColumnIndexOrThrow("submission_longitude")),
+                            "",
+                            queryCursor.getString(queryCursor.getColumnIndexOrThrow("submission_positive")));
+                    this.submissionMarkerIdList.add(queryCursor.getString(queryCursor.getColumnIndexOrThrow("submission_id")));
+                    this.clusterManager.addItem(submissionMarker);
+                }
+            }
+            this.clusterManager.cluster();
+        }
+        submissionDatabase.closeDbConnection();
+    }
 
+
+    @Override
+    public boolean onClusterClick(Cluster<SubmissionMarker> cluster) {
+        Log.e(TAG, "onClusterClick: Cluster clicked");
+        return false;
+    }
+
+    @Override
+    public boolean onClusterItemClick(SubmissionMarker submissionMarker) {
+        Log.e(TAG, "onClusterItemClick: Cluster item clicked");
+        System.out.println("OnClusterItemClick");
+        if (!submissionMarker.getAdminMarkerTitle().isEmpty()) {
+            Log.e(TAG, "onClusterItemClick: TITLE OF THE MARKER IS " + submissionMarker.getAdminMarkerTitle());
+        } else {
+            PopupMaker popMaker = new PopupMaker(getMainActivity());
+            popMaker.createPopupTest();
+        }
+        return false;
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        Log.e(TAG, "onMarkerClick: marker clicked");
+        return false;
+    }
+
+    /**
+     * Provides objects possibility to listen to OnCameraIdle events by calling {@link #registerListener(OnCameraIdleListener listener)}
+     */
+    class CompositeOnCameraIdleListener implements OnCameraIdleListener {
+        private List<OnCameraIdleListener> registeredListeners = new ArrayList<>();
+
+        /**
+         * Adds OnCameraIdleListener type object to the <code>List<OnCameraIdleListener> registeredListeners</code>
+         *
+         * @param listener OnCameraIdleListener type object
+         */
+        void registerListener(OnCameraIdleListener listener) {
+            registeredListeners.add(listener);
+        }
+
+        @Override
+        public void onCameraIdle() {
+            // loop through listeners and call their onCameraIdle method()
+            for (int i = 0; i < registeredListeners.size(); i++) {
+                registeredListeners.get(i).onCameraIdle();
+            }
+        }
+    }
+
+    /**
+     * Provides objects possibility to listen to OnCameraIdle events by calling
+     * {@link #registerMarkerOnClickListener(GoogleMap.OnMarkerClickListener)}.
+     */
+    class CompositeOnMarkerClickListener implements GoogleMap.OnMarkerClickListener {
+        private List<GoogleMap.OnMarkerClickListener> registeredListeners = new ArrayList<>();
+
+        /**
+         * Adds OnMarkerClickListener type object to the <code>List<OnMarkerClickListener> registeredListeners</code>
+         *
+         * @param listener OnCameraIdleListener type object
+         */
+        void registerMarkerOnClickListener(GoogleMap.OnMarkerClickListener listener) {
+            registeredListeners.add(listener);
+        }
+
+        @Override
+        public boolean onMarkerClick(Marker marker) {
+            // loop through listeners and call their onCameraIdle method()
+            for (int i = 0; i < registeredListeners.size(); i++) {
+                registeredListeners.get(i).onMarkerClick(marker);
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Draws profile photos inside markers (using IconGenerator).
+     * When there are multiple people in the cluster, draw multiple photos (using MultiDrawable).
+     */
+    private class MarkerRenderer extends DefaultClusterRenderer<SubmissionMarker> {
+        private final IconGenerator mIconGenerator;
+        private ShapeDrawable mColoredCircleBackground;
+        private SparseArray<BitmapDescriptor> mIcons = new SparseArray();
+        private final float mDensity;
+
+
+        MarkerRenderer(Context context, GoogleMap map, ClusterManager<SubmissionMarker> clusterManager) {
+            super(context, map, clusterManager);
+            this.mDensity = context.getResources().getDisplayMetrics().density;
+            this.mIconGenerator = new IconGenerator(context);
+            this.mIconGenerator.setContentView(this.makeSquareTextView(context));
+            this.mIconGenerator.setTextAppearance(com.google.maps.android.R.style.amu_ClusterIcon_TextAppearance);
+            this.mIconGenerator.setBackground(this.makeClusterBackground(R.color.quill_gray));
+        }
+
+        @Override
+        protected void onBeforeClusterItemRendered(SubmissionMarker item, MarkerOptions markerOptions) {
+            // change marker color based on the marker values
+            if (!item.getAdminMarkerTitle().isEmpty()) {
+                BitmapDescriptor markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA);
+                markerOptions.icon(markerDescriptor);
+            } else if (item.getPositive().equals("true")) {
+                BitmapDescriptor markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN);
+                markerOptions.icon(markerDescriptor);
+            } else if (item.getPositive().equals("false")) {
+                BitmapDescriptor markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE);
+                markerOptions.icon(markerDescriptor);
+            } else if (item.getPositive().equals("neutral")) {
+                BitmapDescriptor markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET);
+                markerOptions.icon(markerDescriptor);
+            }
+        }
+
+        @Override
+        protected void onClusterItemRendered(SubmissionMarker clusterItem, Marker marker) {
+            super.onClusterItemRendered(clusterItem, marker);
+        }
+
+        @Override
+        protected void onBeforeClusterRendered(Cluster<SubmissionMarker> cluster, MarkerOptions markerOptions) {
+            // set default cluster border color
+            this.mIconGenerator.setBackground(this.makeClusterBackground(R.color.storm_dust_gray));
+            // check if cluster has admin marker inside and change circle outline color if it has
+            for (SubmissionMarker marker : cluster.getItems()) {
+                if (!marker.getAdminMarkerTitle().isEmpty()) {
+                    this.mIconGenerator.setBackground(this.makeClusterBackground(R.color.super_red));
+                    break;
+                }
+            }
+
+            int clusterColor;
+            findElementWithMostOccurrences(cluster);
+
+
+            // Set cluster color based on what items there's the most
+            switch (findElementWithMostOccurrences(cluster)) {
+                case POSITIVE:
+                    clusterColor = ContextCompat.getColor(getContext(), R.color.shamrock);
+                    break;
+                case NEUTRAL:
+                    clusterColor = ContextCompat.getColor(getContext(), R.color.quill_gray);
+                    break;
+                case NEGATIVE:
+                    clusterColor = ContextCompat.getColor(getContext(), R.color.bittersweet);
+                    break;
+                default:
+                    clusterColor = ContextCompat.getColor(getContext(), R.color.quill_gray);
+                    break;
+            }
+
+            int bucket = this.getBucket(cluster);
+            //BitmapDescriptor descriptor = this.mIcons.get(bucket);
+            this.mColoredCircleBackground.getPaint().setColor(clusterColor);
+            BitmapDescriptor descriptor = BitmapDescriptorFactory.fromBitmap(
+                    this.mIconGenerator.makeIcon(this.getClusterText(bucket)));
+            this.mIcons.put(bucket, descriptor);
+            markerOptions.icon(descriptor);
+        }
+
+        /**
+         * Finds the element type with most occurrences.
+         *
+         * @param cluster Cluster of SubmissionMarkers
+         * @return Constants.markerCategories enum value matching the most common elements
+         */
+        private Constants.markerCategories findElementWithMostOccurrences(Cluster<SubmissionMarker> cluster) {
+            int negative = 0;
+            int neutral = 0;
+            int positive = 0;
+
+            double clusterSize = ((double) cluster.getSize()) / 2;
+            for (SubmissionMarker marker : cluster.getItems()) {
+                switch (marker.getPositive()) {
+                    case "false":
+                        negative++;
+                        break;
+                    case "neutral":
+                        neutral++;
+                        break;
+                    case "true":
+                        positive++;
+                        break;
+                }
+                if (negative > clusterSize || neutral > clusterSize || positive > clusterSize) {
+                    break;
+                }
+            }
+
+            int biggest = Math.max(negative, Math.max(neutral, positive));
+            if (neutral == biggest) {
+                return Constants.markerCategories.NEUTRAL;
+            } else if (negative == biggest) {
+                return Constants.markerCategories.NEGATIVE;
+            } else if (positive == biggest) {
+                return Constants.markerCategories.POSITIVE;
+            } else {
+                return Constants.markerCategories.NEUTRAL;
+            }
+        }
+
+
+        private SquareTextView makeSquareTextView(Context context) {
+            SquareTextView squareTextView = new SquareTextView(context);
+            ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(-2, -2);
+            squareTextView.setLayoutParams(layoutParams);
+            // changed text
+            squareTextView.setId(com.google.maps.android.R.id.amu_text);
+            int twelveDpi = (int) (12.0F * this.mDensity);
+            squareTextView.setPadding(twelveDpi, twelveDpi, twelveDpi, twelveDpi);
+            return squareTextView;
+        }
+
+        /**
+         * Defines the cluster background, including outline, shape and colorl
+         *
+         * @param borderColor Color of the cluster border
+         * @return Returns type <code>LayerDrawable</code> background for the cluster
+         */
+        private LayerDrawable makeClusterBackground(int borderColor) {
+            // Outline color
+            int clusterOutlineColor = ContextCompat.getColor(getContext(), borderColor);
+
+            this.mColoredCircleBackground = new ShapeDrawable(new OvalShape());
+            ShapeDrawable outline = new ShapeDrawable(new OvalShape());
+            outline.getPaint().setColor(clusterOutlineColor);
+            LayerDrawable background = new LayerDrawable(
+                    new Drawable[]{outline, this.mColoredCircleBackground});
+            int strokeWidth = (int) (this.mDensity * 3.0F);
+            background.setLayerInset(1, strokeWidth, strokeWidth, strokeWidth, strokeWidth);
+            return background;
+        }
+
+
+        /**
+         * Generates the cluster Bitmaps based on color
+         *
+         * @param cluster The cluster for which the bitmap is generated, used to fetch the item count
+         * @param color   The color that the bitmap should be
+         * @return The coloured and numbered Bitmap for the cluster
+         */
+        Bitmap createCluster(Cluster cluster, int color) {
+            IconGenerator mIconGenerator = new IconGenerator(getActivity());
+            IconGenerator mClusterIconGenerator = new IconGenerator(getActivity());
+            final Drawable clusterIcon = ContextCompat.getDrawable(getContext(), R.drawable.ic_circle);
+            clusterIcon.setColorFilter(ContextCompat.getColor(getContext(), color), PorterDuff.Mode.SRC_ATOP);
+            mClusterIconGenerator.setBackground(clusterIcon);
+            //modify padding for one or two digit numbers
+            if (cluster.getSize() < 10) {
+                mClusterIconGenerator.setContentPadding(20, 10, 0, 0);
+            } else {
+                mClusterIconGenerator.setContentPadding(15, 10, 0, 0);
+            }
+            return mClusterIconGenerator.makeIcon(String.valueOf(cluster.getSize()));
+        }
     }
 
 
@@ -382,15 +627,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         });
     }
 
-    /**
-     * Gets called when user has stopped moving the map
-     */
-    @Override
-    public void onCameraIdle() {
-        // TODO: 27/11/2016 Make a call to fetch new submissions from the server or populate the map based on initial request
-        Log.e(TAG, "onCameraIdle: setting current camera position");
-        currentCameraPosition = googleMap.getCameraPosition().target;
-    }
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
@@ -418,9 +654,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
 
         LocationServices.FusedLocationApi.requestLocationUpdates(
                 googleApiClient, locationRequest, this);
-
-        getSubmissions();
-
     }
 
     @Override
