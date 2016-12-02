@@ -53,7 +53,9 @@
         android:layout_width="0dp"
         app:layout_constraintLeft_toLeftOf="@+id/guideline"
         app:layout_constraintBottom_toTopOf="@+id/guideline2"
-        android:src="@mipmap/take_photo"/>
+        android:src="@mipmap/take_photo"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintVertical_bias="1.0" />
 
     <android.support.constraint.Guideline
         android:layout_width="wrap_content"
@@ -90,5 +92,42 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@+id/guideline2"
         app:layout_constraintLeft_toLeftOf="parent" />
+
+
+    <android.support.constraint.Guideline
+        android:layout_width="384dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/guideline13"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.9046875"
+        tools:layout_editor_absoluteY="579dp"
+        tools:layout_editor_absoluteX="0dp" />
+
+    <RelativeLayout
+        android:id="@+id/bottomBarBackTick"
+        android:orientation="horizontal"
+        android:layout_width="384dp"
+        android:layout_height="640dp"
+        tools:layout_editor_absoluteX="16dp"
+        app:layout_constraintTop_toTopOf="@+id/photoThumbnail">
+
+        <ImageButton
+            android:id="@+id/button_back1"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentLeft="true"
+            android:text="Button"
+            app:srcCompat="@drawable/luke_back"
+            android:background="@null"/>
+
+        <ImageButton
+            android:id="@+id/button_tick"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentRight="true"
+            android:text="Button"
+            app:srcCompat="@drawable/luke_tick"
+            android:background="@null"/>
+    </RelativeLayout>
 
 </android.support.constraint.ConstraintLayout>

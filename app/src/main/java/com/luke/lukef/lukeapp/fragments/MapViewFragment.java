@@ -1,10 +1,11 @@
 package com.luke.lukef.lukeapp.fragments;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -15,7 +16,6 @@ import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.OvalShape;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -29,12 +29,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -57,23 +57,10 @@ import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
 
 import com.luke.lukef.lukeapp.SubmissionDatabase;
+import com.luke.lukef.lukeapp.WelcomeActivity;
+import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.model.SubmissionMarker;
 import com.luke.lukef.lukeapp.tools.PopupMaker;
-
-import com.luke.lukef.lukeapp.model.Submission;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.FileOutputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -98,6 +85,9 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     LatLng currentCameraPosition;
     Button testbutton;
     Location longPressLoc;
+    private ImageButton menuButton;
+    private ImageButton filtersButon;
+    private  ImageButton newSubmissionButton;
 
     public Location getLastLoc() {
         if (longPressLoc == null) {
@@ -126,8 +116,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         //fragmentView = inflater.inflate(R.layout.fragment_map, container, false);
-        setupButtons();
-        getMainActivity().setBottomBarButtons(Constants.bottomActionBarStates.MAP_CAMERA);
         setupGoogleMap();
 
         this.submissionMarkerIdList = new ArrayList<>();
@@ -148,6 +136,8 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         /* map is already there, just return view as it is  */
             mapFragment.getMapAsync(this);
         }
+        setupButtons();
+        Log.e(TAG, "onCreateView: FRAGMETOLI!" );
         return fragmentView;
     }
 
@@ -160,7 +150,42 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
+            case R.id.button_menu:
+                // TODO: 02/12/2016 open menu
+                break;
+            case R.id.button_filters:
+                // TODO: 02/12/2016 open filters
+                break;
+            case R.id.button_new_submission:
+                // TODO: 02/12/2016 switch fragment to new submission fragment
 
+                if (SessionSingleton.getInstance().isUserLogged()) {
+                    if (SessionSingleton.getInstance().checkGpsStatus(getMainActivity())) {
+                        if (SessionSingleton.getInstance().checkInternetStatus(getMainActivity())) {
+                            getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_NEW_SUBMISSION, null);
+                        }
+                    }
+
+                } else {
+                    // TODO: 21/11/2016 popup to login
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getMainActivity());
+                    builder.setMessage("Please Log in to Submit")
+                            .setCancelable(false)
+                            .setPositiveButton("Login", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    getMainActivity().startActivity(new Intent(getMainActivity().getApplicationContext(), WelcomeActivity.class));
+                                }
+                            })
+                            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            });
+                    AlertDialog alert = builder.create();
+                    alert.show();
+                }
+                break;
         }
     }
 
@@ -169,6 +194,12 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     }
 
     private void setupButtons() {
+        filtersButon = (ImageButton)fragmentView.findViewById(R.id.button_filters);
+        newSubmissionButton =(ImageButton)fragmentView.findViewById(R.id.button_new_submission);
+        menuButton = (ImageButton)fragmentView.findViewById(R.id.button_menu);
+        filtersButon.setOnClickListener(this);
+        newSubmissionButton.setOnClickListener(this);
+        menuButton.setOnClickListener(this);
     }
 
     /**

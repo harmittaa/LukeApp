@@ -24,7 +24,6 @@ public class ConfirmationFragment extends Fragment implements View.OnClickListen
         confirmationMapButton = (Button) fragmentView.findViewById(R.id.confirmation_map_button);
         confirmationSubmissionButton = (Button) fragmentView.findViewById(R.id.confirmation_submission_button);
         setupButtons();
-        getMainActivity().setBottomBarButtons(Constants.bottomActionBarStates.BACK_TICK);
         return fragmentView;
     }
 

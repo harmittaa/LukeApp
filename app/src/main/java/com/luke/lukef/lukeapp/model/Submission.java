@@ -185,7 +185,7 @@ public class Submission {
                     //create a json object from this submission to be sent to the server and convert it to string
                     String urlParameters = Submission.this.convertToJson().toString();
 
-                    URL url = new URL("http://www.balticapp.fi/lukeA/luke_report/create");
+                    URL url = new URL("http://www.balticapp.fi/lukeA/report/create");
                     conn = (HttpURLConnection) url.openConnection();
                     //set header values, (tokens, content type and charset)
                     // TODO: 25/11/2016 check if tokens are valid
