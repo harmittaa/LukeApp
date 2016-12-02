@@ -148,8 +148,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         /* map is already there, just return view as it is  */
             mapFragment.getMapAsync(this);
         }
-        testbutton = (Button) fragmentView.findViewById(R.id.button2);
-        testbutton.setOnClickListener(this);
         return fragmentView;
     }
 
@@ -162,23 +160,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.button2:
-                GoogleMap.SnapshotReadyCallback callback = new GoogleMap.SnapshotReadyCallback() {
-                    Bitmap bitmap;
-
-                    @Override
-                    public void onSnapshotReady(Bitmap snapshot) {
-                        bitmap = snapshot;
-                        try {
-                            FileOutputStream out = new FileOutputStream("/mnt/sdcard/Download/TeleSensors.png");
-                            bitmap.compress(Bitmap.CompressFormat.PNG, 90, out);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                };
-
-                googleMap.snapshot(callback);
 
         }
     }
@@ -213,7 +194,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         if (getLastLoc() != null) {
             CameraPosition cameraPosition = new CameraPosition.Builder()
                     .target(new LatLng(getLastLoc().getLatitude(), getLastLoc().getLongitude()))      // Sets the center of the map to Mountain View
-                    .zoom(17)                  // Sets the tilt of the camera to 30 degrees
+                    .zoom(17)                  // Sets the tilt of the luke_camera to 30 degrees
                     .build();                   // Creates a CameraPosition from the builder
             googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
             currentCameraPosition = googleMap.getCameraPosition().target;
@@ -268,7 +249,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
                 addSubmissionsToMap(this.visibleRegion);
                 addAdminMarkersToMap();
             } else {
-                // TODO: 29/11/2016 check here if the camera has moved enough to get new stuff from the DB or not
+                // TODO: 29/11/2016 check here if the luke_camera has moved enough to get new stuff from the DB or not
                 this.visibleRegion = this.googleMap.getProjection().getVisibleRegion();
                 addSubmissionsToMap(this.visibleRegion);
                 addAdminMarkersToMap();

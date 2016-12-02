@@ -9,27 +9,18 @@
     tools:context="com.luke.lukef.lukeapp.MainActivity"
     tools:showIn="@layout/main_view">
 
-    <RelativeLayout
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
-        android:id="@+id/fragment_container">
-
-
-    </RelativeLayout>
-
     <LinearLayout
         android:id="@+id/linearLayout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        android:background="@color/colorPrimary">
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="@+id/guideline5"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:background="@color/colorPrimaryDark">
 
         <RelativeLayout
             android:id="@+id/bottomBarBackTick"
@@ -43,18 +34,20 @@
             <ImageButton
                 android:id="@+id/button_back1"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_alignParentLeft="true"
                 android:text="Button"
-                app:srcCompat="@android:drawable/ic_menu_revert" />
+                app:srcCompat="@drawable/luke_back"
+                android:background="@null"/>
 
             <ImageButton
                 android:id="@+id/button_tick"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_alignParentRight="true"
                 android:text="Button"
-                app:srcCompat="@android:drawable/btn_star" />
+                app:srcCompat="@drawable/luke_tick"
+                android:background="@null"/>
         </RelativeLayout>
 
         <RelativeLayout
@@ -69,18 +62,20 @@
             <ImageButton
                 android:id="@+id/button_back2"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_alignParentLeft="true"
                 android:text="Button"
-                app:srcCompat="@android:drawable/ic_menu_revert" />
+                app:srcCompat="@drawable/luke_back"
+                android:background="@null"/>
 
             <ImageButton
                 android:id="@+id/button_report"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_alignParentRight="true"
                 android:text="Button"
-                app:srcCompat="@android:drawable/btn_star_big_on" />
+                app:srcCompat="@drawable/luke_report"
+                android:background="@null"/>
         </RelativeLayout>
 
         <RelativeLayout
@@ -95,35 +90,57 @@
             <ImageButton
                 android:id="@+id/button_left"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_alignParentLeft="true"
                 android:elevation="4dp"
                 android:text="Button"
-                app:srcCompat="@android:drawable/ic_dialog_dialer"
-                tools:layout_editor_absoluteY="0dp"
-                tools:layout_editor_absoluteX="0dp" />
+                app:srcCompat="@drawable/luke_menu"
+                android:background="@null"/>
 
             <ImageButton
                 android:id="@+id/button_mid"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_centerInParent="true"
                 android:text="Button"
-                app:srcCompat="@android:drawable/ic_dialog_dialer">
+                app:srcCompat="@drawable/luke_camera"
+                android:background="@null">
 
             </ImageButton>
 
             <ImageButton
                 android:id="@+id/button_right"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_alignParentRight="true"
                 android:text="Button"
-                app:srcCompat="@android:drawable/ic_dialog_dialer"
+                app:srcCompat="@drawable/luke_filters"
+                android:background="@null"
                 />
         </RelativeLayout>
 
     </LinearLayout>
+
+    <android.support.constraint.Guideline
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/guideline5"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.9"
+        tools:layout_editor_absoluteY="576dp"
+        tools:layout_editor_absoluteX="0dp" />
+
+    <RelativeLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:id="@+id/fragment_container"
+        app:layout_constraintBottom_toTopOf="@+id/guideline5">
+
+
+    </RelativeLayout>
 
 
 </android.support.constraint.ConstraintLayout>

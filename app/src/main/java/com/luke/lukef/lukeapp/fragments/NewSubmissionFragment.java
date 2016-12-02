@@ -156,7 +156,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         photoThumbnail.setOnClickListener(this);
     }
 
-    //activates camera intent
+    //activates luke_camera intent
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getMainActivity().getPackageManager()) != null) {
