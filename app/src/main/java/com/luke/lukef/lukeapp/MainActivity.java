@@ -10,6 +10,7 @@ import android.app.FragmentTransaction;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Build;
 import android.support.v4.content.ContextCompat;
 import android.graphics.drawable.Drawable;
@@ -35,7 +36,7 @@ import android.widget.ProgressBar;
 import com.luke.lukef.lukeapp.fragments.AchievementFragment;
 import com.luke.lukef.lukeapp.fragments.ConfirmationFragment;
 import com.luke.lukef.lukeapp.fragments.LeaderboardFragment;
-import com.luke.lukef.lukeapp.fragments.MapFragment;
+import com.luke.lukef.lukeapp.fragments.MapViewFragment;
 import com.luke.lukef.lukeapp.fragments.NewSubmissionFragment;
 import com.luke.lukef.lukeapp.fragments.PointOfInterestFragment;
 import com.luke.lukef.lukeapp.fragments.ProfileFragment;
@@ -46,13 +47,11 @@ import com.luke.lukef.lukeapp.model.SessionSingleton;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.osmdroid.util.GeoPoint;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -149,8 +148,8 @@ public class MainActivity extends AppCompatActivity {
                 fragment = new LeaderboardFragment();
                 break;
             case FRAGMENT_NEW_SUBMISSION:
-                if(getCurrentFragment(fragmentManager) instanceof MapFragment){
-                    bundleToSend = constructBundleFromMap((MapFragment)getCurrentFragment(fragmentManager));
+                if(getCurrentFragment(fragmentManager) instanceof MapViewFragment){
+                    bundleToSend = constructBundleFromMap((MapViewFragment)getCurrentFragment(fragmentManager));
                 }
                 fragment = new NewSubmissionFragment();
                 break;
@@ -161,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
                 fragment = new ProfileFragment();
                 break;
             case FRAGMENT_MAP:
-                fragment = new MapFragment();
+                fragment = new MapViewFragment();
                 break;
         }
         //replace the fragment
@@ -173,9 +172,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private Bundle constructBundleFromMap(MapFragment mf) {
+    private Bundle constructBundleFromMap(MapViewFragment mf) {
         Bundle bundle = new Bundle();
-        GeoPoint gettedLoc = mf.getLastLoc();
+        Location gettedLoc = mf.getLastLoc();
         bundle.putDouble("latitude",gettedLoc.getLatitude());
         bundle.putDouble("longitude",gettedLoc.getLongitude());
         bundle.putDouble("altitude",gettedLoc.getAltitude());
@@ -354,7 +353,7 @@ public class MainActivity extends AppCompatActivity {
 //                                fragmentSwitcher();
 //                                break;
                             default:
-                                fragmentClass = MapFragment.class;
+                                fragmentClass = MapViewFragment.class;
                         }
                         try {
                             fragment = (Fragment) fragmentClass.newInstance();

@@ -40,10 +40,6 @@ import com.luke.lukef.lukeapp.model.Submission;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.osmdroid.api.IMapController;
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
-import org.osmdroid.util.GeoPoint;
-import org.osmdroid.views.MapView;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -68,13 +64,12 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     EditText submissionDescription;
     static final int REQUEST_IMAGE_CAPTURE = 1;
     ImageView photoThumbnail;
-    MapView thumbnailMap;
-    GeoPoint location;
     private final static String TAG = NewSubmissionFragment.class.toString();
     private Bitmap bitmap;
     private String mCurrentPhotoPath;
-    ArrayList<Category> selectedCategries;
+    ArrayList<String> selectedCategries;
     Button submittt;
+    Location location;
 
     @Nullable
     @Override
@@ -122,8 +117,8 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     private void fetchBundleFromArguments() {
         Bundle b = getArguments();  // getMainActivity().getIntent().getExtras();
         if (b != null) {
-            location = new GeoPoint(b.getDouble("latitude"), b.getDouble("longitude"), b.getDouble("altitude"));
-            Log.e(TAG, "onCreateView: bundle received: " + location.toString());
+            //location = new GeoPoint(b.getDouble("latitude"), b.getDouble("longitude"), b.getDouble("altitude"));
+            //Log.e(TAG, "onCreateView: bundle received: " + location.toString());
         }
     }
 
@@ -140,23 +135,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
 
     private void setupThumbnailMap() {
         photoThumbnail = (ImageView) fragmentView.findViewById(R.id.photoThumbnail);
-        thumbnailMap = (MapView) fragmentView.findViewById(R.id.thumbnailmap);
-        thumbnailMap.setTileSource(TileSourceFactory.MAPNIK);
-        thumbnailMap.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                return true;
-            }
-        });
 
-        IMapController mapController = thumbnailMap.getController();
-        mapController.setZoom(100);
-        if (location != null) {
-            Log.e(TAG, "setupThumbnailMap: geopoint is : " + location);
-            mapController.setCenter(location);
-        } else {
-            mapController.setCenter(new GeoPoint(60.0, 25.0));
-        }
 
     }
 
@@ -239,6 +218,8 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     private void makeSubmission() {
         if (checkFieldsValidity()) {
             // TODO: 22/11/2016 create submission object, make httprequest and send to server(put this request into submission?)
+            this.selectedCategries.removeAll(this.selectedCategries);
+            this.selectedCategries.add("2");
             Submission newSub = new Submission(getMainActivity(), this.selectedCategries, new Date(), submissionDescription.getText().toString(), this.location);
             if (newSub.submitToServer()) {
                 Log.e(TAG, "makeSubmission: Submission sent succesfully");
@@ -250,7 +231,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         }
     }
 
-    private boolean checkFieldsValidity() {
+    private boolean checkFieldsValidity() {/*
         // TODO: 22/11/2016 check if location != null , check if
         if (!TextUtils.isEmpty(submissionDescription.getText().toString())) {
             if (location != null) {
@@ -264,7 +245,8 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
             }
         } else {
             return false;
-        }
+        }*/
+        return true;
     }
 
 
@@ -285,7 +267,8 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         builderSingle.setAdapter(cla, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                NewSubmissionFragment.this.selectedCategries.add(cla.getItem(which));
+                //NewSubmissionFragment.this.selectedCategries.add(cla.getItem(which));
+                NewSubmissionFragment.this.selectedCategries.add("1");
                 Log.e(TAG, "onClick: added to selected: " + cla.getItem(which) + " size now at " + selectedCategries.size());
                 dialog.dismiss();
             }

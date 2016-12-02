@@ -52,7 +52,7 @@
 
     <ImageView
         android:layout_weight="1"
-        app:srcCompat="@drawable/center"
+        app:srcCompat="@drawable/com_auth0_lock_header_logo"
         android:id="@+id/photoThumbnail"
         android:layout_height="0dp"
         app:layout_constraintRight_toRightOf="parent"

@@ -2,6 +2,7 @@ package com.luke.lukef.lukeapp.model;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.location.Location;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -10,7 +11,6 @@ import com.luke.lukef.lukeapp.R;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.osmdroid.util.GeoPoint;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -32,16 +32,16 @@ import java.util.concurrent.FutureTask;
  */
 public class Submission {
     private Bitmap image;
-    private GeoPoint location;
+    private Location location;
     private String title;
-    private ArrayList<Category> category;
+    private ArrayList<String> category;
     private Date date;
     private String description;
     private static final String TAG = "Submission";
     Context context;
 
     //all values present
-    public Submission(Context context, String title, ArrayList<Category> category, Date date, String description, Bitmap image, GeoPoint location) {
+    public Submission(Context context, String title, ArrayList<String> category, Date date, String description, Bitmap image, Location location) {
         this.image = image;
         this.location = location;
         this.title = title;
@@ -52,7 +52,7 @@ public class Submission {
     }
 
     //only mandatory values
-    public Submission(Context context, ArrayList<Category> category, Date date, String description, GeoPoint location) {
+    public Submission(Context context, ArrayList<String> category, Date date, String description, Location location) {
         this.location = location;
         this.category = category;
         this.date = date;
@@ -178,7 +178,7 @@ public class Submission {
 
     private JSONArray convertCategoriesToJsonArray() {
         JSONArray jsn = new JSONArray();
-        for (Category c : this.category) {
+        for (String c : this.category) {
             jsn.put(c);
         }
         return jsn;
@@ -208,7 +208,7 @@ public class Submission {
         return image;
     }
 
-    public GeoPoint getLocation() {
+    public Location getLocation() {
         return location;
     }
 
@@ -216,7 +216,7 @@ public class Submission {
         return title;
     }
 
-    public ArrayList<Category> getCategory() {
+    public ArrayList<String> getCategory() {
         return category;
     }
 

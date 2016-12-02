@@ -47,10 +47,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".NewUserActivity"></activity>
+        <activity android:name=".NewUserActivity" />
         <activity
             android:name="com.auth0.android.provider.WebAuthActivity"
-            android:theme="@style/Lock.Theme"></activity>
+            android:theme="@style/Lock.Theme" />
 
         <provider
             android:name="android.support.v4.content.FileProvider"
@@ -59,8 +59,18 @@
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths"></meta-data>
+                android:resource="@xml/file_paths" />
+
+
         </provider>
+        <!--<meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyDoKuZUgxw9tew9F9CH0n60vURWK9OS0Sk" />-->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyD4AFZBvA2mMOzhYtXcjmUTeUCmCycxffw"/>
+
+        <service android:name=".SubmissionFetchService" />
 
     </application>
 

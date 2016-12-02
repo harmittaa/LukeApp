@@ -1,8 +1,13 @@
 package com.luke.lukef.lukeapp;
 
+import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -62,6 +67,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         loginButton.setOnClickListener(this);
         skipLoginButton.setOnClickListener(this);
 
+        requestPermission();
+
+        startService(new Intent(this, SubmissionFetchService.class));
+
+    }
+
+    private void requestPermission() {
+        int MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 1;
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION);
     }
 
     @Override
