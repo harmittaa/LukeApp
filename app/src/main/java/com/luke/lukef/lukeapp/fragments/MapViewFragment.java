@@ -364,7 +364,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         private List<OnCameraIdleListener> registeredListeners = new ArrayList<>();
 
         /**
-         * Adds OnCameraIdleListener type object to the <code>List<OnCameraIdleListener> registeredListeners</code>
+         * Adds OnCameraIdleListener type object to the <code>List<OnCameraIdleListener> registeredListeners</code>.
          *
          * @param listener OnCameraIdleListener type object
          */
@@ -628,6 +628,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         Log.e(TAG, "onConnected: connected to google api");
+
         if (ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions

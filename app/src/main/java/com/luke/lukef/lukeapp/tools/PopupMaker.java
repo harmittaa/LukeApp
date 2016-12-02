@@ -3,6 +3,8 @@ package com.luke.lukef.lukeapp.tools;
 import android.app.Dialog;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.view.View;
@@ -23,6 +25,7 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -43,19 +46,21 @@ public class PopupMaker {
     private MainActivity mainActivity;
     private SubmissionDatabase submissionDatabase;
     private String submissionId;
+    private String imageUrl;
     private final Dialog dialog;
     private View.OnClickListener clickListener;
     private Cursor queryCursor;
+    private List<String> arrayIds;
+
     private ImageView submissionImage;
     private ImageView submitterProfileImage;
+    private ImageButton popupButtonPositive;
+    private ImageButton submissionReportButton;
     private TextView submissionDescription;
     private TextView submissionSubmitterName;
     private TextView submissionSubmitterRank;
     private TextView submissionDate;
     private TextView submissionTitle;
-    private ImageButton popupButtonPositive;
-    private ImageButton submissionReportButton;
-    private List<String> arrayIds;
 
     public PopupMaker(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
@@ -86,8 +91,6 @@ public class PopupMaker {
 
     public void createPopupTest(String submissionId) {
         this.submissionId = submissionId;
-        getExternalSubmissionData();
-        getLocalSubmissionData();
 
         // Include dialog.xml file
         this.dialog.setContentView(R.layout.popup_test);
@@ -109,7 +112,8 @@ public class PopupMaker {
         this.submissionImage.setOnClickListener(clickListener);
         this.submissionReportButton.setOnClickListener(clickListener);
 
-        addDataToDialog();
+        getExternalSubmissionData();
+        getLocalSubmissionData();
 
         dialog.show();
     }
@@ -117,7 +121,6 @@ public class PopupMaker {
     private void getExternalSubmissionData() {
         String[] taskParams = {this.submissionId};
         new GetSubmissionDataTask().execute(taskParams);
-
     }
 
     /**
@@ -126,6 +129,26 @@ public class PopupMaker {
     private void addDataToDialog() {
         this.queryCursor.moveToFirst();
         Log.e(TAG, "addDataToDialog: queryCursor getColumnIndex " + this.queryCursor.getColumnIndex("submission_description"));
+
+        if (this.queryCursor.getColumnIndex("submission_img_url") != -1) {
+            try {
+
+                String imgUrl = this.queryCursor.getString(this.queryCursor.getColumnIndexOrThrow("submission_img_url"));
+                Log.e(TAG, "addDataToDialog: " + this.queryCursor.getString(this.queryCursor.getColumnIndexOrThrow("submission_img_url")));
+                imgUrl = imgUrl.trim();
+                if (!imgUrl.isEmpty()) {
+                    String[] taskParams = {imgUrl};
+                    new GetSubmissionImage().execute(taskParams);
+                }
+            } catch (IllegalArgumentException e) {
+                // TODO: 02/12/2016 SET DEFAULT IMAGE
+                Log.e(TAG, "addDataToDialog: illegal arg ", e);
+            } catch (NullPointerException e) {
+                // TODO: 02/12/2016 same as before
+                Log.e(TAG, "addDataToDialog: NPE ", e);
+            }
+        }
+
         if (this.queryCursor.getColumnIndex("submission_description") != -1) {
             this.submissionDescription.setText(this.queryCursor.getString(this.queryCursor.getColumnIndexOrThrow("submission_description")));
         }
@@ -158,12 +181,16 @@ public class PopupMaker {
     private void getLocalSubmissionData() {
         this.submissionDatabase = new SubmissionDatabase(this.mainActivity);
         this.queryCursor = this.submissionDatabase.querySubmissionById(this.submissionId);
+        addDataToDialog();
     }
-
 
     private void setCategories(List<String> strings) {
         this.arrayIds = strings;
         // TODO: 02/12/2016 Start getting the category images from the server here
+    }
+
+    private void setSubmissionImage(Bitmap bitmap) {
+        this.submissionImage.setImageBitmap(bitmap);
     }
 
 
@@ -198,7 +225,7 @@ public class PopupMaker {
                     Log.e(TAG, "response code something else");
                 }
             } catch (IOException e) {
-                Log.e(TAG, "Exception with fetching data: " + e.toString() );
+                Log.e(TAG, "Exception with fetching data: " + e.toString());
             }
 
             List<String> categoryIds = new ArrayList<>();
@@ -210,7 +237,6 @@ public class PopupMaker {
                     if (jsonObject.has("categoryId")) {
                         JSONArray categoryArray = jsonObject.getJSONArray("categoryId");
                         for (int i = 0; i < categoryArray.length(); i++) {
-                            String categoryHeer = categoryArray.get(i).toString();
                             categoryIds.add(categoryArray.get(i).toString());
                         }
                     }
@@ -221,11 +247,34 @@ public class PopupMaker {
             Log.e(TAG, "doInBackground: size of categories " + categoryIds.size());
             return categoryIds;
         }
+
         @Override
         protected void onPostExecute(List<String> strings) {
             super.onPostExecute(strings);
             // set the categories
             setCategories(strings);
+        }
+    }
+
+    private class GetSubmissionImage extends AsyncTask<String, Void, Bitmap> {
+
+        @Override
+        protected Bitmap doInBackground(String... params) {
+            String imageUrl = params[0];
+            Bitmap bitmap = null;
+            try {
+                InputStream in = new java.net.URL(imageUrl).openStream();
+                bitmap = BitmapFactory.decodeStream(in);
+            } catch (IOException e) {
+                Log.e(TAG, "doInBackground: Exception parsing image ", e);
+            }
+            return bitmap;
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap bitmap) {
+            super.onPostExecute(bitmap);
+            setSubmissionImage(bitmap);
         }
     }
 }
