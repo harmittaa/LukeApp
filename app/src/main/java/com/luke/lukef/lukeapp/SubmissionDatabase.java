@@ -36,7 +36,7 @@ public class SubmissionDatabase extends SQLiteOpenHelper {
     private static final String SUBMISSION_LATITUDE = "submission_latitude";
     private static final String SUBMISSION_IMG_URL = "submission_img_url";
     private static final String SUBMISSION_TITLE = "submission_title";
-    private static final String SUBMISSION_DESCRIPTION = "submission_img_description";
+    private static final String SUBMISSION_DESCRIPTION = "submission_description";
     private static final String SUBMISSION_DATE = "submission_date";
     private static final String SUBMISSION_RATING = "submission_rating";
     private static final String SUBMISSION_SUBMITTER_ID = "submission_submitterId";
@@ -258,6 +258,36 @@ public class SubmissionDatabase extends SQLiteOpenHelper {
                 projection,
                 null,
                 null,
+                null,
+                null,
+                null
+        );
+        return this.cursor;
+    }
+
+    public Cursor querySubmissionById(String submissionId) {
+        Log.e(TAG, "querySubmissionById: submissionID " + submissionId);
+        this.database = this.getReadableDatabase();
+        String[] projection = {
+                SUBMISSION_TITLE,
+                SUBMISSION_IMG_URL,
+                SUBMISSION_DESCRIPTION,
+                SUBMISSION_DATE,
+                SUBMISSION_POSITIVE,
+                SUBMISSION_RATING
+        };
+
+        String whereClause = "submission_id = ?";
+        String[] whereArgs = new String[] {
+                submissionId
+        };
+
+        // define the query
+        this.cursor = this.database.query(
+                TABLE_SUBMISSION,
+                projection,
+                whereClause,
+                whereArgs,
                 null,
                 null,
                 null

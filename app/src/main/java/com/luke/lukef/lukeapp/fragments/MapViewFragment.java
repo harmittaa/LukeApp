@@ -8,7 +8,6 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
@@ -298,7 +297,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
                             queryCursor.getString(queryCursor.getColumnIndexOrThrow("admin_marker_title")),
                             "");
                     this.submissionMarkerIdList.add(queryCursor.getString(queryCursor.getColumnIndexOrThrow("admin_marker_id")));
-                    Log.e(TAG, "addAdminMarkersToMap: PUTTING TO MAP TITLE: " + adminMarker.getAdminMarkerTitle());
                     this.clusterManager.addItem(adminMarker);
                 }
 
@@ -347,12 +345,9 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     public boolean onClusterItemClick(SubmissionMarker submissionMarker) {
         Log.e(TAG, "onClusterItemClick: Cluster item clicked");
         System.out.println("OnClusterItemClick");
-        if (!submissionMarker.getAdminMarkerTitle().isEmpty()) {
-            Log.e(TAG, "onClusterItemClick: TITLE OF THE MARKER IS " + submissionMarker.getAdminMarkerTitle());
-        } else {
-            PopupMaker popMaker = new PopupMaker(getMainActivity());
-            popMaker.createPopupTest();
-        }
+        PopupMaker popMaker = new PopupMaker(getMainActivity());
+        String submissionId = submissionMarker.getSubmissionId();
+        popMaker.createPopupTest(submissionMarker.getSubmissionId());
         return false;
     }
 
@@ -435,28 +430,19 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         @Override
         protected void onBeforeClusterItemRendered(SubmissionMarker item, MarkerOptions markerOptions) {
             // change marker color based on the marker values
-            //is adminmarker
-            BitmapDescriptor markerDescriptor = BitmapDescriptorFactory.defaultMarker(getMarkerIcon("#009dbd"));
             if (!item.getAdminMarkerTitle().isEmpty()) {
-                markerDescriptor = BitmapDescriptorFactory.defaultMarker(getMarkerIcon("#bd00bd"));
-                //markerOptions.icon(getMarkerIcon("#bd00bd"));
+                BitmapDescriptor markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA);
+                markerOptions.icon(markerDescriptor);
             } else if (item.getPositive().equals("true")) {
-                markerDescriptor = BitmapDescriptorFactory.defaultMarker(getMarkerIcon("#10bd00"));
-                //markerOptions.icon(getMarkerIcon("#10bd00"));
+                BitmapDescriptor markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN);
+                markerOptions.icon(markerDescriptor);
             } else if (item.getPositive().equals("false")) {
-                markerDescriptor = BitmapDescriptorFactory.defaultMarker(getMarkerIcon("#bd0000"));
-                //markerOptions.icon(getMarkerIcon("#bd0000"));
+                BitmapDescriptor markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE);
+                markerOptions.icon(markerDescriptor);
             } else if (item.getPositive().equals("neutral")) {
-                markerDescriptor = BitmapDescriptorFactory.defaultMarker(getMarkerIcon("#009dbd"));
-                //markerOptions.icon(getMarkerIcon("#009dbd"));
+                BitmapDescriptor markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET);
+                markerOptions.icon(markerDescriptor);
             }
-            markerOptions.icon(markerDescriptor);
-        }
-
-        public float getMarkerIcon(String color) {
-            float[] hsv = new float[3];
-            Color.colorToHSV(Color.parseColor(color), hsv);
-            return hsv[0];
         }
 
         @Override
@@ -471,7 +457,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
             // check if cluster has admin marker inside and change circle outline color if it has
             for (SubmissionMarker marker : cluster.getItems()) {
                 if (!marker.getAdminMarkerTitle().isEmpty()) {
-                    this.mIconGenerator.setBackground(this.makeClusterBackground(R.color.marker_admin));
+                    this.mIconGenerator.setBackground(this.makeClusterBackground(R.color.super_red));
                     break;
                 }
             }
@@ -483,16 +469,16 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
             // Set cluster color based on what items there's the most
             switch (findElementWithMostOccurrences(cluster)) {
                 case POSITIVE:
-                    clusterColor = ContextCompat.getColor(getContext(), R.color.marker_positive);
+                    clusterColor = ContextCompat.getColor(getContext(), R.color.shamrock);
                     break;
                 case NEUTRAL:
-                    clusterColor = ContextCompat.getColor(getContext(), R.color.marker_neutral);
+                    clusterColor = ContextCompat.getColor(getContext(), R.color.quill_gray);
                     break;
                 case NEGATIVE:
-                    clusterColor = ContextCompat.getColor(getContext(), R.color.marker_negative);
+                    clusterColor = ContextCompat.getColor(getContext(), R.color.bittersweet);
                     break;
                 default:
-                    clusterColor = ContextCompat.getColor(getContext(), R.color.marker_neutral);
+                    clusterColor = ContextCompat.getColor(getContext(), R.color.quill_gray);
                     break;
             }
 
