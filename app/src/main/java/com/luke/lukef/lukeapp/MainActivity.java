@@ -12,7 +12,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
-import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.graphics.drawable.Drawable;
 import android.support.design.widget.NavigationView;
@@ -30,8 +29,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -47,9 +46,7 @@ import com.luke.lukef.lukeapp.fragments.ProfileFragment;
 import com.luke.lukef.lukeapp.fragments.UserSubmissionFragment;
 
 import com.luke.lukef.lukeapp.model.Category;
-import com.luke.lukef.lukeapp.model.Session;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
-import com.luke.lukef.lukeapp.model.Submission;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -59,14 +56,9 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -118,21 +110,14 @@ public class MainActivity extends AppCompatActivity {
         animation.setInterpolator(new DecelerateInterpolator());
         animation.start();
 
-        leftButton = (ImageButton) findViewById(R.id.button_left);
         setBottomBarButtonsListeners();
 
-        leftButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                drawerLayout.openDrawer(GravityCompat.START);
-            }
-        });
 
         getCategories();
 
         //activate map fragment as default
         fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP, null);
-
+        setStatusBarFlag();
     }
 
 
@@ -198,6 +183,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void setStatusBarFlag(){
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+    }
+
     private Bundle constructBundleFromMap(MapViewFragment mf) {
         Bundle bundle = new Bundle();
         Location gettedLoc = mf.getLastLoc();
@@ -228,46 +217,6 @@ public class MainActivity extends AppCompatActivity {
         return fm.findFragmentById(R.id.fragment_container);
     }
 
-    /**
-     * Switches bottom bar buttons depending on state, use in conjunction with fragment change
-     * Tick button hidden depending on need
-     *
-     * @param state Constants enum type defined for each different bottom bar
-     */
-    public void setBottomBarButtons(final Constants.bottomActionBarStates state) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                switch (state) {
-                    case BACK_ONLY:
-                        findViewById(R.id.bottomBarMap).setVisibility(View.GONE);
-                        findViewById(R.id.bottomBarBackReport).setVisibility(View.GONE);
-                        findViewById(R.id.bottomBarBackTick).setVisibility(View.VISIBLE);
-                        findViewById(R.id.button_tick).setVisibility(View.GONE);
-                        break;
-                    case BACK_REPORT:
-                        findViewById(R.id.bottomBarMap).setVisibility(View.GONE);
-                        findViewById(R.id.bottomBarBackReport).setVisibility(View.VISIBLE);
-                        findViewById(R.id.bottomBarBackTick).setVisibility(View.GONE);
-                        break;
-                    case BACK_TICK:
-                        findViewById(R.id.bottomBarMap).setVisibility(View.GONE);
-                        findViewById(R.id.bottomBarBackReport).setVisibility(View.GONE);
-                        findViewById(R.id.bottomBarBackTick).setVisibility(View.VISIBLE);
-                        findViewById(R.id.button_tick).setVisibility(View.VISIBLE);
-                        break;
-                    case MAP_CAMERA:
-                        findViewById(R.id.bottomBarMap).setVisibility(View.VISIBLE);
-                        findViewById(R.id.bottomBarBackReport).setVisibility(View.GONE);
-                        findViewById(R.id.bottomBarBackTick).setVisibility(View.GONE);
-                        break;
-                }
-            }
-        });
-
-    }
-
-
     public void setBottomBarButtonsListeners() {
         View.OnClickListener clBack = new View.OnClickListener() {
             @Override
@@ -278,37 +227,8 @@ public class MainActivity extends AppCompatActivity {
         View.OnClickListener clNewSub = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (SessionSingleton.getInstance().isUserLogged()) {
-                    if (SessionSingleton.getInstance().checkGpsStatus(MainActivity.this)) {
-                        if (SessionSingleton.getInstance().checkInternetStatus(MainActivity.this)) {
-                            fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_NEW_SUBMISSION, null);
-                        }
-                    }
-
-                } else {
-                    // TODO: 21/11/2016 popup to login
-                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                    builder.setMessage("Please Log in to Submit")
-                            .setCancelable(false)
-                            .setPositiveButton("Login", new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    MainActivity.this.startActivity(new Intent(MainActivity.this.getApplicationContext(), WelcomeActivity.class));
-                                }
-                            })
-                            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                }
-                            });
-                    AlertDialog alert = builder.create();
-                    alert.show();
-                }
             }
         };
-        findViewById(R.id.button_back1).setOnClickListener(clBack);
-        findViewById(R.id.button_back2).setOnClickListener(clBack);
-        findViewById(R.id.button_mid).setOnClickListener(clNewSub);
     }
 
     final private int REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS = 124;
@@ -470,10 +390,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    //returns the bottom button bar, this can be later used in fragments, to set them as the click listener
-    public LinearLayout getBottomBar() {
-        return (LinearLayout) this.findViewById(R.id.linearLayout);
-    }
+
 
     private void getCategories() {
         Log.e(TAG, "confirmUsername: clickd");

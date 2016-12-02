@@ -61,7 +61,7 @@ public class SubmissionFetchService extends Service {
     private void getSubmissions() {
         String jsonString;
         try {
-            URL getReportsUrl = new URL("http://www.balticapp.fi/lukeA/report");
+            URL getReportsUrl = new URL("http://www.balticapp.fi/lukeA/luke_report");
             HttpURLConnection httpURLConnection = (HttpURLConnection) getReportsUrl.openConnection();
             if (httpURLConnection.getResponseCode() == 200) {
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));

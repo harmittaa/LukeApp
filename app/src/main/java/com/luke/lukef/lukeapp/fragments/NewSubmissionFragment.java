@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Rect;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -26,9 +27,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.google.maps.android.geometry.Bounds;
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
@@ -36,7 +37,6 @@ import com.luke.lukef.lukeapp.model.Category;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.model.Submission;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -63,7 +63,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     private final static String TAG = NewSubmissionFragment.class.toString();
     ArrayList<String> selectedCategries;
     ArrayList<Category> selectedCategriesObjects;
-    Button submittt;
+    ImageButton submittt;
     Location location;
     private File photofile;
     private String photoPath;
@@ -71,16 +71,14 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        fragmentView = inflater.inflate(R.layout.fragment_new_submission, container, false);
+        fragmentView = inflater.inflate(R.layout.fragment_new_submission_2, container, false);
         categoryButton = (Button) fragmentView.findViewById(R.id.buttonCategory);
-        submittt = (Button) fragmentView.findViewById(R.id.button_submit_test);
+        submittt = (ImageButton) fragmentView.findViewById(R.id.button_tick_submit);
         submissionDescription = (EditText) fragmentView.findViewById(R.id.newSubmissionEditTextDescrption);
         submissionTitle = (EditText) fragmentView.findViewById(R.id.newSubmissionEditTextTitle);
         submissionDescription.setImeOptions(EditorInfo.IME_ACTION_DONE);
         submissionTitle.setImeOptions(EditorInfo.IME_ACTION_DONE);
         setupClickListeners();
-        getMainActivity().setBottomBarButtons(Constants.bottomActionBarStates.BACK_TICK);
-        this.setBottomButtonListeners();
         fetchBundleFromArguments();
         selectedCategries = new ArrayList<>();
         this.selectedCategriesObjects = new ArrayList<>();
@@ -91,6 +89,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
             public void onGlobalLayout() {
                 getMapThumbnail(location, mapThumbnail.getWidth(), mapThumbnail.getHeight());
                 photoThumbnail.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                Log.e(TAG, "onGlobalLayout: photothumnailImageview dimensions:" + photoThumbnail.getWidth() + " x " + photoThumbnail.getHeight() );
             }
         });
 
@@ -109,10 +108,11 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
             case R.id.buttonCategory:
                 makeCategoryListPopup();
                 break;
-            case R.id.button_submit_test:
+            case R.id.button_tick_submit:
                 makeSubmission();
                 break;
             case R.id.photoThumbnail:
+                Log.e(TAG, "onClick: presd" );
                 dispatchTakePictureIntent();
                 break;
         }
@@ -138,16 +138,6 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         }
     }
 
-    private void setBottomButtonListeners() {
-        LinearLayout v = getMainActivity().getBottomBar();
-        final int childcount = v.getChildCount();
-        for (int i = 0; i < childcount; i++) {
-            View view = v.getChildAt(i);
-            if (view instanceof Button || view instanceof ImageButton) {
-                view.setOnClickListener(this);
-            }
-        }
-    }
 
     private void setupThumbnailMap() {
         photoThumbnail = (ImageView) fragmentView.findViewById(R.id.photoThumbnail);
@@ -156,7 +146,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         photoThumbnail.setOnClickListener(this);
     }
 
-    //activates camera intent
+    //activates luke_camera intent
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getMainActivity().getPackageManager()) != null) {

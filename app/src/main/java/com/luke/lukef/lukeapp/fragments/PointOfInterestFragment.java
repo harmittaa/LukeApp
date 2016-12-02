@@ -24,7 +24,6 @@ public class PointOfInterestFragment extends Fragment implements View.OnClickLis
         profileButton = (Button) fragmentView.findViewById(R.id.profile_button);
         poiMapButton = (Button) fragmentView.findViewById(R.id.poi_map_button);
         setupButtons();
-        getMainActivity().setBottomBarButtons(Constants.bottomActionBarStates.BACK_ONLY);
         return fragmentView;
     }
 
