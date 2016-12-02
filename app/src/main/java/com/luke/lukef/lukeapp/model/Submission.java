@@ -51,6 +51,10 @@ public class Submission {
         this.context = context;
     }
 
+    public Submission(){
+        //For testing the dummy cardView
+    }
+
     //only mandatory values
     public Submission(Context context, ArrayList<String> category, Date date, String description, Location location) {
         this.location = location;

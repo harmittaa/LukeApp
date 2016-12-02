@@ -13,9 +13,13 @@
             android:id="@+id/leaderboard"
             android:title="Leaderboard" />
         <item
+            android:id="@+id/picture"
+            android:title="Add a picture"/>
+        <item
             android:id="@+id/notification"
             app:actionLayout="@layout/notification_switch"
             android:title="Notification" />
+
     </group>
 
     <item android:title="Communicate">

@@ -2,6 +2,8 @@ package com.luke.lukef.lukeapp.fragments;
 
 import android.Manifest;
 import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -15,16 +17,23 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.util.SparseArray;
+import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -45,24 +54,37 @@ import com.google.maps.android.ui.SquareTextView;
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
+
 import com.luke.lukef.lukeapp.SubmissionDatabase;
 import com.luke.lukef.lukeapp.model.SubmissionMarker;
 import com.luke.lukef.lukeapp.tools.PopupMaker;
 
+import com.luke.lukef.lukeapp.model.Submission;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Handles the Map view, fetches submissions, populates map with Submissions and Admin markers
  */
-public class MapViewFragment extends Fragment implements View.OnClickListener, LocationListener, OnMapReadyCallback, OnCameraIdleListener,
+public class MapViewFragment extends Fragment implements View.OnClickListener, OnMapReadyCallback, OnCameraIdleListener, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks, com.google.android.gms.location.LocationListener,
         GoogleMap.OnMarkerClickListener,
         ClusterManager.OnClusterClickListener<SubmissionMarker>,
-        ClusterManager.OnClusterItemClickListener<SubmissionMarker> {
-
+        ClusterManager.OnClusterItemClickListener<SubmissionMarker>{
     private static final String TAG = "MapViewFragment";
     private View fragmentView;
-    private Button leaderboardButton;
     Location lastLoc;
     Location lastKnownLoc;
     GoogleMap googleMap;
@@ -70,6 +92,10 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
     private MapFragment mapFragment;
     private VisibleRegion visibleRegion;
     private List<String> submissionMarkerIdList;
+    private GoogleApiClient googleApiClient;
+    LocationRequest locationRequest;
+    LatLng currentCameraPosition;
+    Button testbutton;
 
     public Location getLastLoc() {
         if (this.lastLoc != null) {
@@ -93,24 +119,65 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        fragmentView = inflater.inflate(R.layout.fragment_map, container, false);
-        leaderboardButton = (Button) fragmentView.findViewById(R.id.leaderboard_button);
+        //fragmentView = inflater.inflate(R.layout.fragment_map, container, false);
         setupButtons();
         getMainActivity().setBottomBarButtons(Constants.bottomActionBarStates.MAP_CAMERA);
         setupGoogleMap();
+
         this.submissionMarkerIdList = new ArrayList<>();
         mapFragment = (MapFragment) getChildFragmentManager().findFragmentById(R.id.mapFragment);
         mapFragment.getMapAsync(this);
 
+
+        connectToGoogleApi();
+        createLocationRequest();
+
+
+        if (fragmentView != null) {
+            ViewGroup parent = (ViewGroup) fragmentView.getParent();
+            if (parent != null)
+                parent.removeView(fragmentView);
+        }
+        try {
+            fragmentView = inflater.inflate(R.layout.fragment_map, container, false);
+            mapFragment = (MapFragment) getChildFragmentManager().findFragmentById(R.id.googleMapFragment);
+            mapFragment.getMapAsync(this);
+        } catch (InflateException e) {
+        /* map is already there, just return view as it is  */
+            mapFragment.getMapAsync(this);
+        }
+        testbutton = (Button) fragmentView.findViewById(R.id.button2);
+        testbutton.setOnClickListener(this);
         return fragmentView;
     }
 
     @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+    }
+
+
+    @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.leaderboard_button:
-                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_LEADERBOARD, null);
-                break;
+            case R.id.button2:
+                GoogleMap.SnapshotReadyCallback callback = new GoogleMap.SnapshotReadyCallback() {
+                    Bitmap bitmap;
+
+                    @Override
+                    public void onSnapshotReady(Bitmap snapshot) {
+                        bitmap = snapshot;
+                        try {
+                            FileOutputStream out = new FileOutputStream("/mnt/sdcard/Download/TeleSensors.png");
+                            bitmap.compress(Bitmap.CompressFormat.PNG, 90, out);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                };
+
+                googleMap.snapshot(callback);
+
         }
     }
 
@@ -119,7 +186,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
     }
 
     private void setupButtons() {
-        leaderboardButton.setOnClickListener(this);
     }
 
     /**
@@ -142,39 +208,16 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
 
     private void zoomMap() {
         // TODO: 27/11/2016 Check permission, so no crash
-        /*CameraUpdate center = CameraUpdateFactory.newLatLng(new LatLng(getLastLoc().getLatitude(), getLastLoc().getLongitude()));
-        CameraUpdate cu = CameraUpdateFactory.zoomTo(15);
-        googleMap.moveCamera(center);
-        googleMap.animateCamera(cu);
-
-        googleMap.animateCamera(CameraUpdateFactory.zoomTo(15));*/
-
-        CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(new LatLng(getLastLoc().getLatitude(), getLastLoc().getLongitude()))      // Sets the center of the map to Mountain View
-                .zoom(17)                  // Sets the tilt of the camera to 30 degrees
-                .build();                   // Creates a CameraPosition from the builder
-        googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-    }
-
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        this.googleMap = googleMap;
-        setupClustering();
-        addAdminMarkersToMap();
-        this.googleMap.getUiSettings().setZoomControlsEnabled(true);
-        zoomMap();
-        if (ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
+        if (getLastLoc() != null) {
+            CameraPosition cameraPosition = new CameraPosition.Builder()
+                    .target(new LatLng(getLastLoc().getLatitude(), getLastLoc().getLongitude()))      // Sets the center of the map to Mountain View
+                    .zoom(17)                  // Sets the tilt of the camera to 30 degrees
+                    .build();                   // Creates a CameraPosition from the builder
+            googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+            currentCameraPosition = googleMap.getCameraPosition().target;
         }
-        this.googleMap.setMyLocationEnabled(true);
     }
+
 
     /**
      * Setup method for Marker clustering
@@ -192,6 +235,24 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
         this.clusterManager.setOnClusterClickListener(this);
         this.clusterManager.setOnClusterItemClickListener(this);
         this.clusterManager.setRenderer(new MarkerRenderer(getActivity(), this.googleMap, this.clusterManager));
+    }
+
+    private void connectToGoogleApi() {
+        googleApiClient = new GoogleApiClient.Builder(getMainActivity()).addConnectionCallbacks(this).addOnConnectionFailedListener(this).addApi(LocationServices.API).build();
+        googleApiClient.connect();
+    }
+
+    protected void createLocationRequest() {
+        locationRequest = new LocationRequest();
+        locationRequest.setInterval(5000);
+        locationRequest.setFastestInterval(2000);
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
+
+    @Override
+    public void onStop() {
+        googleApiClient.disconnect();
+        super.onStop();
     }
 
     /**
@@ -533,23 +594,60 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
 
 
     @Override
+    public void onMapReady(GoogleMap googleMap) {
+        this.googleMap = googleMap;
+        this.googleMap.getUiSettings().setZoomControlsEnabled(true);
+        this.googleMap.setOnCameraIdleListener(this);
+        zoomMap();
+        if (ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        this.googleMap.setMyLocationEnabled(true);
+    }
+
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.e(TAG, "onConnectionFailed: connection failed");
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        Log.e(TAG, "onConnected: connected to google api");
+        if (ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        this.lastKnownLoc = LocationServices.FusedLocationApi.getLastLocation(
+                googleApiClient);
+        if (this.lastKnownLoc != null) {
+            this.lastLoc = this.lastKnownLoc;
+        }
+
+        LocationServices.FusedLocationApi.requestLocationUpdates(
+                googleApiClient, locationRequest, this);
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.e(TAG, "onConnectionSuspended: google api connection suspended");
+    }
+
+    @Override
     public void onLocationChanged(Location location) {
         this.lastLoc = location;
     }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-
-    }
-
 }

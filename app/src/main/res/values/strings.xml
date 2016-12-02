@@ -3,7 +3,8 @@
 
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
-
+    <string name="text_test">Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+        Nunc nec placerat arcu, in sollicitudin nulla.</string>
     <string name="title_activity_login">Sign in</string>
 
     <!-- Strings related to login -->
