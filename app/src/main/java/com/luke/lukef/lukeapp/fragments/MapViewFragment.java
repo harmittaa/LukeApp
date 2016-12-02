@@ -343,11 +343,13 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
 
     @Override
     public boolean onClusterItemClick(SubmissionMarker submissionMarker) {
-        Log.e(TAG, "onClusterItemClick: Cluster item clicked");
-        System.out.println("OnClusterItemClick");
+        boolean isAdminMarker = true;
+        if (submissionMarker.getAdminMarkerTitle().isEmpty()) {
+            isAdminMarker = false;
+        }
+
         PopupMaker popMaker = new PopupMaker(getMainActivity());
-        String submissionId = submissionMarker.getSubmissionId();
-        popMaker.createPopupTest(submissionMarker.getSubmissionId());
+        popMaker.createPopupTest(submissionMarker.getSubmissionId(), isAdminMarker);
         return false;
     }
 

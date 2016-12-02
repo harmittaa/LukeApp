@@ -1,7 +1,6 @@
 package com.luke.lukef.lukeapp.tools;
 
 import android.app.Dialog;
-import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -14,10 +13,8 @@ import android.widget.TextView;
 
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
-import com.luke.lukef.lukeapp.NewUserActivity;
 import com.luke.lukef.lukeapp.R;
 import com.luke.lukef.lukeapp.SubmissionDatabase;
-import com.luke.lukef.lukeapp.model.SessionSingleton;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,9 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -45,13 +40,14 @@ public class PopupMaker {
     private static final String TAG = "PopupMaker";
     private MainActivity mainActivity;
     private SubmissionDatabase submissionDatabase;
-    private String submissionId;
-    private String imageUrl;
     private final Dialog dialog;
-    private View.OnClickListener clickListener;
     private Cursor queryCursor;
     private List<String> arrayIds;
+    private String markerId;
+    private String imageUrl;
+    private boolean isAdminMarker;
 
+    private View.OnClickListener clickListener;
     private ImageView submissionImage;
     private ImageView submitterProfileImage;
     private ImageButton popupButtonPositive;
@@ -89,8 +85,9 @@ public class PopupMaker {
         };
     }
 
-    public void createPopupTest(String submissionId) {
-        this.submissionId = submissionId;
+    public void createPopupTest(String markerId, boolean isAdminMarker) {
+        this.markerId = markerId;
+        this.isAdminMarker = isAdminMarker;
 
         // Include dialog.xml file
         this.dialog.setContentView(R.layout.popup_test);
@@ -112,14 +109,16 @@ public class PopupMaker {
         this.submissionImage.setOnClickListener(clickListener);
         this.submissionReportButton.setOnClickListener(clickListener);
 
-        getExternalSubmissionData();
+        if (!isAdminMarker) {
+            getExternalSubmissionData();
+        }
         getLocalSubmissionData();
 
         dialog.show();
     }
 
     private void getExternalSubmissionData() {
-        String[] taskParams = {this.submissionId};
+        String[] taskParams = {this.markerId};
         new GetSubmissionDataTask().execute(taskParams);
     }
 
@@ -128,35 +127,53 @@ public class PopupMaker {
      */
     private void addDataToDialog() {
         this.queryCursor.moveToFirst();
-        Log.e(TAG, "addDataToDialog: queryCursor getColumnIndex " + this.queryCursor.getColumnIndex("submission_description"));
+        Log.e(TAG, "addDataToDialog: size " + this.queryCursor.getCount());
 
+        // passes if it's a submission, goes to else if admin marker
         if (this.queryCursor.getColumnIndex("submission_img_url") != -1) {
-            try {
-
-                String imgUrl = this.queryCursor.getString(this.queryCursor.getColumnIndexOrThrow("submission_img_url"));
-                Log.e(TAG, "addDataToDialog: " + this.queryCursor.getString(this.queryCursor.getColumnIndexOrThrow("submission_img_url")));
-                imgUrl = imgUrl.trim();
-                if (!imgUrl.isEmpty()) {
-                    String[] taskParams = {imgUrl};
-                    new GetSubmissionImage().execute(taskParams);
+            String imgUrl = this.queryCursor.getString(this.queryCursor.getColumnIndexOrThrow("submission_img_url"));
+            if (imgUrl != null && !imgUrl.isEmpty() && !imgUrl.equals("null")) {
+                try {
+                    imgUrl = imgUrl.trim();
+                    if (!imgUrl.isEmpty()) {
+                        String[] taskParams = {imgUrl};
+                        new GetSubmissionImage().execute(taskParams);
+                    }
+                } catch (IllegalArgumentException e) {
+                    // TODO: 02/12/2016 SET DEFAULT IMAGE
+                    Log.e(TAG, "addDataToDialog: illegal arg ", e);
+                    this.submissionImage.setImageResource(R.drawable.no_img);
+                } catch (NullPointerException e) {
+                    // TODO: 02/12/2016 same as before
+                    this.submissionImage.setImageResource(R.drawable.no_img);
+                    Log.e(TAG, "addDataToDialog: NPE ", e);
                 }
-            } catch (IllegalArgumentException e) {
-                // TODO: 02/12/2016 SET DEFAULT IMAGE
-                Log.e(TAG, "addDataToDialog: illegal arg ", e);
-            } catch (NullPointerException e) {
-                // TODO: 02/12/2016 same as before
-                Log.e(TAG, "addDataToDialog: NPE ", e);
+            } else {
+                // no img
+                this.submissionImage.setImageResource(R.drawable.no_img);
             }
+        } else {
+            // TODO: 02/12/2016 SET ADMIN MARKER IMAGE HERE
+            Log.e(TAG, "addDataToDialog: admin marker, not setting image");
+            this.submissionImage.setImageResource(R.drawable.admin_marker);
         }
 
         if (this.queryCursor.getColumnIndex("submission_description") != -1) {
             this.submissionDescription.setText(this.queryCursor.getString(this.queryCursor.getColumnIndexOrThrow("submission_description")));
+        } else if (this.queryCursor.getColumnIndex("admin_marker_description") != -1) {
+            this.submissionDescription.setText(this.queryCursor.getString(this.queryCursor.getColumnIndexOrThrow("admin_marker_description")));
         }
+
         if (this.queryCursor.getColumnIndex("submission_date") != -1) {
             this.submissionDate.setText(parseDate(this.queryCursor.getLong(this.queryCursor.getColumnIndexOrThrow("submission_date"))));
+        } else if (this.queryCursor.getColumnIndex("admin_marker_date") != -1) {
+            this.submissionDate.setText(parseDate(this.queryCursor.getLong(this.queryCursor.getColumnIndexOrThrow("admin_marker_date"))));
         }
+
         if (this.queryCursor.getColumnIndex("submission_title") != -1) {
             this.submissionTitle.setText(this.queryCursor.getString(this.queryCursor.getColumnIndexOrThrow("submission_title")));
+        } else if (this.queryCursor.getColumnIndex("admin_marker_title") != -1) {
+            this.submissionTitle.setText(this.queryCursor.getString(this.queryCursor.getColumnIndexOrThrow("admin_marker_title")));
         }
 
         this.submissionDatabase.closeDbConnection();
@@ -180,7 +197,11 @@ public class PopupMaker {
      */
     private void getLocalSubmissionData() {
         this.submissionDatabase = new SubmissionDatabase(this.mainActivity);
-        this.queryCursor = this.submissionDatabase.querySubmissionById(this.submissionId);
+        if (isAdminMarker) {
+            this.queryCursor = this.submissionDatabase.queryAdminMarkerById(this.markerId);
+        } else {
+            this.queryCursor = this.submissionDatabase.querySubmissionById(this.markerId);
+        }
         addDataToDialog();
     }
 
@@ -217,7 +238,6 @@ public class PopupMaker {
                         stringBuilder.append(line).append("\n");
                     }
                     jsonString = stringBuilder.toString();
-                    Log.e(TAG, "doInBackground: JSON string " + jsonString);
                     bufferedReader.close();
 
                 } else {
@@ -229,8 +249,7 @@ public class PopupMaker {
             }
 
             List<String> categoryIds = new ArrayList<>();
-            if (jsonString != null) {
-
+            if (jsonString != null && !jsonString.equals("[]")) {
                 try {
                     JSONArray jsonArray = new JSONArray(jsonString);
                     JSONObject jsonObject = jsonArray.getJSONObject(0);
@@ -256,6 +275,9 @@ public class PopupMaker {
         }
     }
 
+    /**
+     * Gets the submission's image from the provided URL (first parameter)
+     */
     private class GetSubmissionImage extends AsyncTask<String, Void, Bitmap> {
 
         @Override

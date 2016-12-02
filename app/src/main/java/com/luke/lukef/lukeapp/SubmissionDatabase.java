@@ -265,8 +265,13 @@ public class SubmissionDatabase extends SQLiteOpenHelper {
         return this.cursor;
     }
 
+    /**
+     * Queries Submission table by the submission id provided
+     *
+     * @param submissionId The ID of the submission which data is queried
+     * @return Cursor with query result
+     */
     public Cursor querySubmissionById(String submissionId) {
-        Log.e(TAG, "querySubmissionById: submissionID " + submissionId);
         this.database = this.getReadableDatabase();
         String[] projection = {
                 SUBMISSION_TITLE,
@@ -278,7 +283,7 @@ public class SubmissionDatabase extends SQLiteOpenHelper {
         };
 
         String whereClause = "submission_id = ?";
-        String[] whereArgs = new String[] {
+        String[] whereArgs = new String[]{
                 submissionId
         };
 
@@ -295,60 +300,44 @@ public class SubmissionDatabase extends SQLiteOpenHelper {
         return this.cursor;
     }
 
+    /**
+     * Queries admin_marker table by the id provided
+     *
+     * @param adminMarkerId The ID of the admin marker which data is queried
+     * @return Cursor with query result
+     */
+    public Cursor queryAdminMarkerById(String adminMarkerId) {
+        this.database = this.getReadableDatabase();
+        String[] projection = {
+                ADMIN_MARKER_TITLE,
+                ADMIN_MARKER_DESCRIPTION,
+                ADMIN_MARKER_OWNER,
+                ADMIN_MARKER_DATE
+        };
+
+        String whereClause = "admin_marker_id = ?";
+        String[] whereArgs = new String[]{
+                adminMarkerId
+        };
+
+        // define the query
+        this.cursor = this.database.query(
+                TABLE_ADMIN_MARKER,
+                projection,
+                whereClause,
+                whereArgs,
+                null,
+                null,
+                null
+        );
+        return this.cursor;
+    }
+
 
     /**
      * Closes database connection.
      */
     public void closeDbConnection() {
         this.database.close();
-    }
-
-    /**
-     * Example of fetching submission data from DB
-     */
-    private void exampleQuery() {
-
-                /*String[] projection = {
-                SUBMISSION_ID,
-                SUBMISSION_LONGITUDE,
-                SUBMISSION_LATITUDE,
-                SUBMISSION_IMG_URL,
-                SUBMISSION_TITLE,
-                SUBMISSION_DESCRIPTION,
-                SUBMISSION_DATE,
-                SUBMISSION_RATING,
-                SUBMISSION_SUBMITTER_ID
-
-        }; */
-
-        this.database = this.getReadableDatabase();
-        String[] projection = {
-                SUBMISSION_ID,
-                SUBMISSION_DATE,
-                SUBMISSION_DESCRIPTION
-        };
-
-        // define the query
-        this.cursor = this.database.query(
-                TABLE_SUBMISSION,
-                projection,
-                null,
-                null,
-                null,
-                null,
-                null
-        );
-
-        this.cursor.moveToFirst();
-        // see what's inside
-        if (this.cursor.getCount() > 0) {
-            while (this.cursor.moveToNext()) {
-                Log.e(TAG, "exampleQuery:id " + this.cursor.getString(this.cursor.getColumnIndexOrThrow(SUBMISSION_ID)));
-                Date date1 = new Date(this.cursor.getLong(this.cursor.getColumnIndexOrThrow(SUBMISSION_DATE)));
-                format.format(date1);
-            }
-        } else {
-            Log.e(TAG, "exampleQuery: Count 0 ");
-        }
     }
 }
