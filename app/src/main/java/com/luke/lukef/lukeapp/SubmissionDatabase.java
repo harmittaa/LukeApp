@@ -36,7 +36,7 @@ public class SubmissionDatabase extends SQLiteOpenHelper {
     private static final String SUBMISSION_LATITUDE = "submission_latitude";
     private static final String SUBMISSION_IMG_URL = "submission_img_url";
     private static final String SUBMISSION_TITLE = "submission_title";
-    private static final String SUBMISSION_DESCRIPTION = "submission_img_description";
+    private static final String SUBMISSION_DESCRIPTION = "submission_description";
     private static final String SUBMISSION_DATE = "submission_date";
     private static final String SUBMISSION_RATING = "submission_rating";
     private static final String SUBMISSION_SUBMITTER_ID = "submission_submitterId";
@@ -124,8 +124,8 @@ public class SubmissionDatabase extends SQLiteOpenHelper {
                         values.put(SUBMISSION_LONGITUDE, jsonObject.getString("longitude"));
                         values.put(SUBMISSION_LATITUDE, jsonObject.getString("latitude"));
                         // check optional values
-                        if (jsonObject.has("img_url")) {
-                            values.put(SUBMISSION_IMG_URL, jsonObject.getString("img_url"));
+                        if (jsonObject.has("image_url")) {
+                            values.put(SUBMISSION_IMG_URL, jsonObject.getString("image_url"));
                         }
                         if (jsonObject.has("title")) {
                             values.put(SUBMISSION_TITLE, jsonObject.getString("title"));
@@ -265,60 +265,79 @@ public class SubmissionDatabase extends SQLiteOpenHelper {
         return this.cursor;
     }
 
-
     /**
-     * Closes database connection.
+     * Queries Submission table by the submission id provided
+     *
+     * @param submissionId The ID of the submission which data is queried
+     * @return Cursor with query result
      */
-    public void closeDbConnection() {
-        this.database.close();
-    }
-
-    /**
-     * Example of fetching submission data from DB
-     */
-    private void exampleQuery() {
-
-                /*String[] projection = {
-                SUBMISSION_ID,
-                SUBMISSION_LONGITUDE,
-                SUBMISSION_LATITUDE,
-                SUBMISSION_IMG_URL,
-                SUBMISSION_TITLE,
-                SUBMISSION_DESCRIPTION,
-                SUBMISSION_DATE,
-                SUBMISSION_RATING,
-                SUBMISSION_SUBMITTER_ID
-
-        }; */
-
+    public Cursor querySubmissionById(String submissionId) {
         this.database = this.getReadableDatabase();
         String[] projection = {
-                SUBMISSION_ID,
+                SUBMISSION_TITLE,
+                SUBMISSION_IMG_URL,
+                SUBMISSION_DESCRIPTION,
                 SUBMISSION_DATE,
-                SUBMISSION_DESCRIPTION
+                SUBMISSION_POSITIVE,
+                SUBMISSION_RATING
+        };
+
+        String whereClause = "submission_id = ?";
+        String[] whereArgs = new String[]{
+                submissionId
         };
 
         // define the query
         this.cursor = this.database.query(
                 TABLE_SUBMISSION,
                 projection,
-                null,
-                null,
+                whereClause,
+                whereArgs,
                 null,
                 null,
                 null
         );
+        return this.cursor;
+    }
 
-        this.cursor.moveToFirst();
-        // see what's inside
-        if (this.cursor.getCount() > 0) {
-            while (this.cursor.moveToNext()) {
-                Log.e(TAG, "exampleQuery:id " + this.cursor.getString(this.cursor.getColumnIndexOrThrow(SUBMISSION_ID)));
-                Date date1 = new Date(this.cursor.getLong(this.cursor.getColumnIndexOrThrow(SUBMISSION_DATE)));
-                format.format(date1);
-            }
-        } else {
-            Log.e(TAG, "exampleQuery: Count 0 ");
-        }
+    /**
+     * Queries admin_marker table by the id provided
+     *
+     * @param adminMarkerId The ID of the admin marker which data is queried
+     * @return Cursor with query result
+     */
+    public Cursor queryAdminMarkerById(String adminMarkerId) {
+        this.database = this.getReadableDatabase();
+        String[] projection = {
+                ADMIN_MARKER_TITLE,
+                ADMIN_MARKER_DESCRIPTION,
+                ADMIN_MARKER_OWNER,
+                ADMIN_MARKER_DATE
+        };
+
+        String whereClause = "admin_marker_id = ?";
+        String[] whereArgs = new String[]{
+                adminMarkerId
+        };
+
+        // define the query
+        this.cursor = this.database.query(
+                TABLE_ADMIN_MARKER,
+                projection,
+                whereClause,
+                whereArgs,
+                null,
+                null,
+                null
+        );
+        return this.cursor;
+    }
+
+
+    /**
+     * Closes database connection.
+     */
+    public void closeDbConnection() {
+        this.database.close();
     }
 }
