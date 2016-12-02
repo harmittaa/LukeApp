@@ -35,6 +35,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.luke.lukef.lukeapp.fragments.AchievementFragment;
 import com.luke.lukef.lukeapp.fragments.ConfirmationFragment;
@@ -46,6 +47,7 @@ import com.luke.lukef.lukeapp.fragments.ProfileFragment;
 import com.luke.lukef.lukeapp.fragments.UserSubmissionFragment;
 
 import com.luke.lukef.lukeapp.model.Category;
+import com.luke.lukef.lukeapp.model.Session;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.model.Submission;
 
@@ -131,10 +133,7 @@ public class MainActivity extends AppCompatActivity {
         //activate map fragment as default
         fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP, null);
 
-        }
-
-
-
+    }
 
 
     @Override
@@ -154,29 +153,35 @@ public class MainActivity extends AppCompatActivity {
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         Fragment fragment = null;
+        boolean addToBackStack = false;
         // cases are enumerations
         switch (fragmentToChange) {
             case FRAGMENT_CONFIRMATION:
                 // create the fragment object
                 fragment = new ConfirmationFragment();
+                addToBackStack = true;
                 break;
             case FRAGMENT_LEADERBOARD:
                 fragment = new LeaderboardFragment();
+                addToBackStack = true;
                 break;
             case FRAGMENT_NEW_SUBMISSION:
-                if(getCurrentFragment(fragmentManager) instanceof MapViewFragment){
-                    bundleToSend = constructBundleFromMap((MapViewFragment)getCurrentFragment(fragmentManager));
+                if (getCurrentFragment(fragmentManager) instanceof MapViewFragment) {
+                    bundleToSend = constructBundleFromMap((MapViewFragment) getCurrentFragment(fragmentManager));
                 }
                 fragment = new NewSubmissionFragment();
+                addToBackStack = true;
                 break;
             case FRAGMENT_POINT_OF_INTEREST:
                 fragment = new PointOfInterestFragment();
                 break;
             case FRAGMENT_PROFILE:
                 fragment = new ProfileFragment();
+                addToBackStack = true;
                 break;
             case FRAGMENT_MAP:
                 fragment = new MapViewFragment();
+                addToBackStack = false;
                 break;
         }
         //replace the fragment
@@ -184,26 +189,31 @@ public class MainActivity extends AppCompatActivity {
             if (bundleToSend != null) {
                 fragment.setArguments(bundleToSend);
             }
-            fragmentTransaction.replace(R.id.fragment_container, fragment).addToBackStack("BackStack").commit();
+            if (addToBackStack) {
+                fragmentTransaction.replace(R.id.fragment_container, fragment).addToBackStack("BackStack").commit();
+
+            } else {
+                fragmentTransaction.replace(R.id.fragment_container, fragment).commit();
+            }
         }
     }
 
     private Bundle constructBundleFromMap(MapViewFragment mf) {
         Bundle bundle = new Bundle();
         Location gettedLoc = mf.getLastLoc();
-        bundle.putDouble("latitude",gettedLoc.getLatitude());
-        bundle.putDouble("longitude",gettedLoc.getLongitude());
-        bundle.putDouble("altitude",gettedLoc.getAltitude());
+        bundle.putDouble("latitude", gettedLoc.getLatitude());
+        bundle.putDouble("longitude", gettedLoc.getLongitude());
+        bundle.putDouble("altitude", gettedLoc.getAltitude());
         return bundle;
     }
 
-    public void makeSubmission(){
+    public void makeSubmission() {
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         Fragment fragment = null;
         Bundle bundleToSend = null;
-        if(getCurrentFragment(fragmentManager) instanceof MapViewFragment){
-            bundleToSend = constructBundleFromMap((MapViewFragment)getCurrentFragment(fragmentManager));
+        if (getCurrentFragment(fragmentManager) instanceof MapViewFragment) {
+            bundleToSend = constructBundleFromMap((MapViewFragment) getCurrentFragment(fragmentManager));
         }
         fragment = new NewSubmissionFragment();
         if (fragment != null) {
@@ -257,6 +267,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
     public void setBottomBarButtonsListeners() {
         View.OnClickListener clBack = new View.OnClickListener() {
             @Override
@@ -268,7 +279,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (SessionSingleton.getInstance().isUserLogged()) {
-                    fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_NEW_SUBMISSION, null);
+                    if (SessionSingleton.getInstance().checkGpsStatus(MainActivity.this)) {
+                        if (SessionSingleton.getInstance().checkInternetStatus(MainActivity.this)) {
+                            fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_NEW_SUBMISSION, null);
+                        }
+                    }
+
                 } else {
                     // TODO: 21/11/2016 popup to login
                     AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
@@ -354,7 +370,10 @@ public class MainActivity extends AppCompatActivity {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
-            super.onBackPressed();
+        }
+        Fragment f = getFragmentManager().findFragmentById(R.id.fragment_container);
+        if (f instanceof MapViewFragment) {
+            makeExitConfirmationPopup();
         } else {
             super.onBackPressed();
         }
@@ -401,6 +420,26 @@ public class MainActivity extends AppCompatActivity {
                         return true;
                     }
                 });
+    }
+
+    public void makeToast(String toastString) {
+        Toast.makeText(this, toastString, Toast.LENGTH_SHORT);
+    }
+
+    public void makeExitConfirmationPopup() {
+        new AlertDialog.Builder(this)
+                .setTitle("Quit Application?")
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        MainActivity.super.onBackPressed();
+                    }
+                })
+                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
+                .show();
     }
 
     @Override

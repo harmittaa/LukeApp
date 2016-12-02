@@ -82,7 +82,7 @@ import java.util.List;
 public class MapViewFragment extends Fragment implements View.OnClickListener, OnMapReadyCallback, OnCameraIdleListener, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks, com.google.android.gms.location.LocationListener,
         GoogleMap.OnMarkerClickListener,
         ClusterManager.OnClusterClickListener<SubmissionMarker>,
-        ClusterManager.OnClusterItemClickListener<SubmissionMarker>{
+        ClusterManager.OnClusterItemClickListener<SubmissionMarker> {
     private static final String TAG = "MapViewFragment";
     private View fragmentView;
     Location lastLoc;
@@ -130,10 +130,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         setupGoogleMap();
 
         this.submissionMarkerIdList = new ArrayList<>();
-        mapFragment = (MapFragment) getChildFragmentManager().findFragmentById(R.id.mapFragment);
-        mapFragment.getMapAsync(this);
-
-
         connectToGoogleApi();
         createLocationRequest();
 
@@ -279,7 +275,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         }
 
         if (this.googleMap.getCameraPosition().zoom < 5) {
-
+            // TODO: 02/12/2016 ungroup markers
         }
     }
 
@@ -304,6 +300,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
                     this.clusterManager.addItem(adminMarker);
                 } else {
                     // Log.e(TAG, "addSubmissionsToMap: Submission already on the map");
+
                 }
             }
             this.clusterManager.cluster();
@@ -601,6 +598,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     @Override
     public void onMapReady(GoogleMap googleMap) {
         this.googleMap = googleMap;
+        setupClustering();
         this.googleMap.getUiSettings().setZoomControlsEnabled(true);
         this.googleMap.setOnCameraIdleListener(this);
         zoomMap();
