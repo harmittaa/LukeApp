@@ -289,7 +289,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         Cursor queryCursor = submissionDatabase.queryAdminMarkers();
         queryCursor.moveToFirst();
         if (queryCursor.getCount() > 0) {
-            while (queryCursor.moveToNext()) {
+            do {
                 if (!this.submissionMarkerIdList.contains(queryCursor.getString(queryCursor.getColumnIndexOrThrow("admin_marker_id")))) {
                     SubmissionMarker adminMarker = new SubmissionMarker(
                             queryCursor.getString(queryCursor.getColumnIndexOrThrow("admin_marker_id")),
@@ -298,12 +298,11 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
                             queryCursor.getString(queryCursor.getColumnIndexOrThrow("admin_marker_title")),
                             "");
                     this.submissionMarkerIdList.add(queryCursor.getString(queryCursor.getColumnIndexOrThrow("admin_marker_id")));
+                    Log.e(TAG, "addAdminMarkersToMap: PUTTING TO MAP TITLE: " + adminMarker.getAdminMarkerTitle());
                     this.clusterManager.addItem(adminMarker);
-                } else {
-                    // Log.e(TAG, "addSubmissionsToMap: Submission already on the map");
-
                 }
-            }
+
+            } while (queryCursor.moveToNext());
             this.clusterManager.cluster();
         }
         submissionDatabase.closeDbConnection();
@@ -320,8 +319,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         Cursor queryCursor = submissionDatabase.querySubmissions(visibleRegion);
         queryCursor.moveToFirst();
         if (queryCursor.getCount() > 0) {
-            //Log.e(TAG, "addSubmissionsToMap: Submissions amount is " + queryCursor.getCount());
-            while (queryCursor.moveToNext()) {
+            do {
                 if (!this.submissionMarkerIdList.contains(queryCursor.getString(queryCursor.getColumnIndexOrThrow("submission_id")))) {
                     SubmissionMarker submissionMarker = new SubmissionMarker(
                             queryCursor.getString(queryCursor.getColumnIndexOrThrow("submission_id")),
@@ -332,7 +330,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
                     this.submissionMarkerIdList.add(queryCursor.getString(queryCursor.getColumnIndexOrThrow("submission_id")));
                     this.clusterManager.addItem(submissionMarker);
                 }
-            }
+            } while (queryCursor.moveToNext());
             this.clusterManager.cluster();
         }
         submissionDatabase.closeDbConnection();
