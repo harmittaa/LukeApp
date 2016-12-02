@@ -78,27 +78,25 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
     private void requestPermission() {
         int MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 1;
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION);
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION);
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.skipLoginButton:
-                if(SessionSingleton.getInstance().checkGpsStatus(this)){
-                    if(SessionSingleton.getInstance().checkInternetStatus(this)){
-                        SessionSingleton.getInstance().setUserLogged(false);
-                        startActivity(new Intent(WelcomeActivity.this, MainActivity.class));
-                    }
+                if (SessionSingleton.getInstance().checkInternetStatus(this)) {
+                    SessionSingleton.getInstance().setUserLogged(false);
+                    startActivity(new Intent(WelcomeActivity.this, MainActivity.class));
                 }
+
                 break;
             case R.id.loginButton:
-                if(SessionSingleton.getInstance().checkGpsStatus(this)){
-                    if(SessionSingleton.getInstance().checkInternetStatus(this)){
-                        SessionSingleton.getInstance().setUserLogged(false);
-                        SetupTask setupTask = new SetupTask(getString(R.string.auth0URL));
-                        setupTask.execute();
-                    }
+                if (SessionSingleton.getInstance().checkInternetStatus(this)) {
+                    SessionSingleton.getInstance().setUserLogged(false);
+                    SetupTask setupTask = new SetupTask(getString(R.string.auth0URL));
+                    setupTask.execute();
+
                 }
                 break;
         }
@@ -125,8 +123,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             idToken = credentials.getIdToken();
             SessionSingleton.getInstance().setAccessToken(accessToken);
             SessionSingleton.getInstance().setIdToken(idToken);
-            Log.e(TAG, "onAuthentication: LOGIN INFO" );
-            Log.e(TAG, "onAuthentication: acstoken " + accessToken );
+            Log.e(TAG, "onAuthentication: LOGIN INFO");
+            Log.e(TAG, "onAuthentication: acstoken " + accessToken);
             Log.e(TAG, "onAuthentication: idToken " + idToken);
             // TODO: 15/11/2016 login to luke, check username, change to new user screen if first time login
             LoginCallable loginTask = new LoginCallable();
@@ -141,7 +139,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     SessionSingleton.getInstance().setUserLogged(true);
                     finish();
                 } else {
-                    Log.e(TAG, "onAuthentication: booleanFutureTask failed" );
+                    Log.e(TAG, "onAuthentication: booleanFutureTask failed");
                     finish();
                 }
             } catch (InterruptedException e) {
