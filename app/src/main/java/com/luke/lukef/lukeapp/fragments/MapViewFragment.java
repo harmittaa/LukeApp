@@ -406,14 +406,23 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
             }
 
             int clusterColor;
-            Boolean mostOccurrences = findElementWithMostOccurrences(cluster);
+            findElementWithMostOccurrences(cluster);
+
+
             // Set cluster color based on what items there's the most
-            if (mostOccurrences == null) {
-                clusterColor = ContextCompat.getColor(getContext(), R.color.quill_gray);
-            } else if (mostOccurrences) {
-                clusterColor = ContextCompat.getColor(getContext(), R.color.shamrock);
-            } else {
-                clusterColor = ContextCompat.getColor(getContext(), R.color.bittersweet);
+            switch (findElementWithMostOccurrences(cluster)) {
+                case POSITIVE:
+                    clusterColor = ContextCompat.getColor(getContext(), R.color.shamrock);
+                    break;
+                case NEUTRAL:
+                    clusterColor = ContextCompat.getColor(getContext(), R.color.quill_gray);
+                    break;
+                case NEGATIVE:
+                    clusterColor = ContextCompat.getColor(getContext(), R.color.bittersweet);
+                    break;
+                default:
+                    clusterColor = ContextCompat.getColor(getContext(), R.color.quill_gray);
+                    break;
             }
 
             int bucket = this.getBucket(cluster);
@@ -429,9 +438,9 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
          * Finds the element type with most occurrences.
          *
          * @param cluster Cluster of SubmissionMarkers
-         * @return Boolean.TRUE if there was mostly positives, Boolean.FALSE if negatives, <code>null</code> otherwise
+         * @return Constants.markerCategories enum value matching the most common elements
          */
-        private Boolean findElementWithMostOccurrences(Cluster<SubmissionMarker> cluster) {
+        private Constants.markerCategories findElementWithMostOccurrences(Cluster<SubmissionMarker> cluster) {
             int negative = 0;
             int neutral = 0;
             int positive = 0;
@@ -456,13 +465,13 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
 
             int biggest = Math.max(negative, Math.max(neutral, positive));
             if (neutral == biggest) {
-                return null;
+                return Constants.markerCategories.NEUTRAL;
             } else if (negative == biggest) {
-                return Boolean.FALSE;
+                return Constants.markerCategories.NEGATIVE;
             } else if (positive == biggest) {
-                return Boolean.TRUE;
+                return Constants.markerCategories.POSITIVE;
             } else {
-                return null;
+                return Constants.markerCategories.NEUTRAL;
             }
         }
 
@@ -480,6 +489,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, L
 
         /**
          * Defines the cluster background, including outline, shape and colorl
+         *
          * @param borderColor Color of the cluster border
          * @return Returns type <code>LayerDrawable</code> background for the cluster
          */
