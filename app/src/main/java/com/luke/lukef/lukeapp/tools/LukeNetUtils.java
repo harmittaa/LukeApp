@@ -14,6 +14,7 @@ import com.auth0.android.result.UserProfile;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.NewUserActivity;
 import com.luke.lukef.lukeapp.R;
+import com.luke.lukef.lukeapp.interfaces.Auth0Responder;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 
 import org.json.JSONException;
@@ -217,7 +218,7 @@ public class LukeNetUtils {
         }
     }
 
-    private void getUserImageFromAuth0(){
+    public void getUserImageFromAuth0(final Auth0Responder auth0Responder){
         AuthenticationAPIClient client = new AuthenticationAPIClient(
                 new Auth0(SessionSingleton.getInstance().getAuth0ClienID(), SessionSingleton.getInstance().getAuth0Domain()));
 
@@ -226,7 +227,7 @@ public class LukeNetUtils {
                     @Override
                     public void onSuccess(UserProfile payload) {
                         try {
-                            getBitmapFromURL(payload.getPictureURL());
+                            auth0Responder.receiveBitmapFromAuth0(getBitmapFromURL(payload.getPictureURL()));
                         } catch (ExecutionException e) {
                             e.printStackTrace();
                         } catch (InterruptedException e) {
@@ -239,7 +240,7 @@ public class LukeNetUtils {
                 });
     }
 
-    private Bitmap getBitmapFromURL(final String src) throws ExecutionException, InterruptedException {
+    public Bitmap getBitmapFromURL(final String src) throws ExecutionException, InterruptedException {
         Callable<Bitmap> bitmapCallable = new Callable<Bitmap>() {
             @Override
             public Bitmap call() throws Exception {

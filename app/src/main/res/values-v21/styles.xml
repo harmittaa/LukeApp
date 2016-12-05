@@ -13,6 +13,5 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/shamrock</item>
-        <item name="android:statusBarColor">@color/colorPrimaryDark</item>
     </style>
 </resources>

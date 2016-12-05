@@ -19,6 +19,7 @@ import android.widget.ImageView;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import com.luke.lukef.lukeapp.interfaces.Auth0Responder;
 import com.luke.lukef.lukeapp.tools.LukeNetUtils;
 
 import java.io.File;
@@ -31,12 +32,14 @@ import java.util.concurrent.ExecutionException;
 
 import static com.luke.lukef.lukeapp.WelcomeActivity.REQUEST_IMAGE_CAPTURE;
 
-public class NewUserActivity extends AppCompatActivity implements View.OnClickListener, RadioGroup.OnCheckedChangeListener {
+public class NewUserActivity extends AppCompatActivity implements View.OnClickListener, RadioGroup.OnCheckedChangeListener,Auth0Responder {
 
     private EditText username;
     private ImageButton confirmButton;
     private String usernameString;
-    ImageView userImageView;
+    ImageView userImageViewCamera;
+    ImageView userImageViewAuth0;
+    ImageView userImageViewDefault;
     private static final String TAG = "NewUserActivity";
     private String photoPath;
     private File photofile;
@@ -49,8 +52,9 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
         super.onCreate(savedInstanceState);
         lukeNetUtils = new LukeNetUtils(this);
         setContentView(R.layout.activity_new_user);
-        userImageView = (ImageView) findViewById(R.id.newUserDefault);
-        userImageView.setOnClickListener(this);
+        userImageViewCamera = (ImageView) findViewById(R.id.newUserCameraImageView);
+        userImageViewAuth0 = (ImageView)findViewById(R.id.newUserSocialMediaImageView);
+        userImageViewDefault = (ImageView)findViewById(R.id.newUserDefaultImageView);
         confirmButton = (ImageButton) findViewById(R.id.newUserConfirmButton);
         confirmButton.setOnClickListener(this);
         username = (EditText) findViewById(R.id.newUserName);
@@ -72,15 +76,18 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     @Override
+    protected void onResume() {
+        LukeNetUtils lukeNetUtils = new LukeNetUtils(this);
+        lukeNetUtils.getUserImageFromAuth0(this);
+        super.onResume();
+    }
+
+    @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.newUserConfirmButton:
                 if(attemptSetUsername(username.getText().toString()))
                 break;
-            case R.id.newUserDefault:
-                dispatchTakePictureIntent();
-                break;
-
         }
     }
 
@@ -183,13 +190,31 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
 
             if (imageBitmap != null)
                 Log.e(TAG, "onActivityResult: photo exists, size : " + imageBitmap.getByteCount());
-            userImageView.setImageBitmap(imageBitmap);
+            userImageViewCamera.setImageBitmap(imageBitmap);
             this.currentPhoto = imageBitmap;
         }
     }
 
     @Override
     public void onCheckedChanged(RadioGroup group, int checkedId) {
+        switch (checkedId){
+            case R.id.radioButtonDefault:
+                break;
+            case R.id.radioButtonSocial:
+                break;
+            case R.id.radioButtonCamera:
+                dispatchTakePictureIntent();
+                break;
+        }
+    }
 
+    @Override
+    public void receiveBitmapFromAuth0(final Bitmap b) {
+        this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                NewUserActivity.this.userImageViewAuth0.setImageBitmap(b);
+            }
+        });
     }
 }
