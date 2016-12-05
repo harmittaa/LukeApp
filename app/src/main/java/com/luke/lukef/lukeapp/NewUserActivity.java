@@ -13,11 +13,13 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RadioGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.luke.lukef.lukeapp.interfaces.Auth0Responder;
 import com.luke.lukef.lukeapp.tools.LukeNetUtils;
@@ -58,7 +60,7 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
         confirmButton = (ImageButton) findViewById(R.id.newUserConfirmButton);
         confirmButton.setOnClickListener(this);
         username = (EditText) findViewById(R.id.newUserName);
-        username.setImeActionLabel("Custom text", KeyEvent.KEYCODE_ENTER);
+        username.setImeActionLabel("Custom text", KeyEvent.ACTION_DOWN);
         username.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
@@ -73,6 +75,8 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
         });
         radioGroupPicture = (RadioGroup)findViewById(R.id.radioGroupPicture);
         radioGroupPicture.setOnCheckedChangeListener(this);
+        getWindow().setSoftInputMode(
+                WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
     }
 
     @Override
@@ -98,26 +102,37 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
                     if (lukeNetUtils.setUsername(uname)) {
                         return true;
                     } else {
+                        Toast.makeText(this,"An Error Occured",Toast.LENGTH_SHORT).show();
                         return false;
                     }
                 } else {
+                    Toast.makeText(this,"Username Taken",Toast.LENGTH_SHORT).show();;
                     return false;
                 }
             } catch (ExecutionException e) {
+                Toast.makeText(this,"An Error Occured",Toast.LENGTH_SHORT).show();
                 Log.e(TAG, "onEditorAction: ", e);
                 return false;
             } catch (InterruptedException e) {
+                Toast.makeText(this,"An Error Occured",Toast.LENGTH_SHORT).show();
                 Log.e(TAG, "onEditorAction: ", e);
                 return false;
             } catch (IOException e) {
+                Toast.makeText(this,"An Error Occured",Toast.LENGTH_SHORT).show();
                 Log.e(TAG, "onEditorAction: ", e);
                 return false;
             }
         } else {
+            Toast.makeText(this,"Invalid Username",Toast.LENGTH_SHORT).show();;
             return false;
         }
     }
 
+    /**
+     * Yeah boi
+     * @param uname username to check
+     * @return returns true if all checks have passed
+     */
     private boolean checkUsernameValid(String uname) {
         if (!TextUtils.isEmpty(uname)) {
             if (uname.length() > 3 && uname.length() < 10) {
