@@ -34,6 +34,8 @@ public class SessionSingleton {
     private Bitmap userImage;
     private boolean isUserLogged = false;
     private ArrayList<Category> categories;
+    private String auth0ClienID;
+    private String auth0Domain;
 
     // optimal case when all the parameters can be gotten from the server
     public void setValues(String username, int xp, int level, Bitmap userImage, String userId, String accessToken, String idToken) {
@@ -220,5 +222,21 @@ public class SessionSingleton {
 
     public void setUserLogged(boolean userLogged) {
         isUserLogged = userLogged;
+    }
+
+    public String getAuth0ClienID() {
+        return auth0ClienID;
+    }
+
+    public void setAuth0ClienID(String auth0ClienID) {
+        this.auth0ClienID = auth0ClienID;
+    }
+
+    public String getAuth0Domain() {
+        return auth0Domain;
+    }
+
+    public void setAuth0Domain(String auth0Domain) {
+        this.auth0Domain = auth0Domain;
     }
 }

@@ -8,6 +8,7 @@ import android.util.Base64;
 import android.util.Log;
 
 import com.luke.lukef.lukeapp.R;
+import com.luke.lukef.lukeapp.tools.LukeUtils;
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.Headers;
 import com.squareup.okhttp.MediaType;
@@ -78,7 +79,7 @@ public class Submission {
         int negativeCategories = 0;
         int neutralCategories = 0;
         for (Category c : categories) {
-            if (c.getPositive() == null ) {
+            if (c.getPositive() == null) {
                 neutralCategories++;
             } else if (!c.getPositive()) {
                 negativeCategories++;
@@ -117,13 +118,13 @@ public class Submission {
                     .put("latitude", Submission.this.location.getLatitude())
                     .put("altitude", Submission.this.location.getAltitude());
             if (this.image != null) {
-                jsonObject.put("image", bitapToBase64String(this.getImage()));
+                jsonObject.put("image", LukeUtils.bitapToBase64String(this.getImage()));
             }
             jsonObject.put("description", Submission.this.description);
             jsonObject.put("categoryId", convertCategoriesToJsonArray());
 
-            if(parsePositive() != null){
-                jsonObject.put("positive",parsePositive()+"");
+            if (parsePositive() != null) {
+                jsonObject.put("positive", parsePositive() + "");
             }
             // TODO: 25/11/2016 When image implementation on server is done, add image to json object if not null
             Log.e(TAG, "convertToJson: Created json object that looks like: " + jsonObject.toString());
@@ -163,13 +164,6 @@ public class Submission {
 
     }
 
-    private String bitapToBase64String(Bitmap bmap) {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        bmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
-        byte[] byteArray = byteArrayOutputStream.toByteArray();
-
-        return Base64.encodeToString(byteArray, Base64.DEFAULT);
-    }
 
     /**
      * Writes the submission object to the server
@@ -201,39 +195,6 @@ public class Submission {
 
                     //write the JSONobject to the connections output
                     writer.write(urlParameters);
-
-                    /*
-                     * FILE MADNESS
-                     *//*
-                    DataOutputStream request = new DataOutputStream(conn.getOutputStream());
-
-                    request.writeBytes(twoHyphens + boundary + crlf);
-                    request.writeBytes("Content-Disposition: form-data; name=\"" +
-                            attachmentName + "\";filename=\"" +
-                            attachmentFileName + "\"" + crlf);
-                    request.writeBytes(crlf);
-
-                    byte[] pixels = new byte[Submission.this.image.getWidth() * Submission.this.image.getHeight()];
-                    for (int i = 0; i < Submission.this.image.getWidth(); ++i) {
-                        for (int j = 0; j < Submission.this.image.getHeight(); ++j) {
-                            //we're interested only in the MSB of the first byte,
-                            //since the other 3 bytes are identical for B&W images
-                            pixels[i + j] = (byte) ((Submission.this.image.getPixel(i, j) & 0x80) >> 7);
-                        }
-                    }
-                    request.writeBytes(crlf);
-                    request.writeBytes(twoHyphens + boundary +
-                            twoHyphens + crlf);
-
-                    request.write(pixels);
-
-                    request.flush();
-                    //request.close();
-
-                    *//*
-                     * END FILE MADNESS
-                     */
-
 
                     //flush and close the writer
                     writer.flush();
@@ -284,44 +245,6 @@ public class Submission {
 
 
         };
-
-        /*
-        *
-        * OKHTTP MADNESS
-                OkHttpClient client = new OkHttpClient();
-
-                Request request = new Request.Builder().url("http://www.balticapp.fi/lukeA/report/create")
-                        //.method("POST", convertToJson())
-                        .addHeader("Authorization", "Bearer " + SessionSingleton.getInstance().getIdToken())
-                        .addHeader("acstoken", SessionSingleton.getInstance().getAccessToken())
-                        .addHeader("charset", "utf-8")
-                        //.addHeader("Content-Type", "application/json")
-                        .post(convertToJson())
-                        .build();
-                Log.e(TAG, "call: " + request);
-
-
-                //Response response = client.newCall(request).execute();
-                client.newCall(request).enqueue(new Callback() {
-                    @Override
-                    public void onFailure(Request request, IOException e) {
-
-                    }
-
-                    @Override
-                    public void onResponse(Response response) throws IOException {
-                        if (response.isSuccessful()) {
-                            Log.e(TAG, "call: Success" + response.message());
-                        } else {
-                            Log.e(TAG, "call: FAilure" + response.message() + "\n" + response.toString() + response.body().toString());
-                        }
-                    }
-                });
-                // Do something with the response.
-
-                return true;
-            }
-        };*/
 
         FutureTask<Boolean> futureTask = new FutureTask<Boolean>(booleanCallable);
         Thread t = new Thread(futureTask);

@@ -4,11 +4,17 @@ package com.luke.lukef.lukeapp;
 import android.Manifest;
 import android.animation.ObjectAnimator;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.AsyncTask;
 
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -21,28 +27,40 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 
 import com.auth0.android.Auth0;
+import com.auth0.android.authentication.AuthenticationAPIClient;
+import com.auth0.android.authentication.AuthenticationException;
+import com.auth0.android.callback.BaseCallback;
 import com.auth0.android.lock.AuthenticationCallback;
 import com.auth0.android.lock.Lock;
 import com.auth0.android.lock.LockCallback;
 import com.auth0.android.lock.utils.LockException;
 import com.auth0.android.result.Credentials;
+import com.auth0.android.result.UserProfile;
 import com.luke.lukef.lukeapp.model.Session;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
+import com.luke.lukef.lukeapp.tools.LukeUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -58,6 +76,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     private Lock lock;
     private String idToken = "";
     private String accessToken = "";
+    File photofile;
+    private String photoPath;
+    static final int REQUEST_IMAGE_CAPTURE = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -227,6 +248,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
             if (parseCheck(auth0Domain, auth0ClienID)) {
                 doLogin(auth0ClienID, auth0Domain);
+                SessionSingleton.getInstance().setAuth0Domain(auth0Domain);
+                SessionSingleton.getInstance().setAuth0ClienID(auth0ClienID);
             }
         }
     }
@@ -320,4 +343,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
         }
     }
+
+
+
+
+
+
+
 }
