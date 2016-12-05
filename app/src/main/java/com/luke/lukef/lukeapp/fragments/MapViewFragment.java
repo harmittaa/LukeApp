@@ -136,7 +136,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
             mapFragment.getMapAsync(this);
         }
         setupButtons();
-        Log.e(TAG, "onCreateView: FRAGMETOLI!" );
         return fragmentView;
     }
 

@@ -10,6 +10,8 @@ import android.app.FragmentTransaction;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.os.Build;
 import android.support.v4.content.ContextCompat;
@@ -55,8 +57,10 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -183,7 +187,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void setStatusBarFlag(){
+    private void setStatusBarFlag() {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
     }
 
@@ -390,10 +394,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
-
     private void getCategories() {
-        Log.e(TAG, "confirmUsername: clickd");
         Runnable checkUsernameRunnable = new Runnable() {
             String jsonString;
 
@@ -402,64 +403,103 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     URL categoriesUrl = new URL("http://www.balticapp.fi/lukeA/category");
                     HttpURLConnection httpURLConnection = (HttpURLConnection) categoriesUrl.openConnection();
-                    //httpURLConnection.setRequestProperty(getString(R.string.authorization), getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
-                    //httpURLConnection.setRequestProperty(getString(R.string.acstoken), SessionSingleton.getInstance().getAccessToken());
                     if (httpURLConnection.getResponseCode() == 200) {
                         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
                         jsonString = "";
                         StringBuilder stringBuilder = new StringBuilder();
                         String line;
                         while ((line = bufferedReader.readLine()) != null) {
-                            stringBuilder.append(line + "\n");
+                            stringBuilder.append(line).append("\n");
                         }
                         bufferedReader.close();
                         jsonString = stringBuilder.toString();
                         JSONArray jsonArr;
-                        try {
-                            jsonArr = new JSONArray(jsonString);
-                            Log.e(TAG, "run: CATEGORIES JSON: " + jsonArr.toString());
-
-                            for (int i = 0; i < jsonArr.length(); i++) {
-                                JSONObject jsonCategory = jsonArr.getJSONObject(i);
-                                Category c = new Category();
-                                c.setDescription(jsonCategory.getString("description"));
-                                c.setId(jsonCategory.getString("id"));
-                                if (!TextUtils.isEmpty(jsonCategory.getString("title"))) {
-                                    c.setTitle(jsonCategory.getString("title"));
-                                }
-                                if (!TextUtils.isEmpty(jsonCategory.getString("image_url"))) {
-                                    //// TODO: 22/11/2016 parse image into bitmap
-                                }
-                                Log.e(TAG, "run: created category\n" + c.toString());
-                                SessionSingleton.getInstance().addCategory(c);
-                            }
-                        } catch (JSONException e) {
-                            Log.e(TAG, "onPostExecute: ", e);
-                        }
+                        jsonArr = new JSONArray(jsonString);
+                        parseCategories(jsonArr);
                     } else {
-
                         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getErrorStream()));
                         jsonString = "";
                         StringBuilder stringBuilder = new StringBuilder();
                         String line;
                         while ((line = bufferedReader.readLine()) != null) {
-                            stringBuilder.append(line + "\n");
+                            stringBuilder.append(line).append("\n");
                         }
                         bufferedReader.close();
                         jsonString = stringBuilder.toString();
-
                         Log.e(TAG, "run: ERROR WITH CATEGORIES : " + jsonString);
+                        Toast.makeText(getApplicationContext(), "Couldn't fetch categories", Toast.LENGTH_LONG).show();
                     }
                 } catch (IOException e) {
                     Log.e(TAG, "doInBackground: ", e);
+                } catch (JSONException e) {
+                    Log.e(TAG, "JSON parsing exception");
+                }
+            }
+
+            /**
+             * Parses {@link com.luke.lukef.lukeapp.model.Category} objects from the provided <code>JSONArray</code>.
+             * Compares
+             * @param jsonArr The JSONArray fetched from server.
+             */
+            private void parseCategories(JSONArray jsonArr) {
+                try {
+                    List<Category> tempCategoryList = new ArrayList<>();
+                    for (int i = 0; i < jsonArr.length(); i++) {
+                        JSONObject jsonCategory = jsonArr.getJSONObject(i);
+                        if (jsonCategory.has("id")) {
+
+                            Boolean found = false;
+                            for (Category ca : SessionSingleton.getInstance().getCategoryList()) {
+                                if (ca.getId().equals(jsonCategory.getString("id"))) {
+                                    found = true;
+                                }
+                            }
+                            if (!found) {
+                                Category c = new Category();
+                                c.setId(jsonCategory.getString("id"));
+                                if (jsonCategory.has("description")) {
+                                    c.setDescription(jsonCategory.getString("description"));
+                                } else {
+                                    c.setDescription("No description");
+                                }
+                                if (jsonCategory.has("title")) {
+                                    c.setTitle(jsonCategory.getString("title"));
+                                } else {
+                                    c.setTitle("No title");
+                                }
+                                Bitmap bitmap = null;
+                                if (jsonCategory.has("image_url")) {
+                                    String imageUrl = jsonCategory.getString("image_url");
+                                    try {
+                                        InputStream in = new java.net.URL(imageUrl).openStream();
+                                        bitmap = BitmapFactory.decodeStream(in);
+                                    } catch (MalformedURLException e) {
+                                        // Error downloading / parsing the image, setting to default
+                                        bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.no_category_image);
+                                    } catch (IOException e) {
+                                        Log.e(TAG, "parseCategories: IOException ", e);
+                                        bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.no_category_image);
+                                    }
+                                } else {
+                                    // there was no image for the category, setting default
+                                    bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.no_category_image);
+                                }
+                                c.setImage(bitmap);
+                                tempCategoryList.add(c);
+                            }
+                        }
+                    }
+                    if (!tempCategoryList.isEmpty()) {
+                        SessionSingleton.getInstance().getCategoryList().addAll(tempCategoryList);
+                    } else {
+                        Log.e(TAG, "parseCategories: no new categories to add");
+                    }
+                } catch (JSONException e) {
+                    Log.e(TAG, "onPostExecute: ", e);
                 }
             }
         };
-
         Thread thread = new Thread(checkUsernameRunnable);
         thread.start();
-
-
     }
-
 }
