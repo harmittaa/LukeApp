@@ -43,9 +43,9 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
     private static final String TAG = "NewUserActivity";
     private String photoPath;
     private File photofile;
-    private Bitmap currentPhoto;
     LukeNetUtils lukeNetUtils;
     RadioGroup radioGroupPicture;
+    Bitmap selectedProfileImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -191,7 +191,7 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
             if (imageBitmap != null)
                 Log.e(TAG, "onActivityResult: photo exists, size : " + imageBitmap.getByteCount());
             userImageViewCamera.setImageBitmap(imageBitmap);
-            this.currentPhoto = imageBitmap;
+            this.selectedProfileImage = imageBitmap;
         }
     }
 
@@ -214,6 +214,7 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
             @Override
             public void run() {
                 NewUserActivity.this.userImageViewAuth0.setImageBitmap(b);
+                NewUserActivity.this.selectedProfileImage = b;
             }
         });
     }
