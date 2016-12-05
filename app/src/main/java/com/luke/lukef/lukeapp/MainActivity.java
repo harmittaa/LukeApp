@@ -394,10 +394,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Fetches categories from the server, parses them and adds new ones to the {@link SessionSingleton#getCategoryList()}
+     */
     private void getCategories() {
         Runnable checkUsernameRunnable = new Runnable() {
             String jsonString;
-
             @Override
             public void run() {
                 try {
@@ -438,7 +440,7 @@ public class MainActivity extends AppCompatActivity {
 
             /**
              * Parses {@link com.luke.lukef.lukeapp.model.Category} objects from the provided <code>JSONArray</code>.
-             * Compares
+             * Compares the fetched categories to the existing categories, adds new discards old.
              * @param jsonArr The JSONArray fetched from server.
              */
             private void parseCategories(JSONArray jsonArr) {
@@ -446,14 +448,16 @@ public class MainActivity extends AppCompatActivity {
                     List<Category> tempCategoryList = new ArrayList<>();
                     for (int i = 0; i < jsonArr.length(); i++) {
                         JSONObject jsonCategory = jsonArr.getJSONObject(i);
+                        // check that the object has ID tag
                         if (jsonCategory.has("id")) {
-
                             Boolean found = false;
+                            // loop through the SessionSingleton's Categories list and see if the category is already there
                             for (Category ca : SessionSingleton.getInstance().getCategoryList()) {
                                 if (ca.getId().equals(jsonCategory.getString("id"))) {
                                     found = true;
                                 }
                             }
+                            // if the category doesn't exist yet on the list, then create it and add it to temp list
                             if (!found) {
                                 Category c = new Category();
                                 c.setId(jsonCategory.getString("id"));
@@ -490,6 +494,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                     if (!tempCategoryList.isEmpty()) {
+                        // add the temporary list to the SubmissionSingleton's list
                         SessionSingleton.getInstance().getCategoryList().addAll(tempCategoryList);
                     } else {
                         Log.e(TAG, "parseCategories: no new categories to add");
