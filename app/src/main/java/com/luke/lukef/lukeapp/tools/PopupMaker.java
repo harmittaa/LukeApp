@@ -71,6 +71,7 @@ public class PopupMaker {
             public void onClick(View view) {
                 switch (view.getId()) {
                     case R.id.popup_button_positive:
+                        dialog.dismiss();
                         break;
                     case R.id.submissionReportButton:
                         break;

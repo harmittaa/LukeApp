@@ -609,6 +609,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         setupClustering();
         this.googleMap.getUiSettings().setZoomControlsEnabled(true);
         this.googleMap.setOnCameraIdleListener(this);
+        this.googleMap.getUiSettings().setMapToolbarEnabled(false);
         zoomMap();
         if (ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
