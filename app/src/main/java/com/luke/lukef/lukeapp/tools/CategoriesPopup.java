@@ -2,7 +2,9 @@ package com.luke.lukef.lukeapp.tools;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,27 +28,24 @@ public class CategoriesPopup {
     private static final String TAG = "CategoriesPopup";
     private final Dialog dialog;
     private final MainActivity mainActivity;
-    private List<Category> chosenCategories;
     private ListView listView;
     private Button acceptButton;
-    private Button cancelButton;
     private AdapterView.OnItemClickListener onClickListener;
     private ArrayList<Category> confirmedCategories;
-    private ArrayList<Category> tempCategories;
     private View.OnClickListener buttonListener;
+    private DialogInterface.OnCancelListener onCancelListener;
 
     private View.OnClickListener clickListener;
 
     public CategoriesPopup(MainActivity mainActivity, AdapterView.OnItemClickListener onItemClickListener, View.OnClickListener buOnClickListener,
-                           ArrayList<Category> confirmedCategories) {
+                           ArrayList<Category> confirmedCategories, DialogInterface.OnCancelListener onCancelListener) {
         this.mainActivity = mainActivity;
         this.dialog = new Dialog(mainActivity);
-        this.chosenCategories = new ArrayList<>();
         this.onClickListener = onItemClickListener;
         this.buttonListener = buOnClickListener;
         this.confirmedCategories = confirmedCategories;
-        this.tempCategories = tempCategories;
-        // Create custom dialog object
+        // copy of the original
+        this.onCancelListener = onCancelListener;
     }
 
 
@@ -61,17 +60,21 @@ public class CategoriesPopup {
 
         // find views
         this.acceptButton = (Button) this.dialog.findViewById(R.id.categories_accept_button);
-        this.cancelButton = (Button) this.dialog.findViewById(R.id.categories_cancel_button);
         // set click listeners
         this.acceptButton.setOnClickListener(this.buttonListener);
         //this.cancelButton.setOnClickListener(this.buttonListener);
         this.listView.setOnItemClickListener(onClickListener);
+
+        this.dialog.setOnCancelListener(this.onCancelListener);
+        Log.e(TAG, "makeCategoryListPopup: confirmed size in popup" + this.confirmedCategories.size());
+
         this.dialog.show();
     }
 
     public void dismissCategoriesPopup() {
         this.dialog.dismiss();
     }
+
 
     public class ListViewAdapter extends ArrayAdapter<Category> {
         LayoutInflater make = (LayoutInflater) mainActivity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);

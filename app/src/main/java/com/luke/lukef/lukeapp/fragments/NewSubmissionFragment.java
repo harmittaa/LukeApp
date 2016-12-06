@@ -1,7 +1,8 @@
 package com.luke.lukef.lukeapp.fragments;
 
+import android.app.Dialog;
 import android.app.Fragment;
-import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -20,14 +21,11 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
@@ -46,12 +44,10 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
 
 import static android.app.Activity.RESULT_OK;
 
-public class NewSubmissionFragment extends Fragment implements View.OnClickListener, AdapterView.OnItemClickListener {
+public class NewSubmissionFragment extends Fragment implements View.OnClickListener, AdapterView.OnItemClickListener, Dialog.OnCancelListener {
     View fragmentView;
     Button categoryButton;
     EditText submissionTitle;
@@ -61,9 +57,10 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     ImageView mapThumbnail;
     Bitmap currentPhoto;
     private final static String TAG = NewSubmissionFragment.class.toString();
-    ArrayList<String> selectedCategries;
+    ArrayList<String> selectedCategories;
     ArrayList<Category> confirmedCategories;
     ArrayList<Category> tempCategories;
+
     ImageButton submittt;
     Location location;
     private File photofile;
@@ -82,7 +79,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         submissionTitle.setImeOptions(EditorInfo.IME_ACTION_DONE);
         setupClickListeners();
         fetchBundleFromArguments();
-        selectedCategries = new ArrayList<>();
+        selectedCategories = new ArrayList<>();
         this.confirmedCategories = new ArrayList<>();
         this.tempCategories = new ArrayList<>();
         setupThumbnailMap();
@@ -117,12 +114,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
             case R.id.photoThumbnail:
                 dispatchTakePictureIntent();
                 break;
-            case R.id.categories_cancel_button:
-                this.tempCategories.clear();
-                this.popMaker.dismissCategoriesPopup();
-                break;
             case R.id.categories_accept_button:
-                saveCategories();
                 this.popMaker.dismissCategoriesPopup();
                 break;
         }
@@ -281,7 +273,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         // TODO: 22/11/2016 check if location != null , check if
         if (!TextUtils.isEmpty(submissionDescription.getText().toString())) {
             if (location != null) {
-                if (selectedCategries.size() > 0) {
+                if (selectedCategories.size() > 0) {
                     return true;
                 } else {
                     return false;
@@ -296,42 +288,15 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
 
 
     private void makeCategoryListPopup() {
-        /*final AlertDialog.Builder builderSingle = new AlertDialog.Builder(getMainActivity());
-        //builderSingle.setIcon(R.drawable.ic_launcher);
-        builderSingle.setTitle("Select A Category");
-
-        final CategoryListAdapter cla = new CategoryListAdapter(getMainActivity(), android.R.layout.select_dialog_singlechoice, SessionSingleton.getInstance().getCategoryList());
-
-        builderSingle.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-
-        builderSingle.setAdapter(cla, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                //NewSubmissionFragment.this.selectedCategries.add(cla.getItem(which));
-                Category c = SessionSingleton.getInstance().getCategoryList().get(which);
-                NewSubmissionFragment.this.selectedCategries.add(c.getId());
-                NewSubmissionFragment.this.confirmedCategories.add(c);
-                Log.e(TAG, "onClick: added to selected: " + cla.getItem(which) + " size now at " + selectedCategries.size());
-                dialog.dismiss();
-            }
-        });
-        builderSingle.create();
-        builderSingle.show();*/
-
-        popMaker = new CategoriesPopup(getMainActivity(), this, this, this.confirmedCategories);
+        this.tempCategories.clear();
+        this.tempCategories = new ArrayList<>(this.confirmedCategories);
+        Log.e(TAG, "makeCategoryListPopup: confirmed size " + this.confirmedCategories.size());
+        popMaker = new CategoriesPopup(getMainActivity(), this, this, this.confirmedCategories, this);
         popMaker.setupCategoriesPopup();
-
-
     }
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-        Log.e(TAG, "onItemClick: cliky click int i " + i + " long l  " + l);
         CheckBox checkBox = (CheckBox) view.findViewById(R.id.popup_categories_checkbox);
         boolean checked = checkBox.isChecked();
         ((CheckBox) view.findViewById(R.id.popup_categories_checkbox)).setChecked(!checked);
@@ -339,25 +304,17 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
 
         if (!checked) {
             this.confirmedCategories.add(listViewAdapter.getItem(i));
-            Log.e(TAG, "onItemClick: adding  " + this.confirmedCategories.size());
         } else {
-            Log.e(TAG, "onItemClick: removing " + this.confirmedCategories.size());
             this.confirmedCategories.remove(listViewAdapter.getItem(i));
         }
+
+        Log.e(TAG, "onItemClick: confirmed size after change " + this.confirmedCategories.size());
     }
 
-    private void saveCategories() {
-      /*  for (int i = 0; i < this.confirmedCategories.size(); i++) {
-            if (!this.tempCategories.contains(this.confirmedCategories.get(i))) {
-                this.confirmedCategories.remove(i);
-            }
-        }
-
-        for (int i = 0; i < this.tempCategories.size(); i++) {
-            if (!this.confirmedCategories.contains(this.tempCategories.get(i))) {
-                this.confirmedCategories.add(this.tempCategories.get(i));
-            }
-        }*/
-
+    @Override
+    public void onCancel(DialogInterface dialogInterface) {
+        Log.e(TAG, "onCancel: cancelled");
+        Log.e(TAG, "makeCategoryListPopup: temp size " + this.tempCategories.size());
+        this.confirmedCategories = new ArrayList<>(this.tempCategories);
     }
 }
