@@ -22,6 +22,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.inputmethod.EditorInfo;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -36,6 +37,8 @@ import com.luke.lukef.lukeapp.R;
 import com.luke.lukef.lukeapp.model.Category;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.model.Submission;
+import com.luke.lukef.lukeapp.tools.CategoriesPopup;
+import com.luke.lukef.lukeapp.tools.NewSubmissionPopup;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -51,7 +54,7 @@ import java.util.List;
 
 import static android.app.Activity.RESULT_OK;
 
-public class NewSubmissionFragment extends Fragment implements View.OnClickListener {
+public class NewSubmissionFragment extends Fragment implements View.OnClickListener, AdapterView.OnItemClickListener {
     View fragmentView;
     Button categoryButton;
     EditText submissionTitle;
@@ -286,7 +289,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
 
 
     private void makeCategoryListPopup() {
-        final AlertDialog.Builder builderSingle = new AlertDialog.Builder(getMainActivity());
+        /*final AlertDialog.Builder builderSingle = new AlertDialog.Builder(getMainActivity());
         //builderSingle.setIcon(R.drawable.ic_launcher);
         builderSingle.setTitle("Select A Category");
 
@@ -311,7 +314,17 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
             }
         });
         builderSingle.create();
-        builderSingle.show();
+        builderSingle.show();*/
+
+        CategoriesPopup popMaker = new CategoriesPopup(getMainActivity(), this);
+        popMaker.setupCategoriesPopup();
+
+
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+        Log.e(TAG, "onItemClick: cliky click");
     }
 
     private class CategoryListAdapter extends ArrayAdapter<Category> {

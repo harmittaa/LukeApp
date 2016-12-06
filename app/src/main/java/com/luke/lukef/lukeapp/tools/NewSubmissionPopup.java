@@ -40,8 +40,8 @@ import java.util.Locale;
 /**
  * Handles showing submission data when submission is clicked on the map
  */
-public class PopupMaker {
-    private static final String TAG = "PopupMaker";
+public class NewSubmissionPopup {
+    private static final String TAG = "NewSubmissionPopup";
     private MainActivity mainActivity;
     private SubmissionDatabase submissionDatabase;
     private final Dialog dialog;
@@ -63,7 +63,7 @@ public class PopupMaker {
     private TextView submissionDate;
     private TextView submissionTitle;
 
-    public PopupMaker(MainActivity mainActivity) {
+    public NewSubmissionPopup(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
         this.dialog = new Dialog(mainActivity);
         // Create custom dialog object
@@ -96,7 +96,7 @@ public class PopupMaker {
         this.isAdminMarker = isAdminMarker;
 
         // Include dialog.xml file
-        this.dialog.setContentView(R.layout.popup_test);
+        this.dialog.setContentView(R.layout.popup_new_submission);
 
         // find views
         this.submissionImage = (ImageView) this.dialog.findViewById(R.id.submissionImageMain);
@@ -213,7 +213,7 @@ public class PopupMaker {
     }
 
     /**
-     * Called from {@link com.luke.lukef.lukeapp.tools.PopupMaker.GetSubmissionDataTask#onPostExecute(List)},
+     * Called from {@link NewSubmissionPopup.GetSubmissionDataTask#onPostExecute(List)},
      * uses the list of category IDs and finds the correct categories from {@link SessionSingleton#getCategoryList()}
      * and fetches the images from those.
      * @param strings The list of category IDs that the submission has.

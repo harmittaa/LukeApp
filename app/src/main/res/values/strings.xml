@@ -29,5 +29,7 @@
     <string name="userUrl">http://www.balticapp.fi/lukeA/user</string>
     <string name="loginUrl">http://www.balticapp.fi/lukeA/login</string>
     <string name="report_id_url">http://www.balticapp.fi/lukeA/report?id=</string>
+    <string name="category_title">Category title</string>
+    <string name="category_description">Category description</string>
 
 </resources>
