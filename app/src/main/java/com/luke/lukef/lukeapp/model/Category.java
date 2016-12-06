@@ -13,13 +13,7 @@ public class Category {
     private Bitmap image;
     private Boolean isPositive;
 
-    public Category(){
-    }
-    public Category(String id, String title, Boolean isPositive){
-        this.id = id;
-        this.title = title;
-        this.isPositive = isPositive;
-    };
+    public Category(){}
 
     public String getId() {
         return id;

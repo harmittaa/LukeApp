@@ -26,7 +26,6 @@ import android.support.v7.app.AppCompatActivity;
 
 import android.os.Bundle;
 
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -34,15 +33,9 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.auth0.android.Auth0;
-import com.auth0.android.authentication.AuthenticationAPIClient;
-import com.auth0.android.authentication.AuthenticationException;
-import com.auth0.android.callback.BaseCallback;
-import com.auth0.android.result.UserProfile;
 import com.luke.lukef.lukeapp.fragments.AchievementFragment;
 import com.luke.lukef.lukeapp.fragments.ConfirmationFragment;
 import com.luke.lukef.lukeapp.fragments.LeaderboardFragment;
@@ -54,8 +47,6 @@ import com.luke.lukef.lukeapp.fragments.UserSubmissionFragment;
 
 import com.luke.lukef.lukeapp.model.Category;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
-import com.luke.lukef.lukeapp.model.Submission;
-import com.luke.lukef.lukeapp.tools.LukeUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -66,19 +57,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -407,9 +392,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
+    /**
+     * Fetches categories from the server, parses them and adds new ones to the {@link SessionSingleton#getCategoryList()}
+     */
     private void getCategories() {
-        Log.e(TAG, "confirmUsername: clickd");
         Runnable checkUsernameRunnable = new Runnable() {
             String jsonString;
 
@@ -418,64 +404,106 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     URL categoriesUrl = new URL("http://www.balticapp.fi/lukeA/category");
                     HttpURLConnection httpURLConnection = (HttpURLConnection) categoriesUrl.openConnection();
-                    //httpURLConnection.setRequestProperty(getString(R.string.authorization), getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
-                    //httpURLConnection.setRequestProperty(getString(R.string.acstoken), SessionSingleton.getInstance().getAccessToken());
                     if (httpURLConnection.getResponseCode() == 200) {
                         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
                         jsonString = "";
                         StringBuilder stringBuilder = new StringBuilder();
                         String line;
                         while ((line = bufferedReader.readLine()) != null) {
-                            stringBuilder.append(line + "\n");
+                            stringBuilder.append(line).append("\n");
                         }
                         bufferedReader.close();
                         jsonString = stringBuilder.toString();
                         JSONArray jsonArr;
-                        try {
-                            jsonArr = new JSONArray(jsonString);
-                            Log.e(TAG, "run: CATEGORIES JSON: " + jsonArr.toString());
-
-                            for (int i = 0; i < jsonArr.length(); i++) {
-                                JSONObject jsonCategory = jsonArr.getJSONObject(i);
-                                Category c = new Category();
-                                c.setDescription(jsonCategory.getString("description"));
-                                c.setId(jsonCategory.getString("id"));
-                                if (!TextUtils.isEmpty(jsonCategory.getString("title"))) {
-                                    c.setTitle(jsonCategory.getString("title"));
-                                }
-                                if (!TextUtils.isEmpty(jsonCategory.getString("image_url"))) {
-                                    //// TODO: 22/11/2016 parse image into bitmap
-                                }
-                                Log.e(TAG, "run: created category\n" + c.toString());
-                                SessionSingleton.getInstance().addCategory(c);
-                            }
-                        } catch (JSONException e) {
-                            Log.e(TAG, "onPostExecute: ", e);
-                        }
+                        jsonArr = new JSONArray(jsonString);
+                        parseCategories(jsonArr);
                     } else {
-
                         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getErrorStream()));
                         jsonString = "";
                         StringBuilder stringBuilder = new StringBuilder();
                         String line;
                         while ((line = bufferedReader.readLine()) != null) {
-                            stringBuilder.append(line + "\n");
+                            stringBuilder.append(line).append("\n");
                         }
                         bufferedReader.close();
                         jsonString = stringBuilder.toString();
-
                         Log.e(TAG, "run: ERROR WITH CATEGORIES : " + jsonString);
+                        Toast.makeText(getApplicationContext(), "Couldn't fetch categories", Toast.LENGTH_LONG).show();
                     }
                 } catch (IOException e) {
                     Log.e(TAG, "doInBackground: ", e);
+                } catch (JSONException e) {
+                    Log.e(TAG, "JSON parsing exception");
+                }
+            }
+
+            /**
+             * Parses {@link com.luke.lukef.lukeapp.model.Category} objects from the provided <code>JSONArray</code>.
+             * Compares the fetched categories to the existing categories, adds new discards old.
+             * @param jsonArr The JSONArray fetched from server.
+             */
+            private void parseCategories(JSONArray jsonArr) {
+                try {
+                    List<Category> tempCategoryList = new ArrayList<>();
+                    for (int i = 0; i < jsonArr.length(); i++) {
+                        JSONObject jsonCategory = jsonArr.getJSONObject(i);
+                        // check that the object has ID tag
+                        if (jsonCategory.has("id")) {
+                            Boolean found = false;
+                            // loop through the SessionSingleton's Categories list and see if the category is already there
+                            for (Category ca : SessionSingleton.getInstance().getCategoryList()) {
+                                if (ca.getId().equals(jsonCategory.getString("id"))) {
+                                    found = true;
+                                }
+                            }
+                            // if the category doesn't exist yet on the list, then create it and add it to temp list
+                            if (!found) {
+                                Category c = new Category();
+                                c.setId(jsonCategory.getString("id"));
+                                if (jsonCategory.has("description")) {
+                                    c.setDescription(jsonCategory.getString("description"));
+                                } else {
+                                    c.setDescription("No description");
+                                }
+                                if (jsonCategory.has("title")) {
+                                    c.setTitle(jsonCategory.getString("title"));
+                                } else {
+                                    c.setTitle("No title");
+                                }
+                                Bitmap bitmap = null;
+                                if (jsonCategory.has("image_url")) {
+                                    String imageUrl = jsonCategory.getString("image_url");
+                                    try {
+                                        InputStream in = new java.net.URL(imageUrl).openStream();
+                                        bitmap = BitmapFactory.decodeStream(in);
+                                    } catch (MalformedURLException e) {
+                                        // Error downloading / parsing the image, setting to default
+                                        bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.no_category_image);
+                                    } catch (IOException e) {
+                                        Log.e(TAG, "parseCategories: IOException ", e);
+                                        bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.no_category_image);
+                                    }
+                                } else {
+                                    // there was no image for the category, setting default
+                                    bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.no_category_image);
+                                }
+                                c.setImage(bitmap);
+                                tempCategoryList.add(c);
+                            }
+                        }
+                    }
+                    if (!tempCategoryList.isEmpty()) {
+                        // add the temporary list to the SubmissionSingleton's list
+                        SessionSingleton.getInstance().getCategoryList().addAll(tempCategoryList);
+                    } else {
+                        Log.e(TAG, "parseCategories: no new categories to add");
+                    }
+                } catch (JSONException e) {
+                    Log.e(TAG, "onPostExecute: ", e);
                 }
             }
         };
-
         Thread thread = new Thread(checkUsernameRunnable);
         thread.start();
-
-
     }
-
 }

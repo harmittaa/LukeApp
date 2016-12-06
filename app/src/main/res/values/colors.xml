@@ -15,6 +15,7 @@
     <color name="marker_positive">#10bd00</color>
     <color name="marker_neutral">#009dbd</color>
     <color name="marker_negative">#bd0000</color>
+    <color name="congress_blue">#004E89</color>
 
 
 </resources>
