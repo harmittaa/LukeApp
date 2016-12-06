@@ -10,8 +10,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -24,18 +24,19 @@ import com.luke.lukef.lukeapp.model.SessionSingleton;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Handles the popup that is show when user clicks on categories button from NewSubmissionFragment
+ */
 public class CategoriesPopup {
     private static final String TAG = "CategoriesPopup";
     private final Dialog dialog;
     private final MainActivity mainActivity;
     private ListView listView;
-    private Button acceptButton;
+    private ImageButton acceptButton;
     private AdapterView.OnItemClickListener onClickListener;
     private ArrayList<Category> confirmedCategories;
     private View.OnClickListener buttonListener;
     private DialogInterface.OnCancelListener onCancelListener;
-
-    private View.OnClickListener clickListener;
 
     public CategoriesPopup(MainActivity mainActivity, AdapterView.OnItemClickListener onItemClickListener, View.OnClickListener buOnClickListener,
                            ArrayList<Category> confirmedCategories, DialogInterface.OnCancelListener onCancelListener) {
@@ -54,20 +55,15 @@ public class CategoriesPopup {
         this.dialog.setContentView(R.layout.popup_categories);
         // setup RecyclerView
         this.listView = (ListView) this.dialog.findViewById(R.id.categoriesListView);
-
         this.listView.setAdapter(new ListViewAdapter(this.mainActivity, R.layout.popup_categories_item, SessionSingleton.getInstance().getCategoryList()));
-
-
         // find views
-        this.acceptButton = (Button) this.dialog.findViewById(R.id.categories_accept_button);
+        this.acceptButton = (ImageButton) this.dialog.findViewById(R.id.categories_accept_button);
         // set click listeners
         this.acceptButton.setOnClickListener(this.buttonListener);
         //this.cancelButton.setOnClickListener(this.buttonListener);
         this.listView.setOnItemClickListener(onClickListener);
-
         this.dialog.setOnCancelListener(this.onCancelListener);
         Log.e(TAG, "makeCategoryListPopup: confirmed size in popup" + this.confirmedCategories.size());
-
         this.dialog.show();
     }
 
@@ -75,10 +71,8 @@ public class CategoriesPopup {
         this.dialog.dismiss();
     }
 
-
     public class ListViewAdapter extends ArrayAdapter<Category> {
         LayoutInflater make = (LayoutInflater) mainActivity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
         ListViewAdapter(Context context, int resource, List<Category> objects) {
             super(context, resource, objects);
         }
@@ -93,10 +87,9 @@ public class CategoriesPopup {
             ((TextView) v.findViewById(R.id.popup_category_title)).setText(SessionSingleton.getInstance().getCategoryList().get(position).getTitle());
             ((TextView) v.findViewById(R.id.popup_category_description)).setText(SessionSingleton.getInstance().getCategoryList().get(position).getDescription());
             ((ImageView) v.findViewById(R.id.popup_category_image)).setImageBitmap(SessionSingleton.getInstance().getCategoryList().get(position).getImage());
-            //((CheckBox) v.findViewById(R.id.popup_categories_checkbox)).setOnCheckedChangeListener(checkedChangedListener);
             if (confirmedCategories.contains(SessionSingleton.getInstance().getCategoryList().get(position))) {
                 ((CheckBox) v.findViewById(R.id.popup_categories_checkbox)).setChecked(true);
-            } else  {
+            } else {
                 ((CheckBox) v.findViewById(R.id.popup_categories_checkbox)).setChecked(false);
             }
             return v;
