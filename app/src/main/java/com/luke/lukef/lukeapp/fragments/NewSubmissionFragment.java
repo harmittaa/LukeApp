@@ -62,8 +62,9 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     ArrayList<Category> tempCategories;
 
     ImageButton submittt;
+    ImageButton backButton;
     Location location;
-    private File photofile;
+    private File photoFile;
     private String photoPath;
     CategoriesPopup popMaker;
 
@@ -73,6 +74,8 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         fragmentView = inflater.inflate(R.layout.fragment_new_submission_2, container, false);
         categoryButton = (Button) fragmentView.findViewById(R.id.buttonCategory);
         submittt = (ImageButton) fragmentView.findViewById(R.id.button_tick_submit);
+        backButton = (ImageButton)fragmentView.findViewById(R.id.button_back);
+        backButton.setOnClickListener(this);
         submissionDescription = (EditText) fragmentView.findViewById(R.id.newSubmissionEditTextDescrption);
         submissionTitle = (EditText) fragmentView.findViewById(R.id.newSubmissionEditTextTitle);
         submissionDescription.setImeOptions(EditorInfo.IME_ACTION_DONE);
@@ -115,7 +118,9 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
                 dispatchTakePictureIntent();
                 break;
             case R.id.button_back:
+                Log.e(TAG, "onClick: back now pls" );
                 getMainActivity().onBackPressed();
+                break;
             case R.id.categories_accept_button:
                 this.popMaker.dismissCategoriesPopup();
                 break;
@@ -156,10 +161,10 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         if (takePictureIntent.resolveActivity(getMainActivity().getPackageManager()) != null) {
             // Create the File where the photo should go
 
-            if (photofile != null) {
-                this.photoPath = photofile.getAbsolutePath();
+            if (photoFile != null) {
+                this.photoPath = photoFile.getAbsolutePath();
                 // Continue only if the File was successfully created
-                Uri photoURI = FileProvider.getUriForFile(getMainActivity(), "com.luke.lukef.lukeapp", photofile);
+                Uri photoURI = FileProvider.getUriForFile(getMainActivity(), "com.luke.lukef.lukeapp", photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
             } else {
@@ -187,7 +192,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
 
         // Save a file: path for use with ACTION_VIEW intents
         this.photoPath = image.getAbsolutePath();
-        this.photofile = image;
+        this.photoFile = image;
     }
 
 
@@ -198,10 +203,10 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
             options.inSampleSize = 4;
             Bitmap imageBitmap = BitmapFactory.decodeFile(this.photoPath.toString(), options);
             try {
-                Log.e(TAG, "onActivityResult: photo file before write" + this.photofile.length());
-                FileOutputStream fo = new FileOutputStream(this.photofile);
+                Log.e(TAG, "onActivityResult: photo file before write" + this.photoFile.length());
+                FileOutputStream fo = new FileOutputStream(this.photoFile);
                 imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fo);
-                Log.e(TAG, "onActivityResult: photo file after write" + this.photofile.length());
+                Log.e(TAG, "onActivityResult: photo file after write" + this.photoFile.length());
             } catch (FileNotFoundException e) {
                 Log.e(TAG, "onActivityResult: ", e);
             }
@@ -255,7 +260,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         if (checkFieldsValidity()) {
             // TODO: 22/11/2016 create submission object, make httprequest and send to server(put this request into submission?)
             Submission newSub = new Submission(getMainActivity(), this.confirmedCategories, new Date(), submissionDescription.getText().toString(), this.location);
-            newSub.setFile(this.photofile);
+            newSub.setFile(this.photoFile);
             if (currentPhoto != null) {
                 newSub.setImage(this.currentPhoto);
             }
@@ -274,16 +279,19 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     private boolean checkFieldsValidity() {
         // TODO: 22/11/2016 check if location != null , check if
         if (!TextUtils.isEmpty(submissionDescription.getText().toString())) {
-            if (location != null) {
-                if (selectedCategories.size() > 0) {
+            if (this.location != null) {
+                if (this.confirmedCategories.size() > 0) {
                     return true;
                 } else {
+                    getMainActivity().makeToast("No categories selected.");
                     return false;
                 }
             } else {
+                getMainActivity().makeToast("No location found.");
                 return false;
             }
         } else {
+            getMainActivity().makeToast("Description is required.");
             return false;
         }
     }

@@ -346,7 +346,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void makeToast(String toastString) {
-        Toast.makeText(this, toastString, Toast.LENGTH_SHORT);
+        Toast.makeText(this, toastString, Toast.LENGTH_SHORT).show();
     }
 
     public void makeExitConfirmationPopup() {
