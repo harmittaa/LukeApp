@@ -24,7 +24,7 @@ public class SessionSingleton {
     }
 
 
-    private static final String TAG = "Session";
+    private static final String TAG = "SessionSingleton";
     private String userId;
     private String accessToken;
     private String idToken;
@@ -55,7 +55,6 @@ public class SessionSingleton {
     }
 
     public void addCategory(Category c) {
-        Log.e(TAG, "addCategory: added " + c + " to list of categories, size of list now " + this.categories.size());
         this.categories.add(c);
     }
 

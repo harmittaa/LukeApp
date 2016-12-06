@@ -7,14 +7,18 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
 import com.luke.lukef.lukeapp.SubmissionDatabase;
+import com.luke.lukef.lukeapp.model.Category;
+import com.luke.lukef.lukeapp.model.SessionSingleton;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -32,22 +36,23 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Created by Daniel on 08/11/2016.
- */
 
-public class PopupMaker {
-    private static final String TAG = "PopupMaker";
+/**
+ * Handles showing submission data when submission is clicked on the map
+ */
+public class NewSubmissionPopup {
+    private static final String TAG = "NewSubmissionPopup";
     private MainActivity mainActivity;
     private SubmissionDatabase submissionDatabase;
     private final Dialog dialog;
     private Cursor queryCursor;
-    private List<String> arrayIds;
     private String markerId;
     private String imageUrl;
     private boolean isAdminMarker;
+    private List<String> arrayIds;
 
     private View.OnClickListener clickListener;
+    private LinearLayout submissionCategoriesLinear;
     private ImageView submissionImage;
     private ImageView submitterProfileImage;
     private ImageButton popupButtonPositive;
@@ -58,7 +63,7 @@ public class PopupMaker {
     private TextView submissionDate;
     private TextView submissionTitle;
 
-    public PopupMaker(MainActivity mainActivity) {
+    public NewSubmissionPopup(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
         this.dialog = new Dialog(mainActivity);
         // Create custom dialog object
@@ -91,18 +96,19 @@ public class PopupMaker {
         this.isAdminMarker = isAdminMarker;
 
         // Include dialog.xml file
-        this.dialog.setContentView(R.layout.popup_test);
+        this.dialog.setContentView(R.layout.popup_new_submission);
 
         // find views
-        this.submissionImage = (ImageView) dialog.findViewById(R.id.submissionImageMain);
-        this.submitterProfileImage = (ImageView) dialog.findViewById(R.id.submissionSubmitterProfileImage);
-        this.submissionDescription = (TextView) dialog.findViewById(R.id.reportDescription);
-        this.submissionSubmitterName = (TextView) dialog.findViewById(R.id.submissionSubmitterName);
-        this.submissionSubmitterRank = (TextView) dialog.findViewById(R.id.submissionSubmitterRank);
-        this.submissionTitle = (TextView) dialog.findViewById(R.id.submissionTitle);
-        this.submissionDate = (TextView) dialog.findViewById(R.id.submissionDate);
-        this.popupButtonPositive = (ImageButton) dialog.findViewById(R.id.popup_button_positive);
-        this.submissionReportButton = (ImageButton) dialog.findViewById(R.id.submissionReportButton);
+        this.submissionImage = (ImageView) this.dialog.findViewById(R.id.submissionImageMain);
+        this.submitterProfileImage = (ImageView) this.dialog.findViewById(R.id.submissionSubmitterProfileImage);
+        this.submissionDescription = (TextView) this.dialog.findViewById(R.id.reportDescription);
+        this.submissionSubmitterName = (TextView) this.dialog.findViewById(R.id.submissionSubmitterName);
+        this.submissionSubmitterRank = (TextView) this.dialog.findViewById(R.id.submissionSubmitterRank);
+        this.submissionTitle = (TextView) this.dialog.findViewById(R.id.submissionTitle);
+        this.submissionDate = (TextView) this.dialog.findViewById(R.id.submissionDate);
+        this.popupButtonPositive = (ImageButton) this.dialog.findViewById(R.id.popup_button_positive);
+        this.submissionReportButton = (ImageButton) this.dialog.findViewById(R.id.submissionReportButton);
+        this.submissionCategoriesLinear = (LinearLayout) this.dialog.findViewById(R.id.submissionCategoriesLinear);
 
         // set click listeners
         this.popupButtonPositive.setOnClickListener(clickListener);
@@ -115,9 +121,12 @@ public class PopupMaker {
         }
         getLocalSubmissionData();
 
-        dialog.show();
+        this.dialog.show();
     }
 
+    /**
+     * Creates a new AsyncTask to fetch the required submission data from the server
+     */
     private void getExternalSubmissionData() {
         String[] taskParams = {this.markerId};
         new GetSubmissionDataTask().execute(taskParams);
@@ -141,11 +150,9 @@ public class PopupMaker {
                         new GetSubmissionImage().execute(taskParams);
                     }
                 } catch (IllegalArgumentException e) {
-                    // TODO: 02/12/2016 SET DEFAULT IMAGE
                     Log.e(TAG, "addDataToDialog: illegal arg ", e);
                     this.submissionImage.setImageResource(R.drawable.no_img);
                 } catch (NullPointerException e) {
-                    // TODO: 02/12/2016 same as before
                     this.submissionImage.setImageResource(R.drawable.no_img);
                     Log.e(TAG, "addDataToDialog: NPE ", e);
                 }
@@ -154,7 +161,6 @@ public class PopupMaker {
                 this.submissionImage.setImageResource(R.drawable.no_img);
             }
         } else {
-            // TODO: 02/12/2016 SET ADMIN MARKER IMAGE HERE
             Log.e(TAG, "addDataToDialog: admin marker, not setting image");
             this.submissionImage.setImageResource(R.drawable.admin_marker);
         }
@@ -206,15 +212,33 @@ public class PopupMaker {
         addDataToDialog();
     }
 
+    /**
+     * Called from {@link NewSubmissionPopup.GetSubmissionDataTask#onPostExecute(List)},
+     * uses the list of category IDs and finds the correct categories from {@link SessionSingleton#getCategoryList()}
+     * and fetches the images from those.
+     * @param strings The list of category IDs that the submission has.
+     */
     private void setCategories(List<String> strings) {
         this.arrayIds = strings;
-        // TODO: 02/12/2016 Start getting the category images from the server here
+        for (String s : this.arrayIds) {
+            for (Category c : SessionSingleton.getInstance().getCategoryList()) {
+                if (c.getId().equals(s)) {
+                    ImageView categoryImg = new ImageView(this.mainActivity);
+                    categoryImg.setImageBitmap(c.getImage());
+                    categoryImg.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                    this.submissionCategoriesLinear.addView(categoryImg);
+                }
+            }
+        }
     }
 
+    /**
+     * Sets the provided bitmap into the ImageView view.
+     * @param bitmap The bitmap for the submission.
+     */
     private void setSubmissionImage(Bitmap bitmap) {
         this.submissionImage.setImageBitmap(bitmap);
     }
-
 
     /**
      * Used to fetch submission data from the server, pass submission ID as first parameter, return values is a List<String>
@@ -222,7 +246,6 @@ public class PopupMaker {
      */
     private class GetSubmissionDataTask extends AsyncTask<String, Void, List<String>> {
         private String jsonString;
-
         private HttpURLConnection httpURLConnection;
 
         @Override
@@ -280,7 +303,6 @@ public class PopupMaker {
      * Gets the submission's image from the provided URL (first parameter)
      */
     private class GetSubmissionImage extends AsyncTask<String, Void, Bitmap> {
-
         @Override
         protected Bitmap doInBackground(String... params) {
             String imageUrl = params[0];
