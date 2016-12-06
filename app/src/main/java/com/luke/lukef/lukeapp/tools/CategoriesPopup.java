@@ -10,6 +10,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -28,7 +29,7 @@ public class CategoriesPopup {
     private final MainActivity mainActivity;
     private List<Category> chosenCategories;
     private ListView listView;
-    private Button acceptButton;
+    private ImageButton acceptButton;
     private Button cancelButton;
     private AdapterView.OnItemClickListener onClickListener;
     private ArrayList<Category> confirmedCategories;
@@ -60,8 +61,7 @@ public class CategoriesPopup {
 
 
         // find views
-        this.acceptButton = (Button) this.dialog.findViewById(R.id.categories_accept_button);
-        this.cancelButton = (Button) this.dialog.findViewById(R.id.categories_cancel_button);
+        this.acceptButton = (ImageButton) this.dialog.findViewById(R.id.categories_accept_button);
         // set click listeners
         this.acceptButton.setOnClickListener(this.buttonListener);
         //this.cancelButton.setOnClickListener(this.buttonListener);

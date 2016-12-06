@@ -117,10 +117,6 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
             case R.id.photoThumbnail:
                 dispatchTakePictureIntent();
                 break;
-            case R.id.categories_cancel_button:
-                this.tempCategories.clear();
-                this.popMaker.dismissCategoriesPopup();
-                break;
             case R.id.categories_accept_button:
                 saveCategories();
                 this.popMaker.dismissCategoriesPopup();
