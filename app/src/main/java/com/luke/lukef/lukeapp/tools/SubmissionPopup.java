@@ -40,8 +40,8 @@ import java.util.Locale;
 /**
  * Handles showing submission data when submission is clicked on the map
  */
-public class NewSubmissionPopup {
-    private static final String TAG = "NewSubmissionPopup";
+public class SubmissionPopup {
+    private static final String TAG = "SubmissionPopup";
     private MainActivity mainActivity;
     private SubmissionDatabase submissionDatabase;
     private final Dialog dialog;
@@ -63,7 +63,7 @@ public class NewSubmissionPopup {
     private TextView submissionDate;
     private TextView submissionTitle;
 
-    public NewSubmissionPopup(MainActivity mainActivity) {
+    public SubmissionPopup(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
         this.dialog = new Dialog(mainActivity);
         // Create custom dialog object
@@ -96,7 +96,7 @@ public class NewSubmissionPopup {
         this.isAdminMarker = isAdminMarker;
 
         // Include dialog.xml file
-        this.dialog.setContentView(R.layout.popup_new_submission);
+        this.dialog.setContentView(R.layout.popup_submission);
 
         // find views
         this.submissionImage = (ImageView) this.dialog.findViewById(R.id.submissionImageMain);
@@ -213,9 +213,10 @@ public class NewSubmissionPopup {
     }
 
     /**
-     * Called from {@link NewSubmissionPopup.GetSubmissionDataTask#onPostExecute(List)},
+     * Called from {@link SubmissionPopup.GetSubmissionDataTask#onPostExecute(List)},
      * uses the list of category IDs and finds the correct categories from {@link SessionSingleton#getCategoryList()}
      * and fetches the images from those.
+     *
      * @param strings The list of category IDs that the submission has.
      */
     private void setCategories(List<String> strings) {
@@ -225,7 +226,10 @@ public class NewSubmissionPopup {
                 if (c.getId().equals(s)) {
                     ImageView categoryImg = new ImageView(this.mainActivity);
                     categoryImg.setImageBitmap(c.getImage());
-                    categoryImg.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                    LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(new LinearLayout.LayoutParams(
+                            this.submissionCategoriesLinear.getHeight(),
+                            this.submissionCategoriesLinear.getHeight()));
+                    categoryImg.setLayoutParams(layoutParams);
                     this.submissionCategoriesLinear.addView(categoryImg);
                 }
             }
@@ -234,6 +238,7 @@ public class NewSubmissionPopup {
 
     /**
      * Sets the provided bitmap into the ImageView view.
+     *
      * @param bitmap The bitmap for the submission.
      */
     private void setSubmissionImage(Bitmap bitmap) {

@@ -16,7 +16,6 @@ import android.support.v4.content.FileProvider;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -29,7 +28,6 @@ import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
@@ -56,7 +54,6 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     EditText submissionTitle;
     EditText submissionDescription;
     static final int REQUEST_IMAGE_CAPTURE = 1;
-    private HorizontalScrollView scrollView;
     ImageView photoThumbnail;
     ImageView mapThumbnail;
     private LinearLayout categoriesLinearLayout;
@@ -67,7 +64,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     ArrayList<Category> confirmedCategories;
     ArrayList<Category> tempCategories;
 
-    ImageButton submittt;
+    ImageButton makeSubmissionButton;
     ImageButton backButton;
     Location location;
     private File photoFile;
@@ -77,10 +74,10 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        fragmentView = inflater.inflate(R.layout.fragment_new_submission_2, container, false);
+        fragmentView = inflater.inflate(R.layout.fragment_new_submission, container, false);
 
-        submittt = (ImageButton) fragmentView.findViewById(R.id.button_tick_submit);
-        backButton = (ImageButton)fragmentView.findViewById(R.id.button_back);
+        makeSubmissionButton = (ImageButton) fragmentView.findViewById(R.id.button_tick_submit);
+        backButton = (ImageButton) fragmentView.findViewById(R.id.button_back);
         backButton.setOnClickListener(this);
         this.categoriesLinearLayout = (LinearLayout) fragmentView.findViewById(R.id.categoriesLinearLayout);
         submissionDescription = (EditText) fragmentView.findViewById(R.id.newSubmissionEditTextDescrption);
@@ -126,7 +123,6 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
                 dispatchTakePictureIntent();
                 break;
             case R.id.button_back:
-                Log.e(TAG, "onClick: back now pls" );
                 getMainActivity().onBackPressed();
                 break;
             case R.id.categories_accept_button:
@@ -142,7 +138,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
 
     private void setupClickListeners() {
         this.categoriesLinearLayout.setOnClickListener(this);
-        submittt.setOnClickListener(this);
+        makeSubmissionButton.setOnClickListener(this);
     }
 
     private void fetchBundleFromArguments() {
@@ -317,6 +313,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         popMaker.setupCategoriesPopup();
     }
 
+    // listens to the checkbox being clicked and adds/removes the selected categories
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
         CheckBox checkBox = (CheckBox) view.findViewById(R.id.popup_categories_checkbox);
@@ -341,9 +338,8 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     }
 
 
-
     /**
-     *
+     * Handles updating the categories on the submission screen, based on user selection
      */
     private void updateCategoryThumbnails() {
         this.categoriesLinearLayout.removeAllViews();
@@ -353,10 +349,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
             categoryImg.setImageBitmap(c.getImage());
             LinearLayout.LayoutParams make = new LinearLayout.LayoutParams(new LinearLayout.LayoutParams(this.categoriesLinearLayout.getHeight(), this.categoriesLinearLayout.getHeight()));
             categoryImg.setLayoutParams(make);
-
-            //categoryImg.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT, 1));
             this.categoriesLinearLayout.addView(categoryImg);
-            //this.categoriesLinearLayout.addView(button);
         }
     }
 }

@@ -59,7 +59,7 @@ import com.luke.lukef.lukeapp.SubmissionDatabase;
 import com.luke.lukef.lukeapp.WelcomeActivity;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.model.SubmissionMarker;
-import com.luke.lukef.lukeapp.tools.NewSubmissionPopup;
+import com.luke.lukef.lukeapp.tools.SubmissionPopup;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -360,7 +360,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
             isAdminMarker = false;
         }
 
-        NewSubmissionPopup popMaker = new NewSubmissionPopup(getMainActivity());
+        SubmissionPopup popMaker = new SubmissionPopup(getMainActivity());
         popMaker.createPopupTest(submissionMarker.getSubmissionId(), isAdminMarker);
         return false;
     }

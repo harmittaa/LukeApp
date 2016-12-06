@@ -121,55 +121,55 @@
         tools:layout_editor_absoluteX="0dp"
         tools:layout_editor_absoluteY="512dp" />
 
- <!--   <LinearLayout
-        android:id="@+id/categoriesLinearLayout"
-        android:orientation="horizontal"
-        android:scrollbars=""
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/guideline4"
-        app:layout_constraintHorizontal_bias="0.44"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/newSubmissionEditTextDescrption"
-    />-->
+    <!--   <LinearLayout
+           android:id="@+id/categoriesLinearLayout"
+           android:orientation="horizontal"
+           android:scrollbars=""
+           android:layout_width="0dp"
+           android:layout_height="0dp"
+           android:layout_marginBottom="8dp"
+           android:layout_marginEnd="16dp"
+           android:layout_marginStart="16dp"
+           android:layout_marginTop="8dp"
+           app:layout_constraintBottom_toTopOf="@+id/guideline4"
+           app:layout_constraintHorizontal_bias="0.44"
+           app:layout_constraintLeft_toLeftOf="parent"
+           app:layout_constraintRight_toRightOf="parent"
+           app:layout_constraintTop_toBottomOf="@+id/newSubmissionEditTextDescrption"
+       />-->
 
 
     <HorizontalScrollView
         android:id="@+id/scrollView"
+        android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="16dp"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         app:layout_constraintBottom_toTopOf="@+id/guideline4"
         app:layout_constraintHorizontal_bias="0.44"
+        app:layout_constraintLeft_toRightOf="@+id/categorySelectButtonNewSubmission"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/newSubmissionEditTextDescrption"
-        app:layout_constraintVertical_bias="0.56"
-        android:layout_marginStart="8dp"
-        app:layout_constraintLeft_toRightOf="@+id/categorySelectButtonNewSubmission"
-        android:layout_width="0dp">
+        app:layout_constraintVertical_bias="0.56">
 
         <LinearLayout
             android:id="@+id/categoriesLinearLayout"
             android:layout_width="match_parent"
-            android:scrollbars="horizontal"
             android:layout_height="match_parent"
-            android:orientation="horizontal" />
+            android:orientation="horizontal"
+            android:scrollbars="horizontal" />
     </HorizontalScrollView>
 
     <Button
-        android:text="Category"
+        android:id="@+id/categorySelectButtonNewSubmission"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/categorySelectButtonNewSubmission"
         android:layout_marginStart="16dp"
-        app:layout_constraintLeft_toLeftOf="parent"
         android:layout_marginTop="8dp"
+        android:text="@string/button_category"
+        app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/newSubmissionEditTextDescrption" />
 
 </android.support.constraint.ConstraintLayout>

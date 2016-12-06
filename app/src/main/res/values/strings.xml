@@ -31,5 +31,6 @@
     <string name="report_id_url">http://www.balticapp.fi/lukeA/report?id=</string>
     <string name="category_title">Category title</string>
     <string name="category_description">Category description</string>
+    <string name="button_category">Category</string>
 
 </resources>
