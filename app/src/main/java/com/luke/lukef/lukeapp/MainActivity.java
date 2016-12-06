@@ -307,12 +307,13 @@ public class MainActivity extends AppCompatActivity {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
-        }
-        Fragment f = getFragmentManager().findFragmentById(R.id.fragment_container);
-        if (f instanceof MapViewFragment) {
-            makeExitConfirmationPopup();
         } else {
-            super.onBackPressed();
+            Fragment f = getFragmentManager().findFragmentById(R.id.fragment_container);
+            if (f instanceof MapViewFragment) {
+                makeExitConfirmationPopup();
+            } else {
+                super.onBackPressed();
+            }
         }
     }
 
@@ -369,7 +370,7 @@ public class MainActivity extends AppCompatActivity {
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         MainActivity.super.onBackPressed();
-                        finish();
+                        finishAffinity();
                     }
                 })
                 .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {

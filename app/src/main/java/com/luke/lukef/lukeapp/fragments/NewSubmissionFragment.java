@@ -115,6 +115,9 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
                 Log.e(TAG, "onClick: presd" );
                 dispatchTakePictureIntent();
                 break;
+            case R.id.button_back:
+                getMainActivity().onBackPressed();
+                break;
         }
     }
 

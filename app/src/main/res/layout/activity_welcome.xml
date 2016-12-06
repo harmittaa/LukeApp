@@ -66,7 +66,7 @@
         app:layout_constraintBottom_toBottomOf="@+id/imageView2" />
 
     <ImageView
-        app:srcCompat="@drawable/metropolia_white"
+        app:srcCompat="@drawable/metropolia_white_new"
         android:id="@+id/imageView4"
         app:layout_constraintTop_toTopOf="@+id/guideline3"
         app:layout_constraintRight_toRightOf="parent"
@@ -81,17 +81,26 @@
         android:layout_height="640dp"
         android:id="@+id/guideline6"
         android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.6354167"
+        app:layout_constraintGuide_percent="0.6041667"
         tools:layout_editor_absoluteY="0dp"
-        tools:layout_editor_absoluteX="244dp" />
+        tools:layout_editor_absoluteX="232dp" />
 
     <android.support.constraint.Guideline
         android:layout_width="wrap_content"
         android:layout_height="640dp"
         android:id="@+id/guideline8"
         android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.453125"
+        app:layout_constraintGuide_percent="0.40104166"
         tools:layout_editor_absoluteY="0dp"
-        tools:layout_editor_absoluteX="174dp" />
+        tools:layout_editor_absoluteX="154dp" />
+
+    <android.support.constraint.Guideline
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/guideline23"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.03125"
+        tools:layout_editor_absoluteY="20dp"
+        tools:layout_editor_absoluteX="0dp" />
 
 </android.support.constraint.ConstraintLayout>
