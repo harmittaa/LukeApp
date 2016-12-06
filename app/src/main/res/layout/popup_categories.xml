@@ -24,13 +24,4 @@
         android:layout_marginEnd="40dp"
         app:layout_constraintRight_toRightOf="parent" />
 
-    <Button
-        android:text="Cancel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/categories_cancel_button"
-        android:layout_marginStart="40dp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@+id/categoriesListView" />
 </android.support.constraint.ConstraintLayout>

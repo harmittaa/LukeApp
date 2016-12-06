@@ -1,13 +1,10 @@
 package com.luke.lukef.lukeapp.fragments;
 
-import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Rect;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -25,20 +22,19 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.google.maps.android.geometry.Bounds;
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
 import com.luke.lukef.lukeapp.model.Category;
-import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.model.Submission;
 import com.luke.lukef.lukeapp.tools.CategoriesPopup;
-import com.luke.lukef.lukeapp.tools.NewSubmissionPopup;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -50,6 +46,7 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 import static android.app.Activity.RESULT_OK;
@@ -65,11 +62,13 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     Bitmap currentPhoto;
     private final static String TAG = NewSubmissionFragment.class.toString();
     ArrayList<String> selectedCategries;
-    ArrayList<Category> selectedCategriesObjects;
+    ArrayList<Category> confirmedCategories;
+    ArrayList<Category> tempCategories;
     ImageButton submittt;
     Location location;
     private File photofile;
     private String photoPath;
+    CategoriesPopup popMaker;
 
     @Nullable
     @Override
@@ -84,7 +83,8 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         setupClickListeners();
         fetchBundleFromArguments();
         selectedCategries = new ArrayList<>();
-        this.selectedCategriesObjects = new ArrayList<>();
+        this.confirmedCategories = new ArrayList<>();
+        this.tempCategories = new ArrayList<>();
         setupThumbnailMap();
         ViewTreeObserver vto = mapThumbnail.getViewTreeObserver();
         vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -92,7 +92,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
             public void onGlobalLayout() {
                 getMapThumbnail(location, mapThumbnail.getWidth(), mapThumbnail.getHeight());
                 photoThumbnail.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                Log.e(TAG, "onGlobalLayout: photothumnailImageview dimensions:" + photoThumbnail.getWidth() + " x " + photoThumbnail.getHeight() );
+                Log.e(TAG, "onGlobalLayout: photothumnailImageview dimensions:" + photoThumbnail.getWidth() + " x " + photoThumbnail.getHeight());
             }
         });
 
@@ -115,8 +115,15 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
                 makeSubmission();
                 break;
             case R.id.photoThumbnail:
-                Log.e(TAG, "onClick: presd" );
                 dispatchTakePictureIntent();
+                break;
+            case R.id.categories_cancel_button:
+                this.tempCategories.clear();
+                this.popMaker.dismissCategoriesPopup();
+                break;
+            case R.id.categories_accept_button:
+                saveCategories();
+                this.popMaker.dismissCategoriesPopup();
                 break;
         }
     }
@@ -253,7 +260,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     private void makeSubmission() {
         if (checkFieldsValidity()) {
             // TODO: 22/11/2016 create submission object, make httprequest and send to server(put this request into submission?)
-            Submission newSub = new Submission(getMainActivity(), this.selectedCategriesObjects, new Date(), submissionDescription.getText().toString(), this.location);
+            Submission newSub = new Submission(getMainActivity(), this.confirmedCategories, new Date(), submissionDescription.getText().toString(), this.location);
             newSub.setFile(this.photofile);
             if (currentPhoto != null) {
                 newSub.setImage(this.currentPhoto);
@@ -308,7 +315,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
                 //NewSubmissionFragment.this.selectedCategries.add(cla.getItem(which));
                 Category c = SessionSingleton.getInstance().getCategoryList().get(which);
                 NewSubmissionFragment.this.selectedCategries.add(c.getId());
-                NewSubmissionFragment.this.selectedCategriesObjects.add(c);
+                NewSubmissionFragment.this.confirmedCategories.add(c);
                 Log.e(TAG, "onClick: added to selected: " + cla.getItem(which) + " size now at " + selectedCategries.size());
                 dialog.dismiss();
             }
@@ -316,7 +323,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         builderSingle.create();
         builderSingle.show();*/
 
-        CategoriesPopup popMaker = new CategoriesPopup(getMainActivity(), this);
+        popMaker = new CategoriesPopup(getMainActivity(), this, this, this.confirmedCategories);
         popMaker.setupCategoriesPopup();
 
 
@@ -324,44 +331,33 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-        Log.e(TAG, "onItemClick: cliky click");
+        Log.e(TAG, "onItemClick: cliky click int i " + i + " long l  " + l);
+        CheckBox checkBox = (CheckBox) view.findViewById(R.id.popup_categories_checkbox);
+        boolean checked = checkBox.isChecked();
+        ((CheckBox) view.findViewById(R.id.popup_categories_checkbox)).setChecked(!checked);
+        CategoriesPopup.ListViewAdapter listViewAdapter = (CategoriesPopup.ListViewAdapter) adapterView.getAdapter();
+
+        if (!checked) {
+            this.confirmedCategories.add(listViewAdapter.getItem(i));
+            Log.e(TAG, "onItemClick: adding  " + this.confirmedCategories.size());
+        } else {
+            Log.e(TAG, "onItemClick: removing " + this.confirmedCategories.size());
+            this.confirmedCategories.remove(listViewAdapter.getItem(i));
+        }
     }
 
-    private class CategoryListAdapter extends ArrayAdapter<Category> {
-
-
-        public CategoryListAdapter(Context context, int resource) {
-            super(context, resource);
+    private void saveCategories() {
+      /*  for (int i = 0; i < this.confirmedCategories.size(); i++) {
+            if (!this.tempCategories.contains(this.confirmedCategories.get(i))) {
+                this.confirmedCategories.remove(i);
+            }
         }
 
-        public CategoryListAdapter(Context context, int resource, int textViewResourceId) {
-            super(context, resource, textViewResourceId);
-        }
-
-        public CategoryListAdapter(Context context, int resource, Category[] objects) {
-            super(context, resource, objects);
-        }
-
-        public CategoryListAdapter(Context context, int resource, int textViewResourceId, Category[] objects) {
-            super(context, resource, textViewResourceId, objects);
-        }
-
-        public CategoryListAdapter(Context context, int resource, List<Category> objects) {
-            super(context, resource, objects);
-        }
-
-        public CategoryListAdapter(Context context, int resource, int textViewResourceId, List<Category> objects) {
-            super(context, resource, textViewResourceId, objects);
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            TextView view = (TextView) super.getView(position, convertView, parent);
-            // Replace text with my own
-            view.setText(getItem(position).getTitle());
-            return view;
-        }
-
+        for (int i = 0; i < this.tempCategories.size(); i++) {
+            if (!this.confirmedCategories.contains(this.tempCategories.get(i))) {
+                this.confirmedCategories.add(this.tempCategories.get(i));
+            }
+        }*/
 
     }
 }

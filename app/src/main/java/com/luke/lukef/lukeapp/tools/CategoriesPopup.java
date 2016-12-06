@@ -3,8 +3,6 @@ package com.luke.lukef.lukeapp.tools;
 import android.app.Dialog;
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,16 +31,22 @@ public class CategoriesPopup {
     private Button acceptButton;
     private Button cancelButton;
     private AdapterView.OnItemClickListener onClickListener;
+    private ArrayList<Category> confirmedCategories;
+    private ArrayList<Category> tempCategories;
+    private View.OnClickListener buttonListener;
 
     private View.OnClickListener clickListener;
 
-    public CategoriesPopup(MainActivity mainActivity, AdapterView.OnItemClickListener onItemClickListener) {
+    public CategoriesPopup(MainActivity mainActivity, AdapterView.OnItemClickListener onItemClickListener, View.OnClickListener buOnClickListener,
+                           ArrayList<Category> confirmedCategories) {
         this.mainActivity = mainActivity;
         this.dialog = new Dialog(mainActivity);
         this.chosenCategories = new ArrayList<>();
         this.onClickListener = onItemClickListener;
+        this.buttonListener = buOnClickListener;
+        this.confirmedCategories = confirmedCategories;
+        this.tempCategories = tempCategories;
         // Create custom dialog object
-        setupListeners();
     }
 
 
@@ -59,29 +63,17 @@ public class CategoriesPopup {
         this.acceptButton = (Button) this.dialog.findViewById(R.id.categories_accept_button);
         this.cancelButton = (Button) this.dialog.findViewById(R.id.categories_cancel_button);
         // set click listeners
-        this.acceptButton.setOnClickListener(this.clickListener);
-        this.cancelButton.setOnClickListener(this.clickListener);
+        this.acceptButton.setOnClickListener(this.buttonListener);
+        //this.cancelButton.setOnClickListener(this.buttonListener);
         this.listView.setOnItemClickListener(onClickListener);
         this.dialog.show();
     }
 
-    private void setupListeners() {
-        clickListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                switch (view.getId()) {
-                    case R.id.categories_accept_button:
-                        dialog.dismiss();
-                        break;
-                    case R.id.categories_cancel_button:
-                        dialog.dismiss();
-                        break;
-                }
-            }
-        };
+    public void dismissCategoriesPopup() {
+        this.dialog.dismiss();
     }
 
-    private class ListViewAdapter extends ArrayAdapter<Category> {
+    public class ListViewAdapter extends ArrayAdapter<Category> {
         LayoutInflater make = (LayoutInflater) mainActivity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         ListViewAdapter(Context context, int resource, List<Category> objects) {
@@ -98,10 +90,13 @@ public class CategoriesPopup {
             ((TextView) v.findViewById(R.id.popup_category_title)).setText(SessionSingleton.getInstance().getCategoryList().get(position).getTitle());
             ((TextView) v.findViewById(R.id.popup_category_description)).setText(SessionSingleton.getInstance().getCategoryList().get(position).getDescription());
             ((ImageView) v.findViewById(R.id.popup_category_image)).setImageBitmap(SessionSingleton.getInstance().getCategoryList().get(position).getImage());
+            //((CheckBox) v.findViewById(R.id.popup_categories_checkbox)).setOnCheckedChangeListener(checkedChangedListener);
+            if (confirmedCategories.contains(SessionSingleton.getInstance().getCategoryList().get(position))) {
+                ((CheckBox) v.findViewById(R.id.popup_categories_checkbox)).setChecked(true);
+            } else  {
+                ((CheckBox) v.findViewById(R.id.popup_categories_checkbox)).setChecked(false);
+            }
             return v;
         }
     }
-
-
-
 }
