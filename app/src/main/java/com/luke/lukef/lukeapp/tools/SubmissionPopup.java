@@ -50,8 +50,6 @@ public class SubmissionPopup {
     private String imageUrl;
     private boolean isAdminMarker;
     private List<String> arrayIds;
-
-    private View.OnClickListener clickListener;
     private LinearLayout submissionCategoriesLinear;
     private ImageView submissionImage;
     private ImageView submitterProfileImage;
@@ -62,33 +60,27 @@ public class SubmissionPopup {
     private TextView submissionSubmitterRank;
     private TextView submissionDate;
     private TextView submissionTitle;
+    private View.OnClickListener clickListener;
+    private Bitmap mainImageBitmap;
 
-    public SubmissionPopup(MainActivity mainActivity) {
+    public SubmissionPopup(MainActivity mainActivity, View.OnClickListener clickListener) {
         this.mainActivity = mainActivity;
         this.dialog = new Dialog(mainActivity);
-        // Create custom dialog object
-        setupListeners();
+        this.clickListener = clickListener;
     }
 
-    private void setupListeners() {
-        clickListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                switch (view.getId()) {
-                    case R.id.popup_button_positive:
-                        dialog.dismiss();
-                        break;
-                    case R.id.submissionReportButton:
-                        break;
-                    case R.id.submissionSubmitterProfileImage:
-                        mainActivity.fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_PROFILE, null);
-                        dialog.dismiss();
-                        break;
-                    case R.id.submissionImageMain:
-                        break;
-                }
-            }
-        };
+
+    public void dismissPopup(){
+        this.dialog.dismiss();
+    }
+
+    public void hidePopup(){
+        this.dialog.hide();
+    }
+    public void unHidePopup(){
+        if(this.dialog != null){
+            dialog.show();
+        }
     }
 
     public void createPopupTest(String markerId, boolean isAdminMarker) {
@@ -115,7 +107,7 @@ public class SubmissionPopup {
         this.submitterProfileImage.setOnClickListener(clickListener);
         this.submissionImage.setOnClickListener(clickListener);
         this.submissionReportButton.setOnClickListener(clickListener);
-
+        this.submissionImage.setOnClickListener(clickListener);
         if (!isAdminMarker) {
             getExternalSubmissionData();
         }
@@ -245,6 +237,14 @@ public class SubmissionPopup {
         this.submissionImage.setImageBitmap(bitmap);
     }
 
+    public Bitmap getMainImageBitmap() {
+        return mainImageBitmap;
+    }
+
+    public void setMainImageBitmap(Bitmap mainImageBitmap) {
+        this.mainImageBitmap = mainImageBitmap;
+    }
+
     /**
      * Used to fetch submission data from the server, pass submission ID as first parameter, return values is a List<String>
      * that includes the category IDs.
@@ -325,6 +325,7 @@ public class SubmissionPopup {
         protected void onPostExecute(Bitmap bitmap) {
             super.onPostExecute(bitmap);
             setSubmissionImage(bitmap);
+            SubmissionPopup.this.mainImageBitmap = bitmap;
         }
     }
 }

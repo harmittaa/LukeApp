@@ -87,7 +87,8 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     Location longPressLoc;
     private ImageButton menuButton;
     private ImageButton filtersButon;
-    private  ImageButton newSubmissionButton;
+    private ImageButton newSubmissionButton;
+    private SubmissionPopup submissionPopup;
 
     public Location getLastLoc() {
         if (longPressLoc == null) {
@@ -185,7 +186,27 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
                     alert.show();
                 }
                 break;
+            case R.id.popup_button_positive:
+                submissionPopup.dismissPopup();
+                break;
+            case R.id.submissionReportButton:
+                break;
+            case R.id.submissionSubmitterProfileImage:
+                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_PROFILE, null);
+                submissionPopup.dismissPopup();
+                break;
+            case R.id.submissionImageMain:
+                if(submissionPopup.getMainImageBitmap() != null){
+                    getMainActivity().setFullScreenImageViewImage(submissionPopup.getMainImageBitmap());
+                    getMainActivity().setFullScreenImageViewVisibility(true);
+                    submissionPopup.hidePopup();
+                }
+                break;
         }
+    }
+
+    public void unhidePopup(){
+        this.submissionPopup.unHidePopup();
     }
 
     private MainActivity getMainActivity() {
@@ -193,9 +214,9 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     }
 
     private void setupButtons() {
-        filtersButon = (ImageButton)fragmentView.findViewById(R.id.button_filters);
-        newSubmissionButton =(ImageButton)fragmentView.findViewById(R.id.button_new_submission);
-        menuButton = (ImageButton)fragmentView.findViewById(R.id.button_menu);
+        filtersButon = (ImageButton) fragmentView.findViewById(R.id.button_filters);
+        newSubmissionButton = (ImageButton) fragmentView.findViewById(R.id.button_new_submission);
+        menuButton = (ImageButton) fragmentView.findViewById(R.id.button_menu);
         filtersButon.setOnClickListener(this);
         newSubmissionButton.setOnClickListener(this);
         menuButton.setOnClickListener(this);
@@ -360,8 +381,8 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
             isAdminMarker = false;
         }
 
-        SubmissionPopup popMaker = new SubmissionPopup(getMainActivity());
-        popMaker.createPopupTest(submissionMarker.getSubmissionId(), isAdminMarker);
+        submissionPopup = new SubmissionPopup(getMainActivity(),this);
+        submissionPopup.createPopupTest(submissionMarker.getSubmissionId(), isAdminMarker);
         return false;
     }
 
