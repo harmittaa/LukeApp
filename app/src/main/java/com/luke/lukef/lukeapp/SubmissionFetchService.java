@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -46,13 +47,19 @@ public class SubmissionFetchService extends Service {
                 Log.e(TAG, "run:Running service");
                 submissionDatabase = new SubmissionDatabase(getApplicationContext());
                 submissionDatabase.clearCache();
-                getSubmissions();
                 getAdminMarkers();
+                getSubmissions();
             }
         });
 
         serviceThread.start();
-        return START_STICKY_COMPATIBILITY;
+        return START_NOT_STICKY;
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.e(TAG, "SERVICE DESTROYED");
+        super.onDestroy();
     }
 
     /**
@@ -65,7 +72,6 @@ public class SubmissionFetchService extends Service {
             HttpURLConnection httpURLConnection = (HttpURLConnection) getReportsUrl.openConnection();
             if (httpURLConnection.getResponseCode() == 200) {
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
-                jsonString = "";
                 StringBuilder stringBuilder = new StringBuilder();
                 String line;
                 while ((line = bufferedReader.readLine()) != null) {
@@ -73,7 +79,6 @@ public class SubmissionFetchService extends Service {
                 }
                 bufferedReader.close();
                 jsonString = stringBuilder.toString();
-                JSONObject jsonObject;
                 JSONArray jsonArray;
 
                 try {
@@ -87,7 +92,10 @@ public class SubmissionFetchService extends Service {
                     Log.e(TAG, "onPostExecute: ", e);
                 }
             } else {
-                // TODO: 25/11/2016 Show error when responsecode is not 200
+                Toast toast = new Toast(this.context);
+                toast.setText("Couldn't download submissions, restart");
+                toast.setDuration(Toast.LENGTH_LONG);
+                toast.show();
                 Log.e(TAG, "Responsecode = " + httpURLConnection.getResponseCode());
             }
         } catch (Exception e) {
