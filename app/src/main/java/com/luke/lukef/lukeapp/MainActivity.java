@@ -33,6 +33,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -73,6 +74,9 @@ public class MainActivity extends AppCompatActivity {
     private NavigationView navigationView;
     private int progressStatus;
     private ProgressBar progressBar;
+    private ImageView fullScreenImageView;
+    private boolean fullsScreenIsActive = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,6 +120,8 @@ public class MainActivity extends AppCompatActivity {
 
 
         getCategories();
+
+        this.fullScreenImageView = (ImageView) findViewById(R.id.fullscreenImage);
 
         //activate map fragment as default
         fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP, null);
@@ -183,6 +189,37 @@ public class MainActivity extends AppCompatActivity {
                 fragmentTransaction.replace(R.id.fragment_container, fragment).commit();
             }
         }
+    }
+
+    public void setFullScreenImageViewImage(final Bitmap b) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                MainActivity.this.fullScreenImageView.setImageBitmap(b);
+            }
+        });
+    }
+
+    public void setFullScreenImageViewVisibility(final boolean isVisible) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                MainActivity.this.fullsScreenIsActive = isVisible;
+                if (isVisible) {
+                    MainActivity.this.fullScreenImageView.setVisibility(View.VISIBLE);
+                    MainActivity.this.findViewById(R.id.fragment_container).setVisibility(View.GONE);
+                    if (MainActivity.this.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                        MainActivity.this.drawerLayout.closeDrawer(GravityCompat.START);
+                    }
+                } else {
+                    MainActivity.this.fullScreenImageView.setVisibility(View.GONE);
+                    MainActivity.this.findViewById(R.id.fragment_container).setVisibility(View.VISIBLE);
+                    if (MainActivity.this.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                        MainActivity.this.drawerLayout.closeDrawer(GravityCompat.START);
+                    }
+                }
+            }
+        });
     }
 
     private void setStatusBarFlag() {
@@ -289,9 +326,15 @@ public class MainActivity extends AppCompatActivity {
     //Implementation of Navigation Drawer
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
+
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START);
+        } else if (fullsScreenIsActive) {
+            this.setFullScreenImageViewVisibility(false);
+            Fragment f = getFragmentManager().findFragmentById(R.id.fragment_container);
+            if (f instanceof MapViewFragment) {
+                ((MapViewFragment)f).unhidePopup();
+            }
         } else {
             Fragment f = getFragmentManager().findFragmentById(R.id.fragment_container);
             if (f instanceof MapViewFragment) {
