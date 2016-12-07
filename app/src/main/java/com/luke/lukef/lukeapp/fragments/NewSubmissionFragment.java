@@ -207,21 +207,25 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inSampleSize = 4;
             Bitmap imageBitmap = BitmapFactory.decodeFile(this.photoPath.toString(), options);
-            try {
-                Log.e(TAG, "onActivityResult: photo file before write" + this.photoFile.length());
-                FileOutputStream fo = new FileOutputStream(this.photoFile);
-                imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fo);
-                Log.e(TAG, "onActivityResult: photo file after write" + this.photoFile.length());
-            } catch (FileNotFoundException e) {
-                Log.e(TAG, "onActivityResult: ", e);
+            if (imageBitmap != null) {
+                try {
+                    Log.e(TAG, "onActivityResult: photo file before write" + this.photoFile.length());
+                    FileOutputStream fo = new FileOutputStream(this.photoFile);
+                    imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fo);
+                    Log.e(TAG, "onActivityResult: photo file after write" + this.photoFile.length());
+                } catch (FileNotFoundException e) {
+                    Log.e(TAG, "onActivityResult: ", e);
+                }
+
+                imageBitmap = BitmapFactory.decodeFile(photoPath, options);
+
+                if (imageBitmap != null)
+                    Log.e(TAG, "onActivityResult: photo exists, size : " + imageBitmap.getByteCount());
+                photoThumbnail.setImageBitmap(imageBitmap);
+                this.currentPhoto = imageBitmap;
+            } else {
+                getMainActivity().makeToast("Error taking picture");
             }
-
-            imageBitmap = BitmapFactory.decodeFile(photoPath, options);
-
-            if (imageBitmap != null)
-                Log.e(TAG, "onActivityResult: photo exists, size : " + imageBitmap.getByteCount());
-            photoThumbnail.setImageBitmap(imageBitmap);
-            this.currentPhoto = imageBitmap;
         }
     }
 
