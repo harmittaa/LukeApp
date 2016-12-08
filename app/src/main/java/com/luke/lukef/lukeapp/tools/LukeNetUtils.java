@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.auth0.android.Auth0;
 import com.auth0.android.authentication.AuthenticationAPIClient;
@@ -299,6 +300,17 @@ public class LukeNetUtils {
                     }
                     bufferedReader.close();
                     jsonString = stringBuilder.toString();
+                    JSONObject josn = new JSONObject(jsonString);
+                    Log.e(TAG, "call: josn boii" + josn.toString());
+                    if(josn.has("flagged")) {
+                        if (josn.getBoolean("flagged")) {
+                            Log.e(TAG, "call: TOAST FLAGED" );
+                            Toast.makeText(context, "You have flagged this submission", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Log.e(TAG, "call: TOAST UNFALGED" );
+                            Toast.makeText(context, "You have unflagged this submission", Toast.LENGTH_SHORT).show();
+                        }
+                    }
 
                     Log.e(TAG, "updateUserImage run: Result : " + jsonString);
                     return returnValue;
@@ -316,6 +328,7 @@ public class LukeNetUtils {
         };
         FutureTask<Boolean> booleanFutureTask = new FutureTask<Boolean>(booleanCallable);
         Thread t = new Thread(booleanFutureTask);
+        t.start();
         try {
             return booleanFutureTask.get();
         } catch (InterruptedException e) {

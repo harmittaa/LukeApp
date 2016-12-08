@@ -185,7 +185,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         if (SessionSingleton.getInstance().isUserLogged()) {
             LukeNetUtils lukeNetUtils = new LukeNetUtils(getMainActivity());
             if (lukeNetUtils.reportSubmission(submissionPopup.getSubmissionID())) {
-                getMainActivity().makeToast("This submission has been reported");
             } else {
                 getMainActivity().makeToast("Error when reporting this submission");
             }
