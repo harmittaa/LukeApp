@@ -14,6 +14,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.graphics.drawable.Drawable;
 import android.support.design.widget.NavigationView;
@@ -86,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
         // Setup navigation drawer view
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         navigationView = (NavigationView) findViewById(R.id.nav_view);
-        setupDrawerContent(navigationView);
+        //setupDrawerContent(navigationView);
         Menu menu = navigationView.getMenu();
 
         //Notification switch handler
@@ -326,19 +327,17 @@ public class MainActivity extends AppCompatActivity {
     //Implementation of Navigation Drawer
     @Override
     public void onBackPressed() {
-
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START);
         } else if (fullsScreenIsActive) {
             this.setFullScreenImageViewVisibility(false);
-            Fragment f = getFragmentManager().findFragmentById(R.id.fragment_container);
-            if (f instanceof MapViewFragment) {
-                ((MapViewFragment)f).unhidePopup();
-            }
         } else {
             Fragment f = getFragmentManager().findFragmentById(R.id.fragment_container);
             if (f instanceof MapViewFragment) {
-                makeExitConfirmationPopup();
+                ((MapViewFragment) f).unhidePopup();
+            } else if (f instanceof ProfileFragment) {
+                //this is to avoid map lag
+                fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP, null);
             } else {
                 super.onBackPressed();
             }
@@ -550,4 +549,6 @@ public class MainActivity extends AppCompatActivity {
         Thread thread = new Thread(checkUsernameRunnable);
         thread.start();
     }
+
+
 }
