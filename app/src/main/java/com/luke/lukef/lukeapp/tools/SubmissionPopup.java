@@ -291,8 +291,8 @@ public class SubmissionPopup {
                     }
 
                     if (jsonObject.has("submitterId")) {
-                        // TODO: 07/12/2016 FETCH SUBMISSION DATA 
-                        //getSubmitterData(jsonObject.getString("submitterId"));
+                        // TODO: 07/12/2016 FETCH SUBMISSION DATA
+                        getSubmitterData(jsonObject.getString("submitterId"));
                     }
                 } catch (JSONException e) {
                     Log.e(TAG, "Exception parsing JSONObject from string: ", e);
@@ -342,7 +342,13 @@ public class SubmissionPopup {
                     try {
                         InputStream in = new java.net.URL(imageUrl).openStream();
                         bitmap = BitmapFactory.decodeStream(in);
-
+                        final Bitmap finalBitmap = bitmap;
+                        mainActivity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                submitterProfileImage.setImageBitmap(finalBitmap);
+                            }
+                        });
                     } catch (IOException e) {
                         Log.e(TAG, "doInBackground: Exception parsing image ", e);
                     }
