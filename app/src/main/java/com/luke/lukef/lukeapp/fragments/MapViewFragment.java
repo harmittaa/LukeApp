@@ -29,11 +29,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -43,10 +45,12 @@ import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.VisibleRegion;
 import com.google.maps.android.clustering.Cluster;
+import com.google.maps.android.clustering.ClusterItem;
 import com.google.maps.android.clustering.ClusterManager;
 import com.google.maps.android.clustering.view.DefaultClusterRenderer;
 import com.google.maps.android.ui.IconGenerator;
@@ -84,7 +88,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     private GoogleApiClient googleApiClient;
     LocationRequest locationRequest;
     LatLng currentCameraPosition;
-    Button testbutton;
     Location longPressLoc;
     private ImageButton menuButton;
     private ImageButton filtersButon;
@@ -181,7 +184,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         }
     }
 
-    private void reportSubmission(){
+    private void reportSubmission() {
         if (SessionSingleton.getInstance().isUserLogged()) {
             LukeNetUtils lukeNetUtils = new LukeNetUtils(getMainActivity());
             if (lukeNetUtils.reportSubmission(submissionPopup.getSubmissionID())) {
@@ -388,7 +391,37 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
 
     @Override
     public boolean onClusterClick(Cluster<SubmissionMarker> cluster) {
-        Log.e(TAG, "onClusterClick: Cluster clicked");
+/*
+        // Zoom in the cluster. Need to create LatLngBounds and including all the cluster items
+        // inside of bounds, then animate to center of the bounds.
+
+        // Create the builder to collect all essential cluster items for the bounds.
+        LatLngBounds.Builder builder = LatLngBounds.builder();
+        for (ClusterItem item : cluster.getItems()) {
+            builder.include(item.getPosition());
+        }
+        // Get the LatLngBounds
+        final LatLngBounds bounds = builder.build();
+
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(cluster.getPosition())      // Sets the center of the map to Mountain View
+                .zoom(15)                   // Sets the zoom
+                .bearing(90)                // Sets the orientation of the camera to east
+                .tilt(30)                   // Sets the tilt of the camera to 30 degrees
+                .build();                   // Creates a CameraPosition from the builder
+        googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+*/
+
+       /* Log.e(TAG, "onClusterClick: BOUNDS SW " + bounds.southwest + " Cneter " + bounds.getCenter());
+        // Animate camera to the bounds
+        try {
+            this.googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
+            //this.googleMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+            Log.e(TAG, "onClusterClick: animated");
+        } catch (Exception e) {
+            Log.e(TAG, "onClusterClick: animate failed ", e);
+        }*/
+
         return false;
     }
 
