@@ -7,6 +7,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
@@ -17,6 +19,8 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     Button profileMapButton;
     Button profileLeaderboard;
     Button profilePoi;
+    TextView Username, Title, Score;
+    ImageView ProfileImage, Submission;
 
     @Nullable
     @Override
@@ -26,6 +30,12 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         profileLeaderboard = (Button) fragmentView.findViewById(R.id.profile_leaderboard);
         profilePoi = (Button) fragmentView.findViewById(R.id.profile_poi);
         setupButtons();
+        Username = (TextView) fragmentView.findViewById(R.id.usernamedisplay);
+        Title = (TextView) fragmentView.findViewById(R.id.title);
+        Score = (TextView) fragmentView.findViewById(R.id.Score);
+        ProfileImage = (ImageView) fragmentView.findViewById(R.id.profieImage);
+        Submission = (ImageView) fragmentView.findViewById(R.id.submission);
+
         return fragmentView;
     }
 
@@ -44,6 +54,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         }
     }
 
+    
     private MainActivity getMainActivity() {
         return (MainActivity) getActivity();
     }
