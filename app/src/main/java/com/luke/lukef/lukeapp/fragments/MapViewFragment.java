@@ -9,7 +9,9 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Point;
 import android.graphics.PorterDuff;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.ShapeDrawable;
@@ -19,16 +21,21 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.util.SparseArray;
+import android.view.Display;
+import android.view.Gravity;
 import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.ImageButton;
+import android.widget.PopupWindow;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -66,7 +73,9 @@ import com.luke.lukef.lukeapp.model.SubmissionMarker;
 import com.luke.lukef.lukeapp.tools.LukeNetUtils;
 import com.luke.lukef.lukeapp.tools.SubmissionPopup;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -93,6 +102,11 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     private ImageButton filtersButon;
     private ImageButton newSubmissionButton;
     private SubmissionPopup submissionPopup;
+    private long minDateInMs = 0;
+    int tempY;
+    int tempM;
+    int tempD;
+
 
     public Location getLastLoc() {
         if (longPressLoc == null) {
@@ -159,6 +173,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
                 break;
             case R.id.button_filters:
                 // TODO: 02/12/2016 open filters
+                showCalendarPicker();
                 break;
             case R.id.button_new_submission:
                 // TODO: 02/12/2016 switch fragment to new submission fragment
@@ -318,12 +333,20 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         if (this.googleMap != null) {
             if (this.visibleRegion == null) {
                 this.visibleRegion = this.googleMap.getProjection().getVisibleRegion();
-                addSubmissionsToMap(this.visibleRegion);
+                if (this.minDateInMs > 0) {
+                    addSubmissionsToMap(this.visibleRegion, this.minDateInMs);
+                } else {
+                    addSubmissionsToMap(this.visibleRegion, null);
+                }
                 addAdminMarkersToMap();
             } else {
                 // TODO: 29/11/2016 check here if the luke_camera has moved enough to get new stuff from the DB or not
                 this.visibleRegion = this.googleMap.getProjection().getVisibleRegion();
-                addSubmissionsToMap(this.visibleRegion);
+                if (this.minDateInMs > 0) {
+                    addSubmissionsToMap(this.visibleRegion, this.minDateInMs);
+                } else {
+                    addSubmissionsToMap(this.visibleRegion, null);
+                }
                 addAdminMarkersToMap();
             }
         }
@@ -362,13 +385,18 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
 
     /**
      * Adds submissions to the map based on the provided <code>VisibleRegion</code>. Passes the VisibleRegion
-     * to the {@link com.luke.lukef.lukeapp.SubmissionDatabase#querySubmissions(VisibleRegion visibleRegion)}
+     * to the {@link com.luke.lukef.lukeapp.SubmissionDatabase#querySubmissions(VisibleRegion, Long)}
      *
      * @param visibleRegion The region currently visible on the map
      */
-    private void addSubmissionsToMap(VisibleRegion visibleRegion) {
+    private void addSubmissionsToMap(VisibleRegion visibleRegion, Long dateTimeInMs) {
         SubmissionDatabase submissionDatabase = new SubmissionDatabase(getActivity());
-        Cursor queryCursor = submissionDatabase.querySubmissions(visibleRegion);
+        Cursor queryCursor;
+        if (this.minDateInMs > 0) {
+            queryCursor = submissionDatabase.querySubmissions(visibleRegion, this.minDateInMs);
+        } else {
+            queryCursor = submissionDatabase.querySubmissions(visibleRegion, null);
+        }
         queryCursor.moveToFirst();
         if (queryCursor.getCount() > 0) {
             do {
@@ -440,6 +468,11 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     public boolean onMarkerClick(Marker marker) {
         Log.e(TAG, "onMarkerClick: marker clicked");
         return false;
+    }
+
+    public void setMinDateInMs(long minDateInMs) {
+        this.minDateInMs = minDateInMs;
+        addSubmissionsToMap(this.googleMap.getProjection().getVisibleRegion(), minDateInMs);
     }
 
     /**
@@ -743,5 +776,66 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     @Override
     public void onLocationChanged(Location location) {
         this.lastLoc = location;
+    }
+
+    private void showCalendarPicker() {
+        // Inflate the popup_layout.xml
+        ConstraintLayout viewGroup = (ConstraintLayout) getMainActivity().findViewById(R.id.popup_calendar_root);
+        LayoutInflater layoutInflater = (LayoutInflater) getMainActivity()
+                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        final View layout = layoutInflater.inflate(R.layout.popup_calendar, viewGroup);
+        // Some offset to align the popup a bit to the right, and a bit down, relative to button's position.
+        //or if popup is on edge display it to the left of the circle
+        Display display = getMainActivity().getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+
+        int OFFSET_X = 25;
+        int OFFSET_Y = 25;
+
+        final DatePicker dP = (DatePicker) layout.findViewById(R.id.popup_calendar_datepicker);
+
+        // Creating the PopupWindow
+        final PopupWindow popup = new PopupWindow(getMainActivity());
+        popup.setAnimationStyle(android.R.style.Animation_Dialog);
+        popup.setContentView(layout);
+
+        popup.setWidth(ViewGroup.LayoutParams.WRAP_CONTENT);
+        popup.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
+
+        popup.setFocusable(true);
+        //gets rid of default background
+        popup.setBackgroundDrawable(new BitmapDrawable(getMainActivity().getResources(), (Bitmap) null));
+
+        // Displaying the popup at the specified location, + offsets.
+        popup.showAtLocation(layout, Gravity.NO_GRAVITY, 200 + OFFSET_X, 300 + OFFSET_Y);
+        Calendar minDate = null;
+        minDate = Calendar.getInstance();
+        tempY = minDate.get(Calendar.YEAR);
+        tempM = minDate.get(Calendar.MONTH);
+        tempD = minDate.get(Calendar.DAY_OF_MONTH);
+        dP.init(minDate.get(Calendar.YEAR), minDate.get(Calendar.MONTH), minDate.get(Calendar.DAY_OF_MONTH), new DatePicker.OnDateChangedListener() {
+            @Override
+            // Months start from 0, so January is month 0
+            public void onDateChanged(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                tempY = year;
+                tempM = monthOfYear;
+                tempD = dayOfMonth;
+                Log.e(TAG, "onDateChanged: selected " + tempD + " " + tempM + " " + tempY);
+            }
+        });
+        ImageButton okButton = (ImageButton) layout.findViewById(R.id.popup_calendar_accept);
+        okButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Calendar calendar = Calendar.getInstance();
+                calendar.set(tempY, tempM, tempD, 0, 1);
+                Log.e(TAG, "onClick: calendar time in ms " + calendar.getTimeInMillis());
+                clusterManager.clearItems();
+                addAdminMarkersToMap();
+                setMinDateInMs(calendar.getTimeInMillis());
+                popup.dismiss();
+            }
+        });
     }
 }
