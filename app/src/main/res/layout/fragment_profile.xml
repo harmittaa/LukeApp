@@ -10,24 +10,23 @@
         android:text="Map fragment"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginBottom="16dp"
         android:id="@+id/profile_map_button"
-        android:elevation="24dp" />
+        android:elevation="24dp"
+        tools:layout_editor_absoluteY="576dp"
+        tools:layout_editor_absoluteX="236dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:ems="10"
         android:id="@+id/editText"
+        android:text="Profile"
+        tools:layout_editor_absoluteX="113dp"
+        app:layout_constraintBottom_toTopOf="@+id/usernamedisplay"
         android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginStart="16dp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        android:layout_marginEnd="16dp"
-        app:layout_constraintRight_toRightOf="parent"
-        android:text="Profile fragment" />
+        app:layout_constraintVertical_bias="0.0" />
 
     <Button
         android:text="Leaderboard"
@@ -48,4 +47,72 @@
         app:layout_constraintLeft_toRightOf="@+id/profile_leaderboard"
         app:layout_constraintRight_toLeftOf="@+id/profile_map_button"
         app:layout_constraintHorizontal_bias="0.62" />
+
+    <ImageView
+        android:layout_width="99dp"
+        android:layout_height="123dp"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:srcCompat="@mipmap/ic_launcher"
+        android:id="@+id/profieImage"
+        android:layout_marginEnd="16dp"
+        android:layout_marginStart="16dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintHorizontal_bias="0.07"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.060000002" />
+
+    <TextView
+        android:text="TextView"
+        android:layout_width="240dp"
+        android:layout_height="28dp"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:id="@+id/usernamedisplay"
+        android:layout_marginBottom="536dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:text="TextView"
+        android:layout_width="104dp"
+        android:layout_height="28dp"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:id="@+id/title"
+        android:layout_marginEnd="128dp"
+        android:layout_marginBottom="520dp" />
+
+    <SeekBar
+        android:layout_width="278dp"
+        android:layout_height="29dp"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:id="@+id/scoreBar"
+        android:layout_marginEnd="96dp"
+        android:layout_marginBottom="416dp" />
+
+    <TextView
+        android:text="TextView"
+        android:layout_width="wrap_content"
+        android:layout_height="29dp"
+        app:layout_constraintRight_toRightOf="parent"
+        android:id="@+id/Score"
+        tools:layout_editor_absoluteY="195dp"
+        android:layout_marginEnd="16dp" />
+
+    <ImageView
+        android:layout_width="326dp"
+        android:layout_height="177dp"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:srcCompat="@drawable/amu_bubble_mask"
+        android:id="@+id/submission"
+        android:layout_marginEnd="40dp"
+        android:layout_marginBottom="184dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0" />
+
 </android.support.constraint.ConstraintLayout>
