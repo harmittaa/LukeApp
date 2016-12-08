@@ -24,7 +24,6 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -32,6 +31,7 @@ import android.widget.LinearLayout;
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
+import com.luke.lukef.lukeapp.SubmissionFetchService;
 import com.luke.lukef.lukeapp.model.Category;
 import com.luke.lukef.lukeapp.model.Submission;
 import com.luke.lukef.lukeapp.tools.CategoriesPopup;
@@ -46,6 +46,7 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -181,7 +182,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
 
     private void createImageFile() {
         // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
         File storageDir = getMainActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File image = null;
@@ -229,7 +230,6 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         }
     }
 
-
     private void getMapThumbnail(final Location center, final int width, final int height) {
         //https://maps.googleapis.com/maps/api/staticmap?center=29.390946,%2076.963502&zoom=10&size=600x300&maptype=normal
         final String urlString1 = "https://maps.googleapis.com/maps/api/staticmap?center=";
@@ -254,7 +254,6 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         t.start();
     }
 
-
     private void changeMapThumbnail(final Bitmap bm) {
         getMainActivity().runOnUiThread(new Runnable() {
             @Override
@@ -263,7 +262,6 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
             }
         });
     }
-
 
     private void makeSubmission() {
         if (checkFieldsValidity()) {
@@ -274,6 +272,8 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
                 newSub.setImage(this.currentPhoto);
             }
             if (newSub.submitToServer()) {
+                // fetch the submissions again
+                getMainActivity().startService(new Intent(getMainActivity(), SubmissionFetchService.class));
                 Log.e(TAG, "makeSubmission: Submission sent succesfully");
                 getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP, null);
                 getMainActivity().makeToast("Success!");
@@ -281,6 +281,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
                 getMainActivity().makeToast("Error Submitting");
             }
         } else {
+            getMainActivity().makeToast("Fields are not valid!");
             Log.e(TAG, "makeSubmission: FIELDS NOT VALID\nFIELDS NOT VALID");
         }
     }
@@ -340,7 +341,6 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         Log.e(TAG, "makeCategoryListPopup: temp size " + this.tempCategories.size());
         this.confirmedCategories = new ArrayList<>(this.tempCategories);
     }
-
 
     /**
      * Handles updating the categories on the submission screen, based on user selection

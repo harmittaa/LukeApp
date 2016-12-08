@@ -76,8 +76,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     private Lock lock;
     private String idToken = "";
     private String accessToken = "";
-    File photofile;
-    private String photoPath;
     static final int REQUEST_IMAGE_CAPTURE = 1;
 
     @Override
@@ -163,9 +161,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     Log.e(TAG, "onAuthentication: booleanFutureTask failed");
                     finish();
                 }
-            } catch (InterruptedException e) {
-                Log.e(TAG, "onAuthentication: ", e);
-            } catch (ExecutionException e) {
+            } catch (InterruptedException | ExecutionException e) {
                 Log.e(TAG, "onAuthentication: ", e);
             }
             //startActivity(new Intent(getApplicationContext(),MainActivity.class));
@@ -195,7 +191,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         String url;
         String jsonString;
 
-        public SetupTask(String url) {
+        SetupTask(String url) {
             this.url = url;
         }
 
@@ -215,7 +211,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     StringBuilder stringBuilder = new StringBuilder();
                     String line;
                     while ((line = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(line + "\n");
+                        stringBuilder.append(line).append("\n");
                     }
                     bufferedReader.close();
                     jsonString = stringBuilder.toString();
@@ -223,8 +219,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     //TODO: if error do something else, ERROR STREAM
                 }
                 httpURLConnection.disconnect();
-            } catch (MalformedURLException e) {
-                Log.e(TAG, "doInBackground: ", e);
             } catch (IOException e) {
                 Log.e(TAG, "doInBackground: ", e);
             }
@@ -281,8 +275,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private class CheckUsernameTask extends AsyncTask<Void, Void, Void> {
-        private String uname;
         private String jsonString;
+        private String uname;
         HttpURLConnection httpURLConnection;
 
         @Override
@@ -298,7 +292,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     StringBuilder stringBuilder = new StringBuilder();
                     String line;
                     while ((line = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(line + "\n");
+                        stringBuilder.append(line).append("\n");
                     }
                     jsonString = stringBuilder.toString();
                     bufferedReader.close();
@@ -307,8 +301,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     //TODO: if error do something else, ERROR STREAM
                     Log.e(TAG, "doInBackground: vöörö");
                 }
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -343,11 +335,4 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
         }
     }
-
-
-
-
-
-
-
 }
