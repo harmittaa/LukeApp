@@ -518,7 +518,7 @@ public class MainActivity extends AppCompatActivity {
                                 if (jsonCategory.has("image_url")) {
                                     String imageUrl = jsonCategory.getString("image_url");
                                     try {
-                                        InputStream in = new java.net.URL(imageUrl).openStream();
+                                        InputStream in = new URL(imageUrl).openStream();
                                         bitmap = BitmapFactory.decodeStream(in);
                                     } catch (MalformedURLException e) {
                                         // Error downloading / parsing the image, setting to default
