@@ -313,7 +313,7 @@ public class SubmissionPopup {
     private void getSubmitterData(String userId) {
         String jsonString = "";
         try {
-            URL lukeURL = new URL("http://balticapp.fi/lukeA/user?id=" + userId);
+            URL lukeURL = new URL("http://www.balticapp.fi/lukeA/user?id=" + userId);
             HttpURLConnection httpURLConnection = (HttpURLConnection) lukeURL.openConnection();
             if (httpURLConnection.getResponseCode() == 200) {
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
@@ -324,6 +324,7 @@ public class SubmissionPopup {
                 }
                 jsonString = stringBuilder.toString();
                 bufferedReader.close();
+                Log.e(TAG, "getSubmitterData: jsonString " + jsonString);
 
             } else {
                 //TODO: if error do something else, ERROR STREAM
@@ -336,7 +337,7 @@ public class SubmissionPopup {
 
         if (!TextUtils.isEmpty(jsonString)) {
             try {
-                JSONObject jsonObject = new JSONObject(jsonString);
+                final JSONObject jsonObject = new JSONObject(jsonString);
                 if (jsonObject.has("image_url")) {
                     Bitmap bitmap = null;
                     try {
@@ -346,12 +347,37 @@ public class SubmissionPopup {
                         mainActivity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
+                                Log.e(TAG, "run: Setting image");
                                 submitterProfileImage.setImageBitmap(finalBitmap);
                             }
                         });
                     } catch (IOException e) {
                         Log.e(TAG, "doInBackground: Exception parsing image ", e);
                     }
+                } else {
+                    Log.e(TAG, "getSubmitterData: NO USER IMG");
+                    mainActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Log.e(TAG, "run: Setting image");
+                            submitterProfileImage.setImageResource(R.drawable.admin_marker);
+                        }
+                    });
+                }
+
+                if (jsonObject.has("username")) {
+                    mainActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Log.e(TAG, "run: Setting image");
+                            try {
+                                submissionSubmitterName.setText(jsonObject.getString("username"));
+                            } catch (JSONException e) {
+                                submissionSubmitterName.setText("not availble");
+                                Log.e(TAG, "run: error parsing username ", e );
+                            }
+                        }
+                    });
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
