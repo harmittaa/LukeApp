@@ -48,7 +48,7 @@ public class LukeNetUtils {
     }
 
     public boolean checkUsernameAvailable(final String usernameToCheck) throws ExecutionException, InterruptedException {
-        Log.e(TAG, "confirmUsername: clickd");
+        Log.e(TAG, "confirmUsername: checking if username available");
         Callable<Boolean> booleanCallable = new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
@@ -142,7 +142,6 @@ public class LukeNetUtils {
                     // TODO: 25/11/2016 check if tokens are valid
                     conn.setRequestMethod("POST");
                     conn.setRequestProperty(context.getString(R.string.authorization), context.getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
-                    conn.setRequestProperty(context.getString(R.string.acstoken), SessionSingleton.getInstance().getAccessToken());
                     conn.setRequestProperty("Content-Type", "application/json");
                     conn.setRequestProperty("charset", "utf-8");
                     conn.setDoOutput(true);

@@ -48,6 +48,8 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
     LukeNetUtils lukeNetUtils;
     RadioGroup radioGroupPicture;
     Bitmap selectedProfileImage;
+    Bitmap auth0ProfileImage;
+    Bitmap cameraProfileImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,6 +106,10 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
                 if (lukeNetUtils.checkUsernameAvailable(uname)) {
                     Log.e(TAG, "onEditorAction: username available");
                     if (lukeNetUtils.setUsername(uname)) {
+                        if (this.selectedProfileImage != null) {
+                            lukeNetUtils.updateUserImage(this.selectedProfileImage);
+
+                        }
                         Log.e(TAG, "onEditorAction: username set");
                         startActivity(new Intent(NewUserActivity.this, MainActivity.class));
                         return true;
@@ -210,8 +216,10 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
 
             if (imageBitmap != null)
                 Log.e(TAG, "onActivityResult: photo exists, size : " + imageBitmap.getByteCount());
+            Log.e(TAG, "run: CAMERA");
             userImageViewCamera.setImageBitmap(imageBitmap);
-            this.selectedProfileImage = imageBitmap;
+            this.cameraProfileImage = imageBitmap;
+            this.selectedProfileImage = this.cameraProfileImage;
         }
     }
 
@@ -219,13 +227,19 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
     public void onCheckedChanged(RadioGroup group, int checkedId) {
         switch (checkedId) {
             case R.id.radioButtonDefault:
+                this.selectedProfileImage = null;
                 break;
             case R.id.radioButtonSocial:
+                this.selectedProfileImage = this.auth0ProfileImage;
                 break;
             case R.id.radioButtonCamera:
                 dispatchTakePictureIntent();
                 break;
         }
+    }
+
+    private void getSelectedBitmap() {
+
     }
 
     @Override
@@ -234,7 +248,8 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
             @Override
             public void run() {
                 NewUserActivity.this.userImageViewAuth0.setImageBitmap(b);
-                NewUserActivity.this.selectedProfileImage = b;
+                Log.e(TAG, "run: AUTH0");
+                NewUserActivity.this.auth0ProfileImage = b;
             }
         });
     }

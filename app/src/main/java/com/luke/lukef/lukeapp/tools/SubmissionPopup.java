@@ -289,9 +289,7 @@ public class SubmissionPopup {
                             categoryIds.add(categoryArray.get(i).toString());
                         }
                     }
-
                     if (jsonObject.has("submitterId")) {
-                        // TODO: 07/12/2016 FETCH SUBMISSION DATA
                         getSubmitterData(jsonObject.getString("submitterId"));
                     }
                 } catch (JSONException e) {
@@ -340,8 +338,9 @@ public class SubmissionPopup {
                 final JSONObject jsonObject = new JSONObject(jsonString);
                 if (jsonObject.has("image_url")) {
                     Bitmap bitmap = null;
+                    imageUrl = jsonObject.getString("image_url");
                     try {
-                        InputStream in = new java.net.URL(imageUrl).openStream();
+                        InputStream in = new URL(imageUrl).openStream();
                         bitmap = BitmapFactory.decodeStream(in);
                         final Bitmap finalBitmap = bitmap;
                         mainActivity.runOnUiThread(new Runnable() {
@@ -394,7 +393,7 @@ public class SubmissionPopup {
             String imageUrl = params[0];
             Bitmap bitmap = null;
             try {
-                InputStream in = new java.net.URL(imageUrl).openStream();
+                InputStream in = new URL(imageUrl).openStream();
                 bitmap = BitmapFactory.decodeStream(in);
             } catch (IOException e) {
                 Log.e(TAG, "doInBackground: Exception parsing image ", e);
