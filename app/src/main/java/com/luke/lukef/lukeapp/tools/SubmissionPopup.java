@@ -5,15 +5,14 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
 import com.luke.lukef.lukeapp.SubmissionDatabase;
@@ -70,15 +69,16 @@ public class SubmissionPopup {
     }
 
 
-    public void dismissPopup(){
+    public void dismissPopup() {
         this.dialog.dismiss();
     }
 
-    public void hidePopup(){
+    public void hidePopup() {
         this.dialog.hide();
     }
-    public void unHidePopup(){
-        if(this.dialog != null){
+
+    public void unHidePopup() {
+        if (this.dialog != null) {
             dialog.show();
         }
     }
@@ -205,7 +205,7 @@ public class SubmissionPopup {
     }
 
     /**
-     * Called from {@link SubmissionPopup.GetSubmissionDataTask#onPostExecute(List)},
+     * Called from {@link GetSubmissionDataTask#onPostExecute(List)},
      * uses the list of category IDs and finds the correct categories from {@link SessionSingleton#getCategoryList()}
      * and fetches the images from those.
      *
@@ -271,6 +271,7 @@ public class SubmissionPopup {
 
                 } else {
                     //TODO: if error do something else, ERROR STREAM
+                    mainActivity.makeToast("Error");
                     Log.e(TAG, "response code something else");
                 }
             } catch (IOException e) {
@@ -288,6 +289,11 @@ public class SubmissionPopup {
                             categoryIds.add(categoryArray.get(i).toString());
                         }
                     }
+
+                    if (jsonObject.has("submitterId")) {
+                        // TODO: 07/12/2016 FETCH SUBMISSION DATA
+                        getSubmitterData(jsonObject.getString("submitterId"));
+                    }
                 } catch (JSONException e) {
                     Log.e(TAG, "Exception parsing JSONObject from string: ", e);
                 }
@@ -301,6 +307,81 @@ public class SubmissionPopup {
             super.onPostExecute(strings);
             // set the categories
             setCategories(strings);
+        }
+    }
+
+    private void getSubmitterData(String userId) {
+        String jsonString = "";
+        try {
+            URL lukeURL = new URL("http://www.balticapp.fi/lukeA/user?id=" + userId);
+            HttpURLConnection httpURLConnection = (HttpURLConnection) lukeURL.openConnection();
+            if (httpURLConnection.getResponseCode() == 200) {
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
+                StringBuilder stringBuilder = new StringBuilder();
+                String line;
+                while ((line = bufferedReader.readLine()) != null) {
+                    stringBuilder.append(line).append("\n");
+                }
+                jsonString = stringBuilder.toString();
+                bufferedReader.close();
+                Log.e(TAG, "getSubmitterData: jsonString " + jsonString);
+
+            } else {
+                //TODO: if error do something else, ERROR STREAM
+                mainActivity.makeToast("Error");
+                Log.e(TAG, "response code something else");
+            }
+        } catch (IOException e) {
+            Log.e(TAG, "Exception with fetching data: " + e.toString());
+        }
+
+        if (!TextUtils.isEmpty(jsonString)) {
+            try {
+                final JSONObject jsonObject = new JSONObject(jsonString);
+                if (jsonObject.has("image_url")) {
+                    Bitmap bitmap = null;
+                    try {
+                        InputStream in = new java.net.URL(imageUrl).openStream();
+                        bitmap = BitmapFactory.decodeStream(in);
+                        final Bitmap finalBitmap = bitmap;
+                        mainActivity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Log.e(TAG, "run: Setting image");
+                                submitterProfileImage.setImageBitmap(finalBitmap);
+                            }
+                        });
+                    } catch (IOException e) {
+                        Log.e(TAG, "doInBackground: Exception parsing image ", e);
+                    }
+                } else {
+                    Log.e(TAG, "getSubmitterData: NO USER IMG");
+                    mainActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Log.e(TAG, "run: Setting image");
+                            submitterProfileImage.setImageResource(R.drawable.admin_marker);
+                        }
+                    });
+                }
+
+                if (jsonObject.has("username")) {
+                    mainActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Log.e(TAG, "run: Setting image");
+                            try {
+                                submissionSubmitterName.setText(jsonObject.getString("username"));
+                            } catch (JSONException e) {
+                                submissionSubmitterName.setText("not availble");
+                                Log.e(TAG, "run: error parsing username ", e );
+                            }
+                        }
+                    });
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -328,4 +409,6 @@ public class SubmissionPopup {
             SubmissionPopup.this.mainImageBitmap = bitmap;
         }
     }
+
+
 }

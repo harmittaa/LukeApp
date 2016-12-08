@@ -34,7 +34,7 @@ import java.util.concurrent.ExecutionException;
 
 import static com.luke.lukef.lukeapp.WelcomeActivity.REQUEST_IMAGE_CAPTURE;
 
-public class NewUserActivity extends AppCompatActivity implements View.OnClickListener, RadioGroup.OnCheckedChangeListener,Auth0Responder {
+public class NewUserActivity extends AppCompatActivity implements View.OnClickListener, RadioGroup.OnCheckedChangeListener, Auth0Responder {
 
     private EditText username;
     private ImageButton confirmButton;
@@ -55,8 +55,8 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
         lukeNetUtils = new LukeNetUtils(this);
         setContentView(R.layout.activity_new_user);
         userImageViewCamera = (ImageView) findViewById(R.id.newUserCameraImageView);
-        userImageViewAuth0 = (ImageView)findViewById(R.id.newUserSocialMediaImageView);
-        userImageViewDefault = (ImageView)findViewById(R.id.newUserDefaultImageView);
+        userImageViewAuth0 = (ImageView) findViewById(R.id.newUserSocialMediaImageView);
+        userImageViewDefault = (ImageView) findViewById(R.id.newUserDefaultImageView);
         confirmButton = (ImageButton) findViewById(R.id.newUserConfirmButton);
         confirmButton.setOnClickListener(this);
         username = (EditText) findViewById(R.id.newUserName);
@@ -66,14 +66,16 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (attemptSetUsername(username.getText().toString())) {
                     // TODO: 05/12/2016 change activity
-                    startActivity(new Intent(NewUserActivity.this,MainActivity.class));
+                    Log.e(TAG, "onEditorAction: SHOULD CHANGE ACTIVITY NOW");
+                    startActivity(new Intent(NewUserActivity.this, MainActivity.class));
                 } else {
+                    Log.e(TAG, "onEditorAction: SOME ERROR HAPPENED?");
                     // TODO: 05/12/2016 display error
                 }
                 return false;
             }
         });
-        radioGroupPicture = (RadioGroup)findViewById(R.id.radioGroupPicture);
+        radioGroupPicture = (RadioGroup) findViewById(R.id.radioGroupPicture);
         radioGroupPicture.setOnCheckedChangeListener(this);
         getWindow().setSoftInputMode(
                 WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
@@ -90,59 +92,62 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.newUserConfirmButton:
-                if(attemptSetUsername(username.getText().toString()))
-                break;
+                if (attemptSetUsername(username.getText().toString()))
+                    break;
         }
     }
 
     private boolean attemptSetUsername(String uname) {
         if (checkUsernameValid(uname)) {
+            Log.e(TAG, "onEditorAction: Validitiy checked");
             try {
                 if (lukeNetUtils.checkUsernameAvailable(uname)) {
+                    Log.e(TAG, "onEditorAction: username available");
                     if (lukeNetUtils.setUsername(uname)) {
+                        Log.e(TAG, "onEditorAction: username set");
+                        startActivity(new Intent(NewUserActivity.this, MainActivity.class));
                         return true;
                     } else {
-                        Toast.makeText(this,"An Error Occured",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "An Error Occured", Toast.LENGTH_SHORT).show();
                         return false;
                     }
                 } else {
-                    Toast.makeText(this,"Username Taken",Toast.LENGTH_SHORT).show();;
+                    Toast.makeText(this, "Username Taken", Toast.LENGTH_SHORT).show();
                     return false;
                 }
             } catch (ExecutionException e) {
-                Toast.makeText(this,"An Error Occured",Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "An Error Occured", Toast.LENGTH_SHORT).show();
                 Log.e(TAG, "onEditorAction: ", e);
                 return false;
             } catch (InterruptedException e) {
-                Toast.makeText(this,"An Error Occured",Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "An Error Occured", Toast.LENGTH_SHORT).show();
                 Log.e(TAG, "onEditorAction: ", e);
                 return false;
             } catch (IOException e) {
-                Toast.makeText(this,"An Error Occured",Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "An Error Occured", Toast.LENGTH_SHORT).show();
                 Log.e(TAG, "onEditorAction: ", e);
                 return false;
             }
         } else {
-            Toast.makeText(this,"Invalid Username",Toast.LENGTH_SHORT).show();;
+            Toast.makeText(this, "Invalid Username", Toast.LENGTH_SHORT).show();
             return false;
         }
     }
 
     /**
      * Yeah boi
+     *
      * @param uname username to check
      * @return returns true if all checks have passed
      */
     private boolean checkUsernameValid(String uname) {
+        Log.e(TAG, "checkUsernameValid: USERNAME IS  " + uname);
         if (!TextUtils.isEmpty(uname)) {
-            if (uname.length() > 3 && uname.length() < 10) {
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            return false;
+            Log.e(TAG, "checkUsernameValid: passed first");
+            int length = uname.trim().length();
+            return (length >= 1) && (length <= 10);
         }
+        return false;
     }
 
 
@@ -212,7 +217,7 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
 
     @Override
     public void onCheckedChanged(RadioGroup group, int checkedId) {
-        switch (checkedId){
+        switch (checkedId) {
             case R.id.radioButtonDefault:
                 break;
             case R.id.radioButtonSocial:

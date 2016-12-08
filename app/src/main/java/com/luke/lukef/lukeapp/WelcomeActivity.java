@@ -282,10 +282,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         @Override
         protected Void doInBackground(Void... params) {
             try {
-                URL lukeURL = new URL(getString(R.string.userUrl));
+                //URL lukeURL = new URL(getString(R.string.userUrl));
+                URL lukeURL = new URL("http://www.balticapp.fi/lukeA/user/me");
                 httpURLConnection = (HttpURLConnection) lukeURL.openConnection();
                 httpURLConnection.setRequestProperty(getString(R.string.authorization), getString(R.string.bearer) + idToken);
-                httpURLConnection.setRequestProperty(getString(R.string.acstoken), accessToken);
+                //httpURLConnection.setRequestProperty(getString(R.string.acstoken), accessToken);
                 if (httpURLConnection.getResponseCode() == 200) {
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
                     jsonString = "";
@@ -296,10 +297,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     }
                     jsonString = stringBuilder.toString();
                     bufferedReader.close();
+                    Log.e(TAG, "doInBackground: STRING IS " + jsonString );
 
                 } else {
                     //TODO: if error do something else, ERROR STREAM
-                    Log.e(TAG, "doInBackground: vöörö");
+                    Log.e(TAG, "doInBackground: ERROR  " + httpURLConnection.getResponseCode());
                 }
             } catch (IOException e) {
                 e.printStackTrace();

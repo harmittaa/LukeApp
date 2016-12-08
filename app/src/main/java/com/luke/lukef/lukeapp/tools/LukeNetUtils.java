@@ -57,7 +57,7 @@ public class LukeNetUtils {
                     URL checkUsernameUrl = new URL("http://www.balticapp.fi/lukeA/user/available?username=" + usernameToCheck);
                     HttpURLConnection httpURLConnection = (HttpURLConnection) checkUsernameUrl.openConnection();
                     httpURLConnection.setRequestProperty(context.getString(R.string.authorization), context.getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
-                    httpURLConnection.setRequestProperty(context.getString(R.string.acstoken), SessionSingleton.getInstance().getAccessToken());
+                    //httpURLConnection.setRequestProperty(context.getString(R.string.acstoken), SessionSingleton.getInstance().getAccessToken());
                     if (httpURLConnection.getResponseCode() == 200) {
                         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
                         StringBuilder stringBuilder = new StringBuilder();
@@ -67,6 +67,7 @@ public class LukeNetUtils {
                         }
                         bufferedReader.close();
                         jsonString = stringBuilder.toString();
+                        Log.e(TAG, "CHECK USERNAME STRING " + jsonString );
                         JSONObject jsonObject;
                         try {
                             jsonObject = new JSONObject(jsonString);
