@@ -67,7 +67,7 @@ public class LukeNetUtils {
                         }
                         bufferedReader.close();
                         jsonString = stringBuilder.toString();
-                        Log.e(TAG, "CHECK USERNAME STRING " + jsonString );
+                        Log.e(TAG, "CHECK USERNAME STRING " + jsonString);
                         JSONObject jsonObject;
                         try {
                             jsonObject = new JSONObject(jsonString);
@@ -219,7 +219,7 @@ public class LukeNetUtils {
         }
     }
 
-    public void getUserImageFromAuth0(final Auth0Responder auth0Responder){
+    public void getUserImageFromAuth0(final Auth0Responder auth0Responder) {
         AuthenticationAPIClient client = new AuthenticationAPIClient(
                 new Auth0(SessionSingleton.getInstance().getAuth0ClienID(), SessionSingleton.getInstance().getAuth0Domain()));
 
@@ -235,6 +235,7 @@ public class LukeNetUtils {
                             e.printStackTrace();
                         }
                     }
+
                     @Override
                     public void onFailure(AuthenticationException error) {
                     }
@@ -263,6 +264,69 @@ public class LukeNetUtils {
         Thread t = new Thread(bitmapFutureTask);
         t.start();
         return bitmapFutureTask.get();
+    }
+
+    public boolean reportSubmission(final String submissionId) {
+        Callable<Boolean> booleanCallable = new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                URL reportUrl = null;
+                boolean returnValue = false;
+                try {
+                    reportUrl = new URL("http://www.balticapp.fi/lukeA/report/flag?id=" + submissionId);
+
+                    HttpURLConnection connection = (HttpURLConnection) reportUrl.openConnection();
+                    connection.setRequestMethod("GET");
+                    connection.setRequestProperty(context.getString(R.string.authorization), context.getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
+                    connection.setRequestProperty(context.getString(R.string.acstoken), SessionSingleton.getInstance().getAccessToken());
+                    connection.setRequestProperty("Content-Type", "application/json");
+                    connection.setRequestProperty("charset", "utf-8");
+
+                    BufferedReader bufferedReader;
+                    Log.e(TAG, "updateUserImage call: RESPONSE CODE:" + connection.getResponseCode());
+                    if (connection.getResponseCode() != 200) {
+                        bufferedReader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+                        returnValue = false;
+                    } else {
+                        // TODO: 25/11/2016 check for authorization error, respons accordingly
+                        bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                        returnValue = true;
+                    }
+                    String jsonString = "";
+                    StringBuilder stringBuilder = new StringBuilder();
+                    String line2;
+                    while ((line2 = bufferedReader.readLine()) != null) {
+                        stringBuilder.append(line2 + "\n");
+                    }
+                    bufferedReader.close();
+                    jsonString = stringBuilder.toString();
+
+                    Log.e(TAG, "updateUserImage run: Result : " + jsonString);
+                    return returnValue;
+                } catch (MalformedURLException e) {
+                    Log.e(TAG, "reportSubmission: ", e);
+                    return false;
+                } catch (ProtocolException e) {
+                    Log.e(TAG, "reportSubmission: ", e);
+                    return false;
+                } catch (IOException e) {
+                    Log.e(TAG, "reportSubmission: ", e);
+                    return false;
+                }
+            }
+        };
+        FutureTask<Boolean> booleanFutureTask = new FutureTask<Boolean>(booleanCallable);
+        Thread t = new Thread(booleanFutureTask);
+        try {
+            return booleanFutureTask.get();
+        } catch (InterruptedException e) {
+            Log.e(TAG, "reportSubmission: ",e);
+            return false;
+        } catch (ExecutionException e) {
+            Log.e(TAG, "reportSubmission: ",e);
+            return false;
+        }
+
     }
 
 }

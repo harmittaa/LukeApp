@@ -245,6 +245,14 @@ public class SubmissionPopup {
         this.mainImageBitmap = mainImageBitmap;
     }
 
+    public String getSubmissionID() {
+        return this.markerId;
+    }
+
+    public void setSubmissionID(String submissionID) {
+        this.markerId = submissionID;
+    }
+
     /**
      * Used to fetch submission data from the server, pass submission ID as first parameter, return values is a List<String>
      * that includes the category IDs.

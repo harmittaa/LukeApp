@@ -59,6 +59,7 @@ import com.luke.lukef.lukeapp.SubmissionDatabase;
 import com.luke.lukef.lukeapp.WelcomeActivity;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.model.SubmissionMarker;
+import com.luke.lukef.lukeapp.tools.LukeNetUtils;
 import com.luke.lukef.lukeapp.tools.SubmissionPopup;
 
 import java.util.ArrayList;
@@ -158,45 +159,20 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
                 break;
             case R.id.button_new_submission:
                 // TODO: 02/12/2016 switch fragment to new submission fragment
-
-                if (SessionSingleton.getInstance().isUserLogged()) {
-                    if (SessionSingleton.getInstance().checkGpsStatus(getMainActivity())) {
-                        if (SessionSingleton.getInstance().checkInternetStatus(getMainActivity())) {
-                            getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_NEW_SUBMISSION, null);
-                        }
-                    }
-
-                } else {
-                    // TODO: 21/11/2016 popup to login
-                    AlertDialog.Builder builder = new AlertDialog.Builder(getMainActivity());
-                    builder.setMessage("Please Log in to Submit")
-                            .setCancelable(false)
-                            .setPositiveButton("Login", new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    getMainActivity().startActivity(new Intent(getMainActivity().getApplicationContext(), WelcomeActivity.class));
-                                }
-                            })
-                            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                }
-                            });
-                    AlertDialog alert = builder.create();
-                    alert.show();
-                }
+                activateNewSubmission();
                 break;
             case R.id.popup_button_positive:
                 submissionPopup.dismissPopup();
                 break;
             case R.id.submissionReportButton:
+                reportSubmission();
                 break;
             case R.id.submissionSubmitterProfileImage:
                 getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_PROFILE, null);
                 submissionPopup.dismissPopup();
                 break;
             case R.id.submissionImageMain:
-                if(submissionPopup.getMainImageBitmap() != null){
+                if (submissionPopup.getMainImageBitmap() != null) {
                     getMainActivity().setFullScreenImageViewImage(submissionPopup.getMainImageBitmap());
                     getMainActivity().setFullScreenImageViewVisibility(true);
                     submissionPopup.hidePopup();
@@ -205,7 +181,50 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         }
     }
 
-    public void unhidePopup(){
+    private void reportSubmission(){
+        if (SessionSingleton.getInstance().isUserLogged()) {
+            LukeNetUtils lukeNetUtils = new LukeNetUtils(getMainActivity());
+            if (lukeNetUtils.reportSubmission(submissionPopup.getSubmissionID())) {
+                getMainActivity().makeToast("This submission has been reported");
+            } else {
+                getMainActivity().makeToast("Error when reporting this submission");
+            }
+        } else {
+            // TODO: 08/12/2016 make a popup promt to log in
+            getMainActivity().makeToast("You need to log in to do this");
+        }
+    }
+
+    private void activateNewSubmission() {
+        if (SessionSingleton.getInstance().isUserLogged()) {
+            if (SessionSingleton.getInstance().checkGpsStatus(getMainActivity())) {
+                if (SessionSingleton.getInstance().checkInternetStatus(getMainActivity())) {
+                    getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_NEW_SUBMISSION, null);
+                }
+            }
+
+        } else {
+            // TODO: 21/11/2016 popup to login
+            AlertDialog.Builder builder = new AlertDialog.Builder(getMainActivity());
+            builder.setMessage("Please Log in to Submit")
+                    .setCancelable(false)
+                    .setPositiveButton("Login", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            getMainActivity().startActivity(new Intent(getMainActivity().getApplicationContext(), WelcomeActivity.class));
+                        }
+                    })
+                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+            AlertDialog alert = builder.create();
+            alert.show();
+        }
+    }
+
+    public void unhidePopup() {
         this.submissionPopup.unHidePopup();
     }
 
@@ -380,8 +399,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         if (submissionMarker.getAdminMarkerTitle().isEmpty()) {
             isAdminMarker = false;
         }
-
-        submissionPopup = new SubmissionPopup(getMainActivity(),this);
+        submissionPopup = new SubmissionPopup(getMainActivity(), this);
         submissionPopup.createPopupTest(submissionMarker.getSubmissionId(), isAdminMarker);
         return false;
     }
