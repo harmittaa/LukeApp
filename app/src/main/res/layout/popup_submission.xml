@@ -183,6 +183,7 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:background="@null"
+            android:scaleType="fitCenter"
             app:srcCompat="@drawable/luke_tick"
             android:layout_gravity="center"
             android:id="@+id/popup_button_positive"/>

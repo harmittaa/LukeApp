@@ -79,6 +79,7 @@
             android:layout_alignParentRight="true"
             android:background="@null"
             android:text="Button"
+            android:scaleType="fitCenter"
             app:srcCompat="@drawable/luke_tick" />
 
     </RelativeLayout>

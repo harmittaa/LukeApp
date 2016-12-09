@@ -21,6 +21,7 @@
             android:layout_height="match_parent"
             android:background="@null"
             android:layout_gravity="center"
+            android:scaleType="fitCenter"
             app:srcCompat="@drawable/luke_tick" />
     </LinearLayout>
 

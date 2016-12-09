@@ -338,8 +338,8 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
             if (this.visibleRegion == null) {
                 this.visibleRegion = this.googleMap.getProjection().getVisibleRegion();
                 if (this.minDateInMs > 0) {
-                   // this.submissionMarkerIdList.clear();
-                   // this.clusterManager.clearItems();
+                    // this.submissionMarkerIdList.clear();
+                    // this.clusterManager.clearItems();
                     addSubmissionsToMap(this.visibleRegion, this.minDateInMs);
                 } else {
                     addSubmissionsToMap(this.visibleRegion, null);
@@ -480,11 +480,16 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
 
     /**
      * Setter for the minDateInMs which is the minimum date of which submissinos should be shown
+     *
      * @param minDateInMs The minimum date of which submissions are shown, in MS
      */
     public void setMinDateInMs(long minDateInMs) {
         this.minDateInMs = minDateInMs;
-        addSubmissionsToMap(this.googleMap.getProjection().getVisibleRegion(), minDateInMs);
+        if (this.minDateInMs > 0) {
+            addSubmissionsToMap(this.googleMap.getProjection().getVisibleRegion(), minDateInMs);
+        } else {
+            addSubmissionsToMap(this.googleMap.getProjection().getVisibleRegion(), minDateInMs);
+        }
     }
 
     /**
@@ -818,6 +823,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
             }
         });
         ImageButton okButton = (ImageButton) layout.findViewById(R.id.popup_calendar_accept);
+        ImageButton cancelButton = (ImageButton) layout.findViewById(R.id.popup_calendar_cancel);
         okButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -831,6 +837,15 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
                 addAdminMarkersToMap();
                 setMinDateInMs(calendar.getTimeInMillis());
                 popup.dismiss();
+            }
+        });
+
+        cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                setMinDateInMs(0);
+                popup.dismiss();
+
             }
         });
     }
