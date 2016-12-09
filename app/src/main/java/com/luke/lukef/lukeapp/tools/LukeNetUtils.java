@@ -238,6 +238,7 @@ public class LukeNetUtils {
                     @Override
                     public void onSuccess(UserProfile payload) {
                         try {
+
                             auth0Responder.receiveBitmapFromAuth0(getBitmapFromURL(payload.getPictureURL()));
                         } catch (ExecutionException e) {
                             e.printStackTrace();

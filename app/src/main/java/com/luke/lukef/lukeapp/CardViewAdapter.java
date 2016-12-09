@@ -72,10 +72,8 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
                     } else {
                         holder.leftImg.setImageBitmap(mapsBitmaps.get(position));
                     }
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                } catch (ExecutionException | InterruptedException e) {
+                    Log.e(TAG, "run: ERROR ", e );
                 }
 
             }
@@ -103,26 +101,27 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
         for (SubmissionFromServer s : submissionList) {
             try {
                 mapsBitmaps.add(lukeNetUtils.getMapThumbnail(s.getLocation(), 400, 400));
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            } catch (ExecutionException | InterruptedException e) {
+                Log.e(TAG, "getAllMapThumbs: ERROR ", e );
             }
         }
     }
 
+    /**
+     * Fetches images for the cards, if no image URL is present, uses default
+     */
     private void getAllPicsThumbs() {
         for (SubmissionFromServer s : submissionList) {
             try {
-                if (!TextUtils.isEmpty(s.getImageUrl())) {
+                String url = s.getImageUrl();
+                if (!TextUtils.isEmpty(s.getImageUrl()) && !url.equals("null")) {
                     picsBitmaps.add(lukeNetUtils.getBitmapFromURL(s.getImageUrl()));
                 } else {
-                    picsBitmaps.add(BitmapFactory.decodeResource(activity.getResources(), R.drawable.no_img));
+                    Bitmap bm = BitmapFactory.decodeResource(activity.getResources(), R.drawable.no_img);
+                    picsBitmaps.add(bm);
                 }
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            } catch (ExecutionException | InterruptedException e) {
+                Log.e(TAG, "getAllPicsThumbs: ERROR ", e );
             }
         }
     }
