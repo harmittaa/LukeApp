@@ -82,24 +82,25 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         });
     }
 
-
+    /**
+     * Sets the user profile image from URL or if there's no URL then defaults
+     */
     private void setUserProfile() {
         try {
             this.userFromServer = lukeNetUtils.getUserFromUserId(this.userID);
+
             if (!TextUtils.isEmpty(this.userFromServer.getImageUrl())) {
                 Bitmap b = lukeNetUtils.getBitmapFromURL(this.userFromServer.getImageUrl());
                 if (b == null) {
                     this.profileImage.setImageResource(R.drawable.admin_marker);
                 } else {
-                    this.profileImage.setImageBitmap(BitmapFactory.decodeResource(getMainActivity().getResources(), R.drawable.no_img));
+                    this.profileImage.setImageBitmap(b);
                 }
             } else {
                 this.profileImage.setImageBitmap(BitmapFactory.decodeResource(getMainActivity().getResources(), R.drawable.no_img));
             }
             this.username.setText(userFromServer.getUsername());
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
+        } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
         }
     }

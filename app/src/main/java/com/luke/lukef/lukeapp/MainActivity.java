@@ -317,14 +317,15 @@ public class MainActivity extends AppCompatActivity {
     //Implementation of Navigation Drawer
     @Override
     public void onBackPressed() {
+        Fragment f = getFragmentManager().findFragmentById(R.id.fragment_container);
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START);
         } else if (fullsScreenIsActive) {
             this.setFullScreenImageViewVisibility(false);
+            ((MapViewFragment) f).unhidePopup();
         } else {
-            Fragment f = getFragmentManager().findFragmentById(R.id.fragment_container);
             if (f instanceof MapViewFragment) {
-                ((MapViewFragment) f).unhidePopup();
+                makeExitConfirmationPopup();
             } else if (f instanceof ProfileFragment) {
                 //this is to avoid map lag
                 fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP, null);
@@ -361,17 +362,11 @@ public class MainActivity extends AppCompatActivity {
                                 fragmentClass = UserSubmissionFragment.class;
                                 break;
                             case R.id.leaderboard:
-                                fragmentClass = LeaderboardFragment.class;
+                                startActivity(new Intent(MainActivity.this, NewUserActivity.class));
                                 break;
                             default:
                                 fragmentClass = MapViewFragment.class;
                         }
-                        try {
-                            fragment = (Fragment) fragmentClass.newInstance();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-
                         drawerLayout.closeDrawer(GravityCompat.START);
                         return true;
                     }

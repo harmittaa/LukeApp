@@ -20,9 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-/**
- * Created by Bang Nguyen on 11/18/2016.
- */
 
 public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyViewHolder> {
 
@@ -134,7 +131,6 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
     }
 
     public static class MyViewHolder extends RecyclerView.ViewHolder {
-
         TextView mDate;
         TextView mTime;
         TextView content;
