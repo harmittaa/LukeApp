@@ -112,7 +112,6 @@ public class SubmissionDatabase extends SQLiteOpenHelper {
         format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH);
         this.database = this.getWritableDatabase();
         if (jsonArray.length() > 0) {
-            Log.e(TAG, "addSubmissions: JSONarray length" + jsonArray.length());
             for (int i = 0; i < jsonArray.length(); i++) {
                 JSONObject jsonObject = null;
                 try {
@@ -141,6 +140,7 @@ public class SubmissionDatabase extends SQLiteOpenHelper {
                         values.put(SUBMISSION_DESCRIPTION, jsonObject.getString("description"));
                         // parse the date into a Date object
                         Date date = format.parse(jsonObject.getString("date"));
+                        Log.e(TAG, "addSubmissions: DATE " + jsonObject.getString("date") );
                         // save milliseconds of the date to the db
                         values.put(SUBMISSION_DATE, date.getTime());
                         values.put(SUBMISSION_SUBMITTER_ID, jsonObject.getString("submitterId"));
@@ -172,7 +172,6 @@ public class SubmissionDatabase extends SQLiteOpenHelper {
         format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH);
         this.database = this.getWritableDatabase();
         if (jsonArray.length() > 0) {
-            Log.e(TAG, "Add AdminMarkers: JSONarray length" + jsonArray.length());
             for (int i = 0; i < jsonArray.length(); i++) {
                 JSONObject jsonObject = null;
                 try {
@@ -220,25 +219,48 @@ public class SubmissionDatabase extends SQLiteOpenHelper {
     /**
      * Queries SQLite DB based on the <code>VisibleRegion</code>
      *
-     * @param visibleRegion Currently visible region on the mpa
+     * @param visibleRegion Currently visible region on the mao
      * @return Cursor with query contents
      */
-    public Cursor querySubmissions(VisibleRegion visibleRegion) {
+    public Cursor querySubmissions(VisibleRegion visibleRegion, Long minDate) {
         this.database = this.getReadableDatabase();
         double swLat = visibleRegion.latLngBounds.southwest.latitude;
         double swLng = visibleRegion.latLngBounds.southwest.longitude;
         double neLat = visibleRegion.latLngBounds.northeast.latitude;
         double neLng = visibleRegion.latLngBounds.northeast.longitude;
 
+        if (minDate == null) {
+            this.cursor = this.database.rawQuery(
+                    "SELECT " + SUBMISSION_ID + ", " + SUBMISSION_LATITUDE + ", " + SUBMISSION_LONGITUDE + ", " + SUBMISSION_DATE + ", " + SUBMISSION_POSITIVE +
+                            " FROM " + TABLE_SUBMISSION +
+                            " WHERE " + SUBMISSION_LATITUDE +
+                            " BETWEEN " + swLat + " AND " + neLat +
+                            " AND " + SUBMISSION_LONGITUDE +
+                            " BETWEEN " + swLng + " AND " + neLng
+                    , null, null);
+        } else {
+            /**
+             * Parses date from MS to the defined format
+             * @param submission_date The amount of milliseconds from the Jan 1, 1970 GMT to the desired date
+             * @return Date as String in defined format
+             */
+            Date date = new Date(minDate);
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH);
+            format.applyPattern("hh:mm dd/MM/yyyy");
+            Log.e(TAG, "querySubmissions: " + format.format(date));
 
-        this.cursor = this.database.rawQuery(
-                "SELECT " + SUBMISSION_ID + ", " + SUBMISSION_LATITUDE + ", " + SUBMISSION_LONGITUDE + ", " + SUBMISSION_DATE + ", " + SUBMISSION_POSITIVE +
-                        " FROM " + TABLE_SUBMISSION +
-                        " WHERE " + SUBMISSION_LATITUDE +
-                        " BETWEEN " + swLat + " AND " + neLat +
-                        " AND " + SUBMISSION_LONGITUDE +
-                        " BETWEEN " + swLng + " AND " + neLng
-                , null, null);
+            this.cursor = this.database.rawQuery(
+                    "SELECT " + SUBMISSION_ID + ", " + SUBMISSION_LATITUDE + ", " + SUBMISSION_LONGITUDE + ", " + SUBMISSION_DATE + ", " + SUBMISSION_POSITIVE +
+                            " FROM " + TABLE_SUBMISSION +
+                            " WHERE " + SUBMISSION_LATITUDE +
+                            " BETWEEN " + swLat + " AND " + neLat +
+                            " AND " + SUBMISSION_LONGITUDE +
+                            " BETWEEN " + swLng + " AND " + neLng +
+                            " AND " + SUBMISSION_DATE + " > " + minDate
+                    , null, null);
+        }
+        int size = this.cursor.getCount();
+        Log.e(TAG, "querySubmissions: size " + size);
         return this.cursor;
     }
 

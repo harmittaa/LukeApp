@@ -9,7 +9,9 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Point;
 import android.graphics.PorterDuff;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.ShapeDrawable;
@@ -19,21 +21,28 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.util.SparseArray;
+import android.view.Display;
+import android.view.Gravity;
 import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.ImageButton;
+import android.widget.PopupWindow;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -43,10 +52,12 @@ import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.VisibleRegion;
 import com.google.maps.android.clustering.Cluster;
+import com.google.maps.android.clustering.ClusterItem;
 import com.google.maps.android.clustering.ClusterManager;
 import com.google.maps.android.clustering.view.DefaultClusterRenderer;
 import com.google.maps.android.ui.IconGenerator;
@@ -62,7 +73,9 @@ import com.luke.lukef.lukeapp.model.SubmissionMarker;
 import com.luke.lukef.lukeapp.tools.LukeNetUtils;
 import com.luke.lukef.lukeapp.tools.SubmissionPopup;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -84,12 +97,16 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     private GoogleApiClient googleApiClient;
     LocationRequest locationRequest;
     LatLng currentCameraPosition;
-    Button testbutton;
     Location longPressLoc;
     private ImageButton menuButton;
     private ImageButton filtersButon;
     private ImageButton newSubmissionButton;
     private SubmissionPopup submissionPopup;
+    private long minDateInMs = 0;
+    int tempY;
+    int tempM;
+    int tempD;
+
 
     public Location getLastLoc() {
         if (longPressLoc == null) {
@@ -156,6 +173,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
                 break;
             case R.id.button_filters:
                 // TODO: 02/12/2016 open filters
+                showCalendarPicker();
                 break;
             case R.id.button_new_submission:
                 // TODO: 02/12/2016 switch fragment to new submission fragment
@@ -181,7 +199,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         }
     }
 
-    private void reportSubmission(){
+    private void reportSubmission() {
         if (SessionSingleton.getInstance().isUserLogged()) {
             LukeNetUtils lukeNetUtils = new LukeNetUtils(getMainActivity());
             if (lukeNetUtils.reportSubmission(submissionPopup.getSubmissionID())) {
@@ -231,6 +249,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         return (MainActivity) getActivity();
     }
 
+
     private void setupButtons() {
         filtersButon = (ImageButton) fragmentView.findViewById(R.id.button_filters);
         newSubmissionButton = (ImageButton) fragmentView.findViewById(R.id.button_new_submission);
@@ -258,6 +277,9 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
 
     }
 
+    /**
+     * Zooms the map on the last known location
+     */
     private void zoomMap() {
         // TODO: 27/11/2016 Check permission, so no crash
         if (getLastLoc() != null) {
@@ -315,12 +337,24 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         if (this.googleMap != null) {
             if (this.visibleRegion == null) {
                 this.visibleRegion = this.googleMap.getProjection().getVisibleRegion();
-                addSubmissionsToMap(this.visibleRegion);
+                if (this.minDateInMs > 0) {
+                    // this.submissionMarkerIdList.clear();
+                    // this.clusterManager.clearItems();
+                    addSubmissionsToMap(this.visibleRegion, this.minDateInMs);
+                } else {
+                    addSubmissionsToMap(this.visibleRegion, null);
+                }
                 addAdminMarkersToMap();
             } else {
                 // TODO: 29/11/2016 check here if the luke_camera has moved enough to get new stuff from the DB or not
                 this.visibleRegion = this.googleMap.getProjection().getVisibleRegion();
-                addSubmissionsToMap(this.visibleRegion);
+                if (this.minDateInMs > 0) {
+                    //this.submissionMarkerIdList.clear();
+                    //this.clusterManager.clearItems();
+                    addSubmissionsToMap(this.visibleRegion, this.minDateInMs);
+                } else {
+                    addSubmissionsToMap(this.visibleRegion, null);
+                }
                 addAdminMarkersToMap();
             }
         }
@@ -359,13 +393,18 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
 
     /**
      * Adds submissions to the map based on the provided <code>VisibleRegion</code>. Passes the VisibleRegion
-     * to the {@link com.luke.lukef.lukeapp.SubmissionDatabase#querySubmissions(VisibleRegion visibleRegion)}
+     * to the {@link com.luke.lukef.lukeapp.SubmissionDatabase#querySubmissions(VisibleRegion, Long)}
      *
      * @param visibleRegion The region currently visible on the map
      */
-    private void addSubmissionsToMap(VisibleRegion visibleRegion) {
+    private void addSubmissionsToMap(VisibleRegion visibleRegion, Long dateTimeInMs) {
         SubmissionDatabase submissionDatabase = new SubmissionDatabase(getActivity());
-        Cursor queryCursor = submissionDatabase.querySubmissions(visibleRegion);
+        Cursor queryCursor;
+        if (this.minDateInMs > 0) {
+            queryCursor = submissionDatabase.querySubmissions(visibleRegion, this.minDateInMs);
+        } else {
+            queryCursor = submissionDatabase.querySubmissions(visibleRegion, null);
+        }
         queryCursor.moveToFirst();
         if (queryCursor.getCount() > 0) {
             do {
@@ -388,7 +427,37 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
 
     @Override
     public boolean onClusterClick(Cluster<SubmissionMarker> cluster) {
-        Log.e(TAG, "onClusterClick: Cluster clicked");
+
+     /*   // Zoom in the cluster. Need to create LatLngBounds and including all the cluster items
+        // inside of bounds, then animate to center of the bounds.
+
+        // Create the builder to collect all essential cluster items for the bounds.
+        LatLngBounds.Builder builder = LatLngBounds.builder();
+        for (ClusterItem item : cluster.getItems()) {
+            builder.include(item.getPosition());
+        }
+        // Get the LatLngBounds
+        final LatLngBounds bounds = builder.build();
+
+   *//*     CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(cluster.getPosition())      // Sets the center of the map to Mountain View
+                .zoom(15)                   // Sets the zoom
+                .bearing(90)                // Sets the orientation of the camera to east
+                .tilt(30)                   // Sets the tilt of the camera to 30 degrees
+                .build();                   // Creates a CameraPosition from the builder
+        googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+*//*
+
+        Log.e(TAG, "onClusterClick: BOUNDS SW " + bounds.southwest + " Cneter " + bounds.getCenter());
+        // Animate camera to the bounds
+        try {
+            this.googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
+            //this.googleMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+            Log.e(TAG, "onClusterClick: animated");
+        } catch (Exception e) {
+            Log.e(TAG, "onClusterClick: animate failed ", e);
+        }*/
+
         return false;
     }
 
@@ -407,6 +476,20 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     public boolean onMarkerClick(Marker marker) {
         Log.e(TAG, "onMarkerClick: marker clicked");
         return false;
+    }
+
+    /**
+     * Setter for the minDateInMs which is the minimum date of which submissinos should be shown
+     *
+     * @param minDateInMs The minimum date of which submissions are shown, in MS
+     */
+    public void setMinDateInMs(long minDateInMs) {
+        this.minDateInMs = minDateInMs;
+        if (this.minDateInMs > 0) {
+            addSubmissionsToMap(this.googleMap.getProjection().getVisibleRegion(), minDateInMs);
+        } else {
+            addSubmissionsToMap(this.googleMap.getProjection().getVisibleRegion(), minDateInMs);
+        }
     }
 
     /**
@@ -615,31 +698,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
             background.setLayerInset(1, strokeWidth, strokeWidth, strokeWidth, strokeWidth);
             return background;
         }
-
-
-        /**
-         * Generates the cluster Bitmaps based on color
-         *
-         * @param cluster The cluster for which the bitmap is generated, used to fetch the item count
-         * @param color   The color that the bitmap should be
-         * @return The coloured and numbered Bitmap for the cluster
-         */
-        Bitmap createCluster(Cluster cluster, int color) {
-            IconGenerator mIconGenerator = new IconGenerator(getActivity());
-            IconGenerator mClusterIconGenerator = new IconGenerator(getActivity());
-            final Drawable clusterIcon = ContextCompat.getDrawable(getContext(), R.drawable.ic_circle);
-            clusterIcon.setColorFilter(ContextCompat.getColor(getContext(), color), PorterDuff.Mode.SRC_ATOP);
-            mClusterIconGenerator.setBackground(clusterIcon);
-            //modify padding for one or two digit numbers
-            if (cluster.getSize() < 10) {
-                mClusterIconGenerator.setContentPadding(20, 10, 0, 0);
-            } else {
-                mClusterIconGenerator.setContentPadding(15, 10, 0, 0);
-            }
-            return mClusterIconGenerator.makeIcon(String.valueOf(cluster.getSize()));
-        }
     }
-
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -710,5 +769,84 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     @Override
     public void onLocationChanged(Location location) {
         this.lastLoc = location;
+    }
+
+    /**
+     * Handles showing the Calendar pop up, fetching the selected date, calling to fetch
+     * submissions again
+     */
+    private void showCalendarPicker() {
+        // Inflate the popup_layout.xml
+        ConstraintLayout viewGroup = (ConstraintLayout) getMainActivity().findViewById(R.id.popup_calendar_root);
+        LayoutInflater layoutInflater = (LayoutInflater) getMainActivity()
+                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        final View layout = layoutInflater.inflate(R.layout.popup_calendar, viewGroup);
+        // Some offset to align the popup a bit to the right, and a bit down, relative to button's position.
+        //or if popup is on edge display it to the left of the circle
+        Display display = getMainActivity().getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+
+        int OFFSET_X = 25;
+        int OFFSET_Y = 25;
+
+        final DatePicker dP = (DatePicker) layout.findViewById(R.id.popup_calendar_datepicker);
+
+        // Creating the PopupWindow
+        final PopupWindow popup = new PopupWindow(getMainActivity());
+        popup.setAnimationStyle(android.R.style.Animation_Dialog);
+        popup.setContentView(layout);
+
+        popup.setWidth(ViewGroup.LayoutParams.WRAP_CONTENT);
+        popup.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
+
+        popup.setFocusable(true);
+        //gets rid of default background
+        popup.setBackgroundDrawable(new BitmapDrawable(getMainActivity().getResources(), (Bitmap) null));
+        //popup.setBackgroundDrawable(new BitmapDrawable(getMainActivity().getResources(), (Bitmap) nu));
+
+        // Displaying the popup at the specified location, + offsets.
+        popup.showAtLocation(layout, Gravity.NO_GRAVITY, 200 + OFFSET_X, 300 + OFFSET_Y);
+        Calendar minDate = null;
+        minDate = Calendar.getInstance();
+        tempY = minDate.get(Calendar.YEAR);
+        tempM = minDate.get(Calendar.MONTH);
+        tempD = minDate.get(Calendar.DAY_OF_MONTH);
+        dP.init(minDate.get(Calendar.YEAR), minDate.get(Calendar.MONTH), minDate.get(Calendar.DAY_OF_MONTH), new DatePicker.OnDateChangedListener() {
+            @Override
+            // Months start from 0, so January is month 0
+            public void onDateChanged(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                tempY = year;
+                tempM = monthOfYear;
+                tempD = dayOfMonth;
+                Log.e(TAG, "onDateChanged: selected " + tempD + " " + tempM + " " + tempY);
+            }
+        });
+        ImageButton okButton = (ImageButton) layout.findViewById(R.id.popup_calendar_accept);
+        ImageButton cancelButton = (ImageButton) layout.findViewById(R.id.popup_calendar_cancel);
+        okButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Calendar calendar = Calendar.getInstance();
+                calendar.set(tempY, tempM, tempD, 1, 0);
+                Log.e(TAG, "onClick: calendar time in ms " + calendar.getTimeInMillis());
+                // clear items from clustermanager and submissionMarkerList, as all new submissions
+                // need to be fetched based on the selected date
+                clusterManager.clearItems();
+                submissionMarkerIdList.clear();
+                addAdminMarkersToMap();
+                setMinDateInMs(calendar.getTimeInMillis());
+                popup.dismiss();
+            }
+        });
+
+        cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                setMinDateInMs(0);
+                popup.dismiss();
+
+            }
+        });
     }
 }
