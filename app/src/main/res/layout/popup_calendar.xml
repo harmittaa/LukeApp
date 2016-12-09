@@ -9,8 +9,9 @@
 
     <DatePicker
         android:layout_width="wrap_content"
+        android:headerBackground="@color/colorPrimary"
+        android:background="@color/vintage_vanilla_white"
         android:layout_height="wrap_content"
-        android:background="@color/colorPrimaryDark"
         android:id="@+id/popup_calendar_datepicker"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"

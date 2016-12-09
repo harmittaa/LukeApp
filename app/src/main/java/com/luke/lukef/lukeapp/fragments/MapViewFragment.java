@@ -249,6 +249,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         return (MainActivity) getActivity();
     }
 
+
     private void setupButtons() {
         filtersButon = (ImageButton) fragmentView.findViewById(R.id.button_filters);
         newSubmissionButton = (ImageButton) fragmentView.findViewById(R.id.button_new_submission);
@@ -276,6 +277,9 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
 
     }
 
+    /**
+     * Zooms the map on the last known location
+     */
     private void zoomMap() {
         // TODO: 27/11/2016 Check permission, so no crash
         if (getLastLoc() != null) {
@@ -474,6 +478,10 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         return false;
     }
 
+    /**
+     * Setter for the minDateInMs which is the minimum date of which submissinos should be shown
+     * @param minDateInMs The minimum date of which submissions are shown, in MS
+     */
     public void setMinDateInMs(long minDateInMs) {
         this.minDateInMs = minDateInMs;
         addSubmissionsToMap(this.googleMap.getProjection().getVisibleRegion(), minDateInMs);
@@ -685,31 +693,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
             background.setLayerInset(1, strokeWidth, strokeWidth, strokeWidth, strokeWidth);
             return background;
         }
-
-
-        /**
-         * Generates the cluster Bitmaps based on color
-         *
-         * @param cluster The cluster for which the bitmap is generated, used to fetch the item count
-         * @param color   The color that the bitmap should be
-         * @return The coloured and numbered Bitmap for the cluster
-         */
-        Bitmap createCluster(Cluster cluster, int color) {
-            IconGenerator mIconGenerator = new IconGenerator(getActivity());
-            IconGenerator mClusterIconGenerator = new IconGenerator(getActivity());
-            final Drawable clusterIcon = ContextCompat.getDrawable(getContext(), R.drawable.ic_circle);
-            clusterIcon.setColorFilter(ContextCompat.getColor(getContext(), color), PorterDuff.Mode.SRC_ATOP);
-            mClusterIconGenerator.setBackground(clusterIcon);
-            //modify padding for one or two digit numbers
-            if (cluster.getSize() < 10) {
-                mClusterIconGenerator.setContentPadding(20, 10, 0, 0);
-            } else {
-                mClusterIconGenerator.setContentPadding(15, 10, 0, 0);
-            }
-            return mClusterIconGenerator.makeIcon(String.valueOf(cluster.getSize()));
-        }
     }
-
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -782,6 +766,10 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         this.lastLoc = location;
     }
 
+    /**
+     * Handles showing the Calendar pop up, fetching the selected date, calling to fetch
+     * submissions again
+     */
     private void showCalendarPicker() {
         // Inflate the popup_layout.xml
         ConstraintLayout viewGroup = (ConstraintLayout) getMainActivity().findViewById(R.id.popup_calendar_root);
@@ -810,6 +798,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         popup.setFocusable(true);
         //gets rid of default background
         popup.setBackgroundDrawable(new BitmapDrawable(getMainActivity().getResources(), (Bitmap) null));
+        //popup.setBackgroundDrawable(new BitmapDrawable(getMainActivity().getResources(), (Bitmap) nu));
 
         // Displaying the popup at the specified location, + offsets.
         popup.showAtLocation(layout, Gravity.NO_GRAVITY, 200 + OFFSET_X, 300 + OFFSET_Y);
@@ -835,6 +824,8 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
                 Calendar calendar = Calendar.getInstance();
                 calendar.set(tempY, tempM, tempD, 1, 0);
                 Log.e(TAG, "onClick: calendar time in ms " + calendar.getTimeInMillis());
+                // clear items from clustermanager and submissionMarkerList, as all new submissions
+                // need to be fetched based on the selected date
                 clusterManager.clearItems();
                 submissionMarkerIdList.clear();
                 addAdminMarkersToMap();
