@@ -1,10 +1,14 @@
 package com.luke.lukef.lukeapp.tools;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.location.Location;
+import android.text.TextUtils;
 import android.util.Log;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.auth0.android.Auth0;
@@ -17,7 +21,10 @@ import com.luke.lukef.lukeapp.NewUserActivity;
 import com.luke.lukef.lukeapp.R;
 import com.luke.lukef.lukeapp.interfaces.Auth0Responder;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
+import com.luke.lukef.lukeapp.model.Submission;
+import com.luke.lukef.lukeapp.model.SubmissionFromServer;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -31,6 +38,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -340,5 +349,106 @@ public class LukeNetUtils {
         }
 
     }
+    
+    public ArrayList<SubmissionFromServer> getSubmissionsByUser(final String userID){
+        // TODO: 08/12/2016 do all this parsing nonsense 
+        Callable<ArrayList<SubmissionFromServer>> booleanCallable = new Callable<ArrayList<SubmissionFromServer>>() {
+            @Override
+            public ArrayList<SubmissionFromServer> call() throws Exception {
+                URL reportUrl = null;
+                boolean returnValue = false;
+                try {
+                    reportUrl = new URL("http://www.balticapp.fi/lukeA/report?submitterId=" + userID);
+
+                    HttpURLConnection connection = (HttpURLConnection) reportUrl.openConnection();
+                    connection.setRequestMethod("GET");
+                    connection.setRequestProperty(context.getString(R.string.authorization), context.getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
+                    connection.setRequestProperty(context.getString(R.string.acstoken), SessionSingleton.getInstance().getAccessToken());
+                    connection.setRequestProperty("Content-Type", "application/json");
+                    connection.setRequestProperty("charset", "utf-8");
+
+                    BufferedReader bufferedReader;
+                    Log.e(TAG, "updateUserImage call: RESPONSE CODE:" + connection.getResponseCode());
+                    if (connection.getResponseCode() != 200) {
+                        bufferedReader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+                        returnValue = false;
+                    } else {
+                        // TODO: 25/11/2016 check for authorization error, respons accordingly
+                        bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                        returnValue = true;
+                    }
+                    String jsonString = "";
+                    StringBuilder stringBuilder = new StringBuilder();
+                    String line2;
+                    while ((line2 = bufferedReader.readLine()) != null) {
+                        stringBuilder.append(line2 + "\n");
+                    }
+                    bufferedReader.close();
+                    jsonString = stringBuilder.toString();
+                    if (!TextUtils.isEmpty(jsonString)) {
+                        JSONArray josn = new JSONArray(jsonString);
+                        Log.e(TAG, "call: josn boii" + josn.toString());
+                        return LukeUtils.parseSubmissionsFromJsonArray(josn);
+                    } else {
+                        return null;
+                    }
+
+                } catch (MalformedURLException e) {
+                    Log.e(TAG, "reportSubmission: ", e);
+                    return null;
+                } catch (ProtocolException e) {
+                    Log.e(TAG, "reportSubmission: ", e);
+                    return null;
+                } catch (IOException e) {
+                    Log.e(TAG, "reportSubmission: ", e);
+                    return null;
+                }
+            }
+        };
+        FutureTask<ArrayList<SubmissionFromServer>> booleanFutureTask = new FutureTask<ArrayList<SubmissionFromServer>>(booleanCallable);
+        Thread t = new Thread(booleanFutureTask);
+        t.start();
+        try {
+            return booleanFutureTask.get();
+        } catch (InterruptedException e) {
+            Log.e(TAG, "reportSubmission: ",e);
+            return null;
+        } catch (ExecutionException e) {
+            Log.e(TAG, "reportSubmission: ",e);
+            return null;
+        }
+    }
+
+    public Bitmap getMapThumbnail(final Location center, final int width, final int height) throws ExecutionException, InterruptedException {
+        //https://maps.googleapis.com/maps/api/staticmap?center=29.390946,%2076.963502&zoom=10&size=600x300&maptype=normal
+        final String urlString1 = "https://maps.googleapis.com/maps/api/staticmap?center="+ center.getLatitude() + ",%20" + center.getLongitude() + "&zoom=18&size=" + width + "x" + height + "&maptype=normal";
+        return getBitmapFromURL(urlString1);
+        /*
+        Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    URL url = new URL(urlString1 + center.getLatitude() + ",%20" + center.getLongitude() + "&zoom=18&size=" + width + "x" + height + "&maptype=normal");
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.setDoInput(true);
+                    connection.connect();
+                    final InputStream input = connection.getInputStream();
+                    context.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            imageViewToUpdate.setImageBitmap(BitmapFactory.decodeStream(input));
+                        }
+                    });
+                } catch (IOException e) {
+                    Log.e(TAG, "run: ",e );
+                }
+            }
+        };
+
+        Thread t = new Thread(r);
+        t.start();*/
+    }
+
+
 
 }

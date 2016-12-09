@@ -1,4 +1,4 @@
-package com.luke.lukef.lukeapp.tools;
+package com.luke.lukef.lukeapp.popups;
 
 import android.app.Dialog;
 import android.database.Cursor;
@@ -61,6 +61,7 @@ public class SubmissionPopup {
     private TextView submissionTitle;
     private View.OnClickListener clickListener;
     private Bitmap mainImageBitmap;
+    private String userId;
 
     public SubmissionPopup(MainActivity mainActivity, View.OnClickListener clickListener) {
         this.mainActivity = mainActivity;
@@ -253,6 +254,14 @@ public class SubmissionPopup {
         this.markerId = submissionID;
     }
 
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
     /**
      * Used to fetch submission data from the server, pass submission ID as first parameter, return values is a List<String>
      * that includes the category IDs.
@@ -299,6 +308,7 @@ public class SubmissionPopup {
                     }
                     if (jsonObject.has("submitterId")) {
                         getSubmitterData(jsonObject.getString("submitterId"));
+                        SubmissionPopup.this.setUserId(jsonObject.getString("submitterId"));
                     }
                 } catch (JSONException e) {
                     Log.e(TAG, "Exception parsing JSONObject from string: ", e);

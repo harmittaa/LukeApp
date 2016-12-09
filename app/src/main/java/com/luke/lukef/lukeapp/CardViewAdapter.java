@@ -1,7 +1,10 @@
 package com.luke.lukef.lukeapp;
 
+import android.app.Activity;
+import android.graphics.Bitmap;
 import android.support.v7.widget.RecyclerView;
 import android.text.format.DateFormat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,8 +12,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.luke.lukef.lukeapp.model.Submission;
+import com.luke.lukef.lukeapp.model.SubmissionFromServer;
+import com.luke.lukef.lukeapp.tools.LukeNetUtils;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Created by Bang Nguyen on 11/18/2016.
@@ -18,10 +25,20 @@ import java.util.List;
 
 public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyViewHolder> {
 
-    private List<Submission> submissionList;
+    private List<SubmissionFromServer> submissionList;
+    private Activity activity;
+    private List<Bitmap> mapsBitmaps;
+    private List<Bitmap> picsBitmaps;
+    LukeNetUtils lukeNetUtils;
 
-    public CardViewAdapter(List<Submission> submissionList) {
+    public CardViewAdapter(List<SubmissionFromServer> submissionList, Activity activity) {
+        this.activity = activity;
         this.submissionList = submissionList;
+        lukeNetUtils = new LukeNetUtils(activity);
+        mapsBitmaps = new ArrayList<>();
+        picsBitmaps = new ArrayList<>();
+        getAllMapThumbs();
+        getAllPicsThumbs();
     }
 
     @Override
@@ -31,12 +48,32 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
     }
 
     @Override
-    public void onBindViewHolder(MyViewHolder holder, int position) {
-        Submission submission = submissionList.get(position);
-        //Dummy info for testing
-        holder.mDate.setText("" + DateFormat.format("dd/MM/yyyy", System.currentTimeMillis()));
-        holder.content.setText(R.string.text_test);
+    public void onBindViewHolder(final MyViewHolder holder, final int position) {
+        final SubmissionFromServer submission = submissionList.get(position);
+        holder.mDate.setText(submission.getDate());
+        holder.content.setText(submission.getDescription());
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (picsBitmaps == null) {
+                        holder.rightImg.setImageBitmap(lukeNetUtils.getBitmapFromURL(submission.getImageUrl()));
+                    } else {
+                        holder.rightImg.setImageBitmap(picsBitmaps.get(position));
+                    }
+                    if(mapsBitmaps == null) {
+                        holder.leftImg.setImageBitmap(lukeNetUtils.getMapThumbnail(submission.getLocation(), 400, 400));
+                    } else {
+                        holder.leftImg.setImageBitmap(mapsBitmaps.get(position));
+                    }
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
 
+            }
+        });
 //        holder.mDate.setText((CharSequence) submission.getDate());
 //        holder.content.setText(submission.getContent());
 //        holder.leftImg.setImageBitmap(submission.getImage());
@@ -46,8 +83,35 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
 
     }
 
+    private void getAllMapThumbs(){
+        for(SubmissionFromServer s : submissionList){
+            try {
+                mapsBitmaps.add(lukeNetUtils.getMapThumbnail(s.getLocation(), 400, 400));
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void getAllPicsThumbs(){
+        for(SubmissionFromServer s : submissionList){
+            try {
+                picsBitmaps.add(lukeNetUtils.getBitmapFromURL(s.getImageUrl()));
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+
     @Override
     public int getItemCount() {
+        int i = 0;
         return submissionList.size();
     }
 

@@ -36,24 +36,27 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     ImageView Submission;
     TabLayout tabLayout;
     ViewPager viewPager;
+    private String userID;
+    Bundle extras;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         fragmentView = inflater.inflate(R.layout.fragment_profile, container, false);
-        tabLayout = (TabLayout)fragmentView.findViewById(R.id.tabLayout);
-        viewPager = (ViewPager)fragmentView.findViewById(R.id.viewPager);
-        setupTabLayout();
+        tabLayout = (TabLayout) fragmentView.findViewById(R.id.tabLayout);
+        viewPager = (ViewPager) fragmentView.findViewById(R.id.viewPager);
         Username = (TextView) fragmentView.findViewById(R.id.usernamedisplay);
         Title = (TextView) fragmentView.findViewById(R.id.title);
         Score = (TextView) fragmentView.findViewById(R.id.Score);
         ProfileImage = (ImageView) fragmentView.findViewById(R.id.profieImage);
-
+        extras = getArguments();
+        this.userID = extras.getString("userId");
+        setupTabLayout();
         return fragmentView;
     }
 
-    private void setupTabLayout(){
-        PageAdapter pageAdapter = new PageAdapter(getMainActivity().getSupportFragmentManager());
+    private void setupTabLayout() {
+        PageAdapter pageAdapter = new PageAdapter(getMainActivity().getSupportFragmentManager(),this.extras);
         viewPager.setAdapter(pageAdapter);
 
         tabLayout.setupWithViewPager(viewPager);
@@ -82,35 +85,52 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         }
     }
 
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+    }
 
     private MainActivity getMainActivity() {
         return (MainActivity) getActivity();
     }
 
+    public String getUserID() {
+        return userID;
+    }
 
-    private class PageAdapter extends FragmentStatePagerAdapter{
+    public void setUserID(String userID) {
+        this.userID = userID;
+    }
 
+
+    private class PageAdapter extends FragmentStatePagerAdapter {
 
         private String[] tabTitles = new String[]{"Submissions", "Achievements"};
+        private Bundle bundle;
+
         @Override
         public CharSequence getPageTitle(int position) {
             return tabTitles[position];
         }
 
         List<android.support.v4.app.Fragment> fragments;
-        public PageAdapter(FragmentManager fm) {
+
+        public PageAdapter(FragmentManager fm,Bundle extras) {
             super(fm);
             UserSubmissionFragment userSubmissionFragment = new UserSubmissionFragment();
+            userSubmissionFragment.setUserId(ProfileFragment.this.userID);
             TabFragmentAchievements achievementFragment = new TabFragmentAchievements();
             fragments = new ArrayList<>();
             fragments.add(userSubmissionFragment);
             fragments.add(achievementFragment);
-
+            this.bundle = extras;
         }
 
         @Override
         public android.support.v4.app.Fragment getItem(int position) {
-            return fragments.get(position);
+            android.support.v4.app.Fragment f = fragments.get(position);
+            f.setArguments(this.bundle);
+            return f;
         }
 
         @Override

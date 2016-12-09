@@ -60,7 +60,7 @@ import com.luke.lukef.lukeapp.WelcomeActivity;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.model.SubmissionMarker;
 import com.luke.lukef.lukeapp.tools.LukeNetUtils;
-import com.luke.lukef.lukeapp.tools.SubmissionPopup;
+import com.luke.lukef.lukeapp.popups.SubmissionPopup;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -168,7 +168,9 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
                 reportSubmission();
                 break;
             case R.id.submissionSubmitterProfileImage:
-                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_PROFILE, null);
+                Bundle extras = new Bundle();
+                extras.putString("userId",submissionPopup.getUserId());
+                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_PROFILE, extras);
                 submissionPopup.dismissPopup();
                 break;
             case R.id.submissionImageMain:
