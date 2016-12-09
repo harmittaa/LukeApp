@@ -140,7 +140,6 @@ public class SubmissionDatabase extends SQLiteOpenHelper {
                         values.put(SUBMISSION_DESCRIPTION, jsonObject.getString("description"));
                         // parse the date into a Date object
                         Date date = format.parse(jsonObject.getString("date"));
-                        Log.e(TAG, "addSubmissions: DATE " + jsonObject.getString("date") );
                         // save milliseconds of the date to the db
                         values.put(SUBMISSION_DATE, date.getTime());
                         values.put(SUBMISSION_SUBMITTER_ID, jsonObject.getString("submitterId"));

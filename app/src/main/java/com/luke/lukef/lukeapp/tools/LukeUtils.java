@@ -88,8 +88,6 @@ public class LukeUtils {
         } catch (JSONException e) {
             Log.e(TAG, "parseStringsFromJsonArray: ", e);
         }
-
-        Log.e(TAG, "parseStringsFromJsonArray: DOES THIS SHIT CRASH");
         return strings;
     }
 
@@ -114,7 +112,7 @@ public class LukeUtils {
             format.applyPattern("hh:mm dd/MM/yyyy");
             return format.format(date);
         } catch (ParseException e) {
-            Log.e(TAG, "parseDateFromString: ",e );
+            Log.e(TAG, "parseDateFromString: ", e);
             return null;
         }
 

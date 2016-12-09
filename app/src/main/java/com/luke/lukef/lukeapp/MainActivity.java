@@ -14,7 +14,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.os.Build;
-import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.graphics.drawable.Drawable;
 import android.support.design.widget.NavigationView;
@@ -87,18 +86,9 @@ public class MainActivity extends AppCompatActivity {
         // Setup navigation drawer view
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         navigationView = (NavigationView) findViewById(R.id.nav_view);
-        //setupDrawerContent(navigationView);
+        setupDrawerContent(navigationView);
         Menu menu = navigationView.getMenu();
 
-        //Notification switch handler
-        MenuItem menuItem = menu.findItem(R.id.notification);
-        View actionView = MenuItemCompat.getActionView(menuItem);
-        actionView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //Do the function here
-            }
-        });
 
         //Custom header in Navigation Drawer
         View header = navigationView.getHeaderView(0);
@@ -344,6 +334,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void openDrawer() {
+        this.drawerLayout.openDrawer(GravityCompat.START);
+    }
+
     //Navigating between Menu Items
     private void setupDrawerContent(NavigationView navigationView) {
         navigationView.setNavigationItemSelectedListener(
@@ -357,10 +351,13 @@ public class MainActivity extends AppCompatActivity {
                         // Handle navigation view item clicks here.
                         int id = item.getItemId();
                         switch (id) {
-                            case R.id.achievements:
-                                fragmentClass = AchievementFragment.class;
+                            case R.id.my_profile:
+                                Bundle bundle = new Bundle();
+                                bundle.putString("userId", SessionSingleton.getInstance().getUserId());
+                                fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_PROFILE, bundle);
+                                fragmentClass = ProfileFragment.class;
                                 break;
-                            case R.id.my_findings:
+                            case R.id.achievements:
                                 fragmentClass = UserSubmissionFragment.class;
                                 break;
                             case R.id.leaderboard:
@@ -374,13 +371,7 @@ public class MainActivity extends AppCompatActivity {
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-                        // Insert the fragment by replacing any existing fragment
-                        FragmentManager fragmentManager = getFragmentManager();
-                        fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment).addToBackStack("BackStack").commit();
-                        // Highlight the selected item has been done by NavigationView
-                        item.setChecked(true);
 
-                        // Close the navigation drawer after select item
                         drawerLayout.closeDrawer(GravityCompat.START);
                         return true;
                     }

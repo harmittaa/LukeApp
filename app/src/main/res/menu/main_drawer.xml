@@ -4,34 +4,29 @@
 
     <group android:checkableBehavior="single">
         <item
+            android:icon="@drawable/ic_menu_share"
+            android:id="@+id/my_profile"
+            android:title="My profile" />
+        <item
+            android:icon="@drawable/ic_menu_share"
             android:id="@+id/achievements"
             android:title="Achievements" />
         <item
-            android:id="@+id/my_findings"
-            android:title="My Findings" />
-        <item
+            android:icon="@drawable/ic_menu_share"
             android:id="@+id/leaderboard"
             android:title="Leaderboard" />
-        <item
-            android:id="@+id/picture"
-            android:title="Add a picture"/>
-        <item
-            android:id="@+id/notification"
-            app:actionLayout="@layout/notification_switch"
-            android:title="Notification" />
-
     </group>
 
-    <item android:title="Communicate">
+    <item android:title="Actions">
         <menu>
             <item
-                android:id="@+id/nav_share"
+                android:id="@+id/logout"
                 android:icon="@drawable/ic_menu_share"
-                android:title="Share" />
+                android:title="Logout" />
             <item
-                android:id="@+id/nav_send"
+                android:id="@+id/quit"
                 android:icon="@drawable/ic_menu_send"
-                android:title="Send" />
+                android:title="Quit" />
         </menu>
     </item>
 

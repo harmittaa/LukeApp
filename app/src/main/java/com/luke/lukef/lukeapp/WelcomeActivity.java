@@ -282,11 +282,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         @Override
         protected Void doInBackground(Void... params) {
             try {
-                //URL lukeURL = new URL(getString(R.string.userUrl));
                 URL lukeURL = new URL("http://www.balticapp.fi/lukeA/user/me");
                 httpURLConnection = (HttpURLConnection) lukeURL.openConnection();
                 httpURLConnection.setRequestProperty(getString(R.string.authorization), getString(R.string.bearer) + idToken);
-                //httpURLConnection.setRequestProperty(getString(R.string.acstoken), accessToken);
                 if (httpURLConnection.getResponseCode() == 200) {
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
                     jsonString = "";
@@ -320,7 +318,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     SessionSingleton.getInstance().setUserId(jsonObject.getString("id"));
                 }
                 SessionSingleton.getInstance().setXp(jsonObject.getInt("score"));
-                if (jsonObject.has("image_url")) {//!TextUtils.isEmpty(jsonObject.getString("image_url"))) {
+                if (jsonObject.has("image_url")) {
                     // TODO: 15/11/2016 parse url to bitmap
                 }
                 if (jsonObject.has("username")) {

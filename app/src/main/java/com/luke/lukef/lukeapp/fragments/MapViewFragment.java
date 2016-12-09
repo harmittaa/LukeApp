@@ -170,7 +170,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.button_back:
-                // TODO: 02/12/2016 open menu
+                getMainActivity().openDrawer();
                 break;
             case R.id.button_filters:
                 // TODO: 02/12/2016 open filters

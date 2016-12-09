@@ -2,12 +2,14 @@ package com.luke.lukef.lukeapp.fragments;
 
 import android.app.Fragment;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,7 +50,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         title = (TextView) fragmentView.findViewById(R.id.title);
         score = (TextView) fragmentView.findViewById(R.id.progressTextView);
         profileImage = (ImageView) fragmentView.findViewById(R.id.profieImage);
-        this.backButton = (ImageButton)fragmentView.findViewById(R.id.button_back);
+        this.backButton = (ImageButton) fragmentView.findViewById(R.id.button_back);
         this.backButton.setOnClickListener(this);
         extras = getArguments();
         this.userID = extras.getString("userId");
@@ -58,7 +60,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     }
 
     private void setupTabLayout() {
-        PageAdapter pageAdapter = new PageAdapter(getMainActivity().getSupportFragmentManager(),this.extras);
+        PageAdapter pageAdapter = new PageAdapter(getMainActivity().getSupportFragmentManager(), this.extras);
         viewPager.setAdapter(pageAdapter);
 
         tabLayout.setupWithViewPager(viewPager);
@@ -81,14 +83,18 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     }
 
 
-    private void setUserProfile(){
+    private void setUserProfile() {
         try {
             this.userFromServer = lukeNetUtils.getUserFromUserId(this.userID);
-            Bitmap b = lukeNetUtils.getBitmapFromURL(this.userFromServer.getImageUrl());
-            if (b == null) {
-                this.profileImage.setImageResource(R.drawable.admin_marker);
+            if (!TextUtils.isEmpty(this.userFromServer.getImageUrl())) {
+                Bitmap b = lukeNetUtils.getBitmapFromURL(this.userFromServer.getImageUrl());
+                if (b == null) {
+                    this.profileImage.setImageResource(R.drawable.admin_marker);
+                } else {
+                    this.profileImage.setImageBitmap(BitmapFactory.decodeResource(getMainActivity().getResources(), R.drawable.no_img));
+                }
             } else {
-                this.profileImage.setImageBitmap(b);
+                this.profileImage.setImageBitmap(BitmapFactory.decodeResource(getMainActivity().getResources(), R.drawable.no_img));
             }
             this.username.setText(userFromServer.getUsername());
         } catch (ExecutionException e) {
@@ -138,7 +144,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
 
         List<android.support.v4.app.Fragment> fragments;
 
-        public PageAdapter(FragmentManager fm,Bundle extras) {
+        public PageAdapter(FragmentManager fm, Bundle extras) {
             super(fm);
             UserSubmissionFragment userSubmissionFragment = new UserSubmissionFragment();
             userSubmissionFragment.setUserId(ProfileFragment.this.userID);
