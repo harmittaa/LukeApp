@@ -14,6 +14,7 @@ import android.widget.TextView;
 import com.luke.lukef.lukeapp.model.Submission;
 import com.luke.lukef.lukeapp.model.SubmissionFromServer;
 import com.luke.lukef.lukeapp.tools.LukeNetUtils;
+import com.luke.lukef.lukeapp.tools.LukeUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +31,7 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
     private List<Bitmap> mapsBitmaps;
     private List<Bitmap> picsBitmaps;
     LukeNetUtils lukeNetUtils;
+    private static final String TAG = "CardViewAdapter";
 
     public CardViewAdapter(List<SubmissionFromServer> submissionList, Activity activity) {
         this.activity = activity;
@@ -50,8 +52,8 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
     @Override
     public void onBindViewHolder(final MyViewHolder holder, final int position) {
         final SubmissionFromServer submission = submissionList.get(position);
-        holder.mDate.setText(submission.getDate());
         holder.content.setText(submission.getDescription());
+        setupDateTime(LukeUtils.parseDateFromString(submission.getDate()),holder.mDate,holder.mTime);
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -81,6 +83,16 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
 //        holder.rightImg.setImageBitmap(submission.getLocation());
 
 
+    }
+
+    private void setupDateTime(String fullDate, TextView left, TextView right){
+        try {
+            String[] splited = fullDate.split("\\s+");
+            left.setText(splited[0]);
+            right.setText(splited[1]);
+        }catch (IndexOutOfBoundsException e){
+            Log.e(TAG, "setupDateTime: ", e);
+        }
     }
 
     private void getAllMapThumbs(){
@@ -118,6 +130,7 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
     public static class MyViewHolder extends RecyclerView.ViewHolder {
 
         TextView mDate;
+        TextView mTime;
         TextView content;
         ImageView leftImg;
         ImageView rightImg;
@@ -125,6 +138,7 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
         public MyViewHolder(View itemView) {
             super(itemView);
             mDate = (TextView) itemView.findViewById(R.id.postDate);
+            mTime = (TextView)itemView.findViewById(R.id.postTime);
             content = (TextView) itemView.findViewById(R.id.postContent);
             leftImg = (ImageView) itemView.findViewById(R.id.picture);
             rightImg = (ImageView) itemView.findViewById(R.id.map);

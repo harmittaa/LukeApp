@@ -1,57 +1,59 @@
 package com.luke.lukef.lukeapp.fragments;
 
 import android.app.Fragment;
-import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.app.FragmentTabHost;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.TabHost;
 import android.widget.TextView;
 
-import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
+import com.luke.lukef.lukeapp.model.UserFromServer;
+import com.luke.lukef.lukeapp.tools.LukeNetUtils;
 import com.luke.lukef.lukeapp.v4fragments.TabFragmentAchievements;
-import com.luke.lukef.lukeapp.v4fragments.TabFragmentSubmissions;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class ProfileFragment extends Fragment implements View.OnClickListener {
     View fragmentView;
-    Button profileMapButton;
-    Button profileLeaderboard;
-    Button profilePoi;
-    TextView Username, Title, Score;
-    ImageView ProfileImage;
-    ImageView Submission;
+    TextView username, title, score;
+    ImageView profileImage;
     TabLayout tabLayout;
     ViewPager viewPager;
     private String userID;
+    private ImageButton backButton;
     Bundle extras;
+    LukeNetUtils lukeNetUtils;
+    UserFromServer userFromServer;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         fragmentView = inflater.inflate(R.layout.fragment_profile, container, false);
+        lukeNetUtils = new LukeNetUtils(getMainActivity());
         tabLayout = (TabLayout) fragmentView.findViewById(R.id.tabLayout);
         viewPager = (ViewPager) fragmentView.findViewById(R.id.viewPager);
-        Username = (TextView) fragmentView.findViewById(R.id.usernamedisplay);
-        Title = (TextView) fragmentView.findViewById(R.id.title);
-        Score = (TextView) fragmentView.findViewById(R.id.Score);
-        ProfileImage = (ImageView) fragmentView.findViewById(R.id.profieImage);
+        username = (TextView) fragmentView.findViewById(R.id.usernamedisplay);
+        title = (TextView) fragmentView.findViewById(R.id.title);
+        score = (TextView) fragmentView.findViewById(R.id.progressTextView);
+        profileImage = (ImageView) fragmentView.findViewById(R.id.profieImage);
+        this.backButton = (ImageButton)fragmentView.findViewById(R.id.button_back);
+        this.backButton.setOnClickListener(this);
         extras = getArguments();
         this.userID = extras.getString("userId");
         setupTabLayout();
+        setUserProfile();
         return fragmentView;
     }
 
@@ -79,9 +81,30 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     }
 
 
+    private void setUserProfile(){
+        try {
+            this.userFromServer = lukeNetUtils.getUserFromUserId(this.userID);
+            Bitmap b = lukeNetUtils.getBitmapFromURL(this.userFromServer.getImageUrl());
+            if (b == null) {
+                this.profileImage.setImageResource(R.drawable.admin_marker);
+            } else {
+                this.profileImage.setImageBitmap(b);
+            }
+            this.username.setText(userFromServer.getUsername());
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
+            case R.id.button_back:
+                getMainActivity().onBackPressed();
+                break;
         }
     }
 

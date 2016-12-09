@@ -7,29 +7,27 @@
 
     <ImageView
         android:id="@+id/profieImage"
-        android:layout_width="99dp"
-        android:layout_height="123dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:layout_marginBottom="8dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="16dp"
         app:layout_constraintBottom_toTopOf="@+id/guideline"
-        app:layout_constraintHorizontal_bias="0.07"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@mipmap/ic_launcher" />
+        app:srcCompat="@mipmap/ic_launcher"
+        app:layout_constraintRight_toLeftOf="@+id/guideline24"
+        android:layout_marginEnd="8dp" />
 
     <TextView
         android:id="@+id/usernamedisplay"
         android:layout_width="0dp"
         android:layout_height="28dp"
         android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
         android:text="TextView"
-        app:layout_constraintLeft_toRightOf="@+id/profieImage"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/profieImage" />
+        app:layout_constraintTop_toTopOf="@+id/profieImage"
+        app:layout_constraintLeft_toLeftOf="@+id/guideline24" />
 
     <TextView
         android:id="@+id/title"
@@ -44,32 +42,25 @@
 
     <ProgressBar
         android:id="@+id/scoreBar"
-        style="@style/Base.Widget.AppCompat.ProgressBar.Horizontal"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
         android:layout_width="0dp"
         android:layout_height="29dp"
-        android:layout_marginEnd="8dp"
         android:layout_marginTop="8dp"
         app:layout_constraintLeft_toLeftOf="@+id/title"
-        app:layout_constraintRight_toLeftOf="@+id/Score"
-        app:layout_constraintTop_toBottomOf="@+id/title" />
-
-    <TextView
-        android:id="@+id/Score"
-        android:layout_width="wrap_content"
-        android:layout_height="29dp"
-        android:layout_marginEnd="8dp"
-        android:text="TextView"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/scoreBar" />
+        app:layout_constraintTop_toBottomOf="@+id/title"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintRight_toRightOf="parent" />
 
     <android.support.constraint.Guideline
         android:id="@+id/guideline"
         android:layout_width="384dp"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.3046875"
+        app:layout_constraintGuide_percent="0.259375"
         tools:layout_editor_absoluteX="0dp"
-        tools:layout_editor_absoluteY="195dp" />
+        tools:layout_editor_absoluteY="166dp" />
 
     <android.support.constraint.Guideline
         android:id="@+id/guideline2"
@@ -136,7 +127,7 @@
         android:background="@color/colorPrimaryDark">
 
         <ImageButton
-            android:id="@+id/button_menu"
+            android:id="@+id/button_back"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_alignParentLeft="true"
@@ -147,6 +138,26 @@
             android:layout_marginLeft="16dp"/>
             />
     </RelativeLayout>
+
+    <android.support.constraint.Guideline
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/guideline24"
+        android:orientation="vertical"
+        tools:layout_editor_absoluteY="0dp"
+        tools:layout_editor_absoluteX="154dp"
+        app:layout_constraintGuide_percent="0.4" />
+
+    <TextView
+        android:text="9001"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/progressTextView"
+        app:layout_constraintRight_toRightOf="@+id/scoreBar"
+        app:layout_constraintLeft_toLeftOf="@+id/scoreBar"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/title"
+        app:layout_constraintBottom_toBottomOf="@+id/scoreBar" />
 
 
 </android.support.constraint.ConstraintLayout>

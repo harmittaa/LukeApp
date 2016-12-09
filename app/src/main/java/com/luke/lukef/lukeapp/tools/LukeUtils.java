@@ -20,7 +20,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 /**
  * Created by Daniel on 05/12/2016.
@@ -52,7 +56,7 @@ public class LukeUtils {
                 submission.setTitle(jsonObject.getString("title"));
             }
             if (jsonObject.has("description")) {
-                submission.setTitle(jsonObject.getString("description"));
+                submission.setDescription(jsonObject.getString("description"));
             }
             if (jsonObject.has("submittedId")) {
                 submission.setSubmitterId(jsonObject.getString("submitterId"));
@@ -87,6 +91,33 @@ public class LukeUtils {
 
         Log.e(TAG, "parseStringsFromJsonArray: DOES THIS SHIT CRASH");
         return strings;
+    }
+
+    /**
+     * Parses date from MS to the defined format
+     *
+     * @param submission_date The amount of milliseconds from the Jan 1, 1970 GMT to the desired date
+     * @return Date as String in defined format
+     */
+    public static String parseDateFromMillis(long submission_date) {
+        Date date = new Date(submission_date);
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.CHINA);
+        format.applyPattern("hh:mm dd/MM/yyyy");
+        return format.format(date);
+    }
+
+    public static String parseDateFromString(String dateToParse) {
+        try {
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.CHINA);
+            Date date = null;
+            date = format.parse(dateToParse);
+            format.applyPattern("hh:mm dd/MM/yyyy");
+            return format.format(date);
+        } catch (ParseException e) {
+            Log.e(TAG, "parseDateFromString: ",e );
+            return null;
+        }
+
     }
 
 

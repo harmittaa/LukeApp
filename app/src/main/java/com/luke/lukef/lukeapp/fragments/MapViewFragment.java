@@ -59,6 +59,7 @@ import com.luke.lukef.lukeapp.SubmissionDatabase;
 import com.luke.lukef.lukeapp.WelcomeActivity;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.model.SubmissionMarker;
+import com.luke.lukef.lukeapp.model.UserFromServer;
 import com.luke.lukef.lukeapp.tools.LukeNetUtils;
 import com.luke.lukef.lukeapp.popups.SubmissionPopup;
 
@@ -151,7 +152,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.button_menu:
+            case R.id.button_back:
                 // TODO: 02/12/2016 open menu
                 break;
             case R.id.button_filters:
@@ -236,7 +237,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     private void setupButtons() {
         filtersButon = (ImageButton) fragmentView.findViewById(R.id.button_filters);
         newSubmissionButton = (ImageButton) fragmentView.findViewById(R.id.button_new_submission);
-        menuButton = (ImageButton) fragmentView.findViewById(R.id.button_menu);
+        menuButton = (ImageButton) fragmentView.findViewById(R.id.button_back);
         filtersButon.setOnClickListener(this);
         newSubmissionButton.setOnClickListener(this);
         menuButton.setOnClickListener(this);
@@ -337,8 +338,8 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
      * Calls the SQLite {@link SubmissionDatabase#queryAdminMarkers()} for a cursor with admin markers
      */
     private void addAdminMarkersToMap() {
-        SubmissionDatabase submissionDatabase = new SubmissionDatabase(getActivity());
-        Cursor queryCursor = submissionDatabase.queryAdminMarkers();
+        SubmissionDatabase SubmissionDatabase = new SubmissionDatabase(getActivity());
+        Cursor queryCursor = SubmissionDatabase.queryAdminMarkers();
         queryCursor.moveToFirst();
         if (queryCursor.getCount() > 0) {
             do {
@@ -356,18 +357,18 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
             } while (queryCursor.moveToNext());
             this.clusterManager.cluster();
         }
-        submissionDatabase.closeDbConnection();
+        SubmissionDatabase.closeDbConnection();
     }
 
     /**
      * Adds submissions to the map based on the provided <code>VisibleRegion</code>. Passes the VisibleRegion
-     * to the {@link com.luke.lukef.lukeapp.SubmissionDatabase#querySubmissions(VisibleRegion visibleRegion)}
+     * to the {@link SubmissionDatabase#querySubmissions(VisibleRegion visibleRegion)}
      *
      * @param visibleRegion The region currently visible on the map
      */
     private void addSubmissionsToMap(VisibleRegion visibleRegion) {
-        SubmissionDatabase submissionDatabase = new SubmissionDatabase(getActivity());
-        Cursor queryCursor = submissionDatabase.querySubmissions(visibleRegion);
+        SubmissionDatabase SubmissionDatabase = new SubmissionDatabase(getActivity());
+        Cursor queryCursor = SubmissionDatabase.querySubmissions(visibleRegion);
         queryCursor.moveToFirst();
         if (queryCursor.getCount() > 0) {
             do {
@@ -384,7 +385,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
             } while (queryCursor.moveToNext());
             this.clusterManager.cluster();
         }
-        submissionDatabase.closeDbConnection();
+        SubmissionDatabase.closeDbConnection();
     }
 
 

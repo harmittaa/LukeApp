@@ -18,6 +18,8 @@ import com.luke.lukef.lukeapp.R;
 import com.luke.lukef.lukeapp.SubmissionDatabase;
 import com.luke.lukef.lukeapp.model.Category;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
+import com.luke.lukef.lukeapp.model.UserFromServer;
+import com.luke.lukef.lukeapp.tools.LukeUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -29,11 +31,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 
 /**
@@ -165,9 +164,9 @@ public class SubmissionPopup {
         }
 
         if (this.queryCursor.getColumnIndex("submission_date") != -1) {
-            this.submissionDate.setText(parseDate(this.queryCursor.getLong(this.queryCursor.getColumnIndexOrThrow("submission_date"))));
+            this.submissionDate.setText(LukeUtils.parseDateFromMillis(this.queryCursor.getLong(this.queryCursor.getColumnIndexOrThrow("submission_date"))));
         } else if (this.queryCursor.getColumnIndex("admin_marker_date") != -1) {
-            this.submissionDate.setText(parseDate(this.queryCursor.getLong(this.queryCursor.getColumnIndexOrThrow("admin_marker_date"))));
+            this.submissionDate.setText(LukeUtils.parseDateFromMillis(this.queryCursor.getLong(this.queryCursor.getColumnIndexOrThrow("admin_marker_date"))));
         }
 
         if (this.queryCursor.getColumnIndex("submission_title") != -1) {
@@ -177,19 +176,6 @@ public class SubmissionPopup {
         }
 
         this.submissionDatabase.closeDbConnection();
-    }
-
-    /**
-     * Parses date from MS to the defined format
-     *
-     * @param submission_date The amount of milliseconds from the Jan 1, 1970 GMT to the desired date
-     * @return Date as String in defined format
-     */
-    private String parseDate(long submission_date) {
-        Date date = new Date(submission_date);
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH);
-        format.applyPattern("hh:mm dd/MM/yyyy");
-        return format.format(date);
     }
 
     /**

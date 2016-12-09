@@ -5,51 +5,64 @@
     android:layout_width="match_parent"
     android:layout_height="200dp"
     android:layout_margin="5dp"
-    card_view:cardCornerRadius="4dp"
-    android:elevation="32dp"
-    android:clickable="true"
     android:background="#8000"
-    android:foreground="?android:attr/selectableItemBackground">
+    android:clickable="true"
+    android:elevation="32dp"
+    android:foreground="?android:attr/selectableItemBackground"
+    card_view:cardCornerRadius="4dp">
 
 
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-        <TextView
-            android:text="DateTime"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/postDate" />
+            android:orientation="horizontal"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:id="@+id/postTime"/>
+            <TextView
+                android:id="@+id/postDate"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textAlignment="viewEnd"/>
+        </LinearLayout>
 
         <RelativeLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
             android:id="@+id/wraping"
-            android:layout_height="match_parent">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
 
             <LinearLayout
-                android:orientation="horizontal"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
 
                 <ImageView
-                    android:layout_weight="1"
-                    android:layout_height="match_parent"
-                    card_view:srcCompat="@drawable/picture"
                     android:id="@+id/picture"
-                    android:scaleType="centerCrop"
-                    android:layout_width="0dip"
-                    />
-
-                <ImageView
                     android:layout_width="0dip"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    card_view:srcCompat="@drawable/map"
+                    android:scaleType="centerCrop" />
+
+                <ImageView
                     android:id="@+id/map"
-                    android:scaleType="centerCrop"/>
+                    android:layout_width="0dip"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:scaleType="centerCrop" />
 
             </LinearLayout>
 
@@ -57,13 +70,18 @@
                 android:id="@+id/postContent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="#FFFFFF"
-                android:gravity="bottom|fill_horizontal"
-                android:layout_marginLeft="1dp"
-                android:layout_marginRight="1dp"
                 android:layout_alignParentBottom="true"
                 android:layout_alignParentStart="true"
-                android:layout_weight="1" />
+                android:layout_marginBottom="8dp"
+                android:layout_marginLeft="8dp"
+                android:layout_weight="1"
+                android:gravity="bottom|fill_horizontal"
+                android:shadowColor="#000000"
+                android:shadowDx="0.0"
+                android:shadowDy="0.0"
+                android:shadowRadius="6.0"
+                android:textColor="@color/vintage_vanilla_white"
+                android:textSize="18dp" />
 
         </RelativeLayout>
 
