@@ -140,6 +140,7 @@ public class SubmissionDatabase extends SQLiteOpenHelper {
                         values.put(SUBMISSION_DESCRIPTION, jsonObject.getString("description"));
                         // parse the date into a Date object
                         Date date = format.parse(jsonObject.getString("date"));
+                        Log.e(TAG, "addSubmissions: DATE " + jsonObject.getString("date") );
                         // save milliseconds of the date to the db
                         values.put(SUBMISSION_DATE, date.getTime());
                         values.put(SUBMISSION_SUBMITTER_ID, jsonObject.getString("submitterId"));
@@ -238,6 +239,16 @@ public class SubmissionDatabase extends SQLiteOpenHelper {
                             " BETWEEN " + swLng + " AND " + neLng
                     , null, null);
         } else {
+            /**
+             * Parses date from MS to the defined format
+             * @param submission_date The amount of milliseconds from the Jan 1, 1970 GMT to the desired date
+             * @return Date as String in defined format
+             */
+            Date date = new Date(minDate);
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH);
+            format.applyPattern("hh:mm dd/MM/yyyy");
+            Log.e(TAG, "querySubmissions: " + format.format(date));
+
             this.cursor = this.database.rawQuery(
                     "SELECT " + SUBMISSION_ID + ", " + SUBMISSION_LATITUDE + ", " + SUBMISSION_LONGITUDE + ", " + SUBMISSION_DATE + ", " + SUBMISSION_POSITIVE +
                             " FROM " + TABLE_SUBMISSION +
@@ -248,6 +259,8 @@ public class SubmissionDatabase extends SQLiteOpenHelper {
                             " AND " + SUBMISSION_DATE + " > " + minDate
                     , null, null);
         }
+        int size = this.cursor.getCount();
+        Log.e(TAG, "querySubmissions: size " + size);
         return this.cursor;
     }
 

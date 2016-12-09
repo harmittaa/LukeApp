@@ -334,6 +334,8 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
             if (this.visibleRegion == null) {
                 this.visibleRegion = this.googleMap.getProjection().getVisibleRegion();
                 if (this.minDateInMs > 0) {
+                   // this.submissionMarkerIdList.clear();
+                   // this.clusterManager.clearItems();
                     addSubmissionsToMap(this.visibleRegion, this.minDateInMs);
                 } else {
                     addSubmissionsToMap(this.visibleRegion, null);
@@ -343,6 +345,8 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
                 // TODO: 29/11/2016 check here if the luke_camera has moved enough to get new stuff from the DB or not
                 this.visibleRegion = this.googleMap.getProjection().getVisibleRegion();
                 if (this.minDateInMs > 0) {
+                    //this.submissionMarkerIdList.clear();
+                    //this.clusterManager.clearItems();
                     addSubmissionsToMap(this.visibleRegion, this.minDateInMs);
                 } else {
                     addSubmissionsToMap(this.visibleRegion, null);
@@ -419,8 +423,8 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
 
     @Override
     public boolean onClusterClick(Cluster<SubmissionMarker> cluster) {
-/*
-        // Zoom in the cluster. Need to create LatLngBounds and including all the cluster items
+
+     /*   // Zoom in the cluster. Need to create LatLngBounds and including all the cluster items
         // inside of bounds, then animate to center of the bounds.
 
         // Create the builder to collect all essential cluster items for the bounds.
@@ -431,16 +435,16 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         // Get the LatLngBounds
         final LatLngBounds bounds = builder.build();
 
-        CameraPosition cameraPosition = new CameraPosition.Builder()
+   *//*     CameraPosition cameraPosition = new CameraPosition.Builder()
                 .target(cluster.getPosition())      // Sets the center of the map to Mountain View
                 .zoom(15)                   // Sets the zoom
                 .bearing(90)                // Sets the orientation of the camera to east
                 .tilt(30)                   // Sets the tilt of the camera to 30 degrees
                 .build();                   // Creates a CameraPosition from the builder
         googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-*/
+*//*
 
-       /* Log.e(TAG, "onClusterClick: BOUNDS SW " + bounds.southwest + " Cneter " + bounds.getCenter());
+        Log.e(TAG, "onClusterClick: BOUNDS SW " + bounds.southwest + " Cneter " + bounds.getCenter());
         // Animate camera to the bounds
         try {
             this.googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
@@ -829,9 +833,10 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
             @Override
             public void onClick(View v) {
                 Calendar calendar = Calendar.getInstance();
-                calendar.set(tempY, tempM, tempD, 0, 1);
+                calendar.set(tempY, tempM, tempD, 1, 0);
                 Log.e(TAG, "onClick: calendar time in ms " + calendar.getTimeInMillis());
                 clusterManager.clearItems();
+                submissionMarkerIdList.clear();
                 addAdminMarkersToMap();
                 setMinDateInMs(calendar.getTimeInMillis());
                 popup.dismiss();
