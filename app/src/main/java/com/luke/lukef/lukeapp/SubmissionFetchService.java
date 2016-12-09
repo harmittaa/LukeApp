@@ -20,7 +20,7 @@ import java.net.URL;
 public class SubmissionFetchService extends Service {
     private static final String TAG = "SubmissionFetchService";
     private Context context;
-    private SubmissionDatabase submissionDatabase;
+    private SubmissionDatabase SubmissionDatabase;
 
     public SubmissionFetchService(Context context) {
         this.context = context;
@@ -45,8 +45,8 @@ public class SubmissionFetchService extends Service {
             @Override
             public void run() {
                 Log.e(TAG, "run:Running service");
-                submissionDatabase = new SubmissionDatabase(getApplicationContext());
-                submissionDatabase.clearCache();
+                SubmissionDatabase = new SubmissionDatabase(getApplicationContext());
+                SubmissionDatabase.clearCache();
                 getAdminMarkers();
                 getSubmissions();
             }
@@ -84,8 +84,8 @@ public class SubmissionFetchService extends Service {
                 try {
                     // make new JSONArray from the server's reply
                     jsonArray = new JSONArray(jsonString);
-                    this.submissionDatabase = new SubmissionDatabase(getApplicationContext());
-                    this.submissionDatabase.addSubmissions(jsonArray);
+                    this.SubmissionDatabase = new SubmissionDatabase(getApplicationContext());
+                    this.SubmissionDatabase.addSubmissions(jsonArray);
 
                     // TODO: 25/11/2016 Handle exceptions
                 } catch (JSONException e) {
@@ -125,9 +125,9 @@ public class SubmissionFetchService extends Service {
                 try {
                     // make new JSONArray from the server's reply
                     jsonArray = new JSONArray(jsonString);
-                    this.submissionDatabase = new SubmissionDatabase(getApplicationContext());
-                    this.submissionDatabase.addAdminMarkers(jsonArray);
-                    this.submissionDatabase.closeDbConnection();
+                    this.SubmissionDatabase = new SubmissionDatabase(getApplicationContext());
+                    this.SubmissionDatabase.addAdminMarkers(jsonArray);
+                    this.SubmissionDatabase.closeDbConnection();
 
                     // TODO: 25/11/2016 Handle exceptions
                 } catch (JSONException e) {

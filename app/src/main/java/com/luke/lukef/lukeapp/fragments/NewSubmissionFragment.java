@@ -34,19 +34,18 @@ import com.luke.lukef.lukeapp.R;
 import com.luke.lukef.lukeapp.SubmissionFetchService;
 import com.luke.lukef.lukeapp.model.Category;
 import com.luke.lukef.lukeapp.model.Submission;
-import com.luke.lukef.lukeapp.tools.CategoriesPopup;
+import com.luke.lukef.lukeapp.popups.CategoriesPopup;
+import com.luke.lukef.lukeapp.tools.LukeNetUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.ExecutionException;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -97,7 +96,19 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                getMapThumbnail(location, mapThumbnail.getWidth(), mapThumbnail.getHeight());
+                final LukeNetUtils lukeNetUtils = new LukeNetUtils(getMainActivity());
+                getMainActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            mapThumbnail.setImageBitmap(lukeNetUtils.getMapThumbnail(location, mapThumbnail.getWidth(), mapThumbnail.getHeight()));
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
                 photoThumbnail.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                 Log.e(TAG, "onGlobalLayout: photothumnailImageview dimensions:" + photoThumbnail.getWidth() + " x " + photoThumbnail.getHeight());
             }
@@ -230,29 +241,6 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         }
     }
 
-    private void getMapThumbnail(final Location center, final int width, final int height) {
-        //https://maps.googleapis.com/maps/api/staticmap?center=29.390946,%2076.963502&zoom=10&size=600x300&maptype=normal
-        final String urlString1 = "https://maps.googleapis.com/maps/api/staticmap?center=";
-        Runnable r = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    URL url = new URL(urlString1 + center.getLatitude() + ",%20" + center.getLongitude() + "&zoom=18&size=" + width + "x" + height + "&maptype=normal");
-                    Log.e(TAG, "run: MAPS COME FROM HERE " + url.toString());
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                    connection.setDoInput(true);
-                    connection.connect();
-                    InputStream input = connection.getInputStream();
-                    changeMapThumbnail(BitmapFactory.decodeStream(input));
-                } catch (IOException e) {
-                    // Log exception
-                }
-            }
-        };
-
-        Thread t = new Thread(r);
-        t.start();
-    }
 
     private void changeMapThumbnail(final Bitmap bm) {
         getMainActivity().runOnUiThread(new Runnable() {

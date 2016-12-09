@@ -41,7 +41,7 @@
         android:background="@color/colorPrimaryDark">
 
             <ImageButton
-                android:id="@+id/button_menu"
+                android:id="@+id/button_back"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_alignParentLeft="true"

@@ -1,4 +1,4 @@
-package com.luke.lukef.lukeapp.tools;
+package com.luke.lukef.lukeapp.popups;
 
 import android.app.Dialog;
 import android.database.Cursor;
@@ -18,6 +18,8 @@ import com.luke.lukef.lukeapp.R;
 import com.luke.lukef.lukeapp.SubmissionDatabase;
 import com.luke.lukef.lukeapp.model.Category;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
+import com.luke.lukef.lukeapp.model.UserFromServer;
+import com.luke.lukef.lukeapp.tools.LukeUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -29,11 +31,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 
 /**
@@ -61,6 +60,7 @@ public class SubmissionPopup {
     private TextView submissionTitle;
     private View.OnClickListener clickListener;
     private Bitmap mainImageBitmap;
+    private String userId;
 
     public SubmissionPopup(MainActivity mainActivity, View.OnClickListener clickListener) {
         this.mainActivity = mainActivity;
@@ -164,9 +164,9 @@ public class SubmissionPopup {
         }
 
         if (this.queryCursor.getColumnIndex("submission_date") != -1) {
-            this.submissionDate.setText(parseDate(this.queryCursor.getLong(this.queryCursor.getColumnIndexOrThrow("submission_date"))));
+            this.submissionDate.setText(LukeUtils.parseDateFromMillis(this.queryCursor.getLong(this.queryCursor.getColumnIndexOrThrow("submission_date"))));
         } else if (this.queryCursor.getColumnIndex("admin_marker_date") != -1) {
-            this.submissionDate.setText(parseDate(this.queryCursor.getLong(this.queryCursor.getColumnIndexOrThrow("admin_marker_date"))));
+            this.submissionDate.setText(LukeUtils.parseDateFromMillis(this.queryCursor.getLong(this.queryCursor.getColumnIndexOrThrow("admin_marker_date"))));
         }
 
         if (this.queryCursor.getColumnIndex("submission_title") != -1) {
@@ -176,19 +176,6 @@ public class SubmissionPopup {
         }
 
         this.submissionDatabase.closeDbConnection();
-    }
-
-    /**
-     * Parses date from MS to the defined format
-     *
-     * @param submission_date The amount of milliseconds from the Jan 1, 1970 GMT to the desired date
-     * @return Date as String in defined format
-     */
-    private String parseDate(long submission_date) {
-        Date date = new Date(submission_date);
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH);
-        format.applyPattern("hh:mm dd/MM/yyyy");
-        return format.format(date);
     }
 
     /**
@@ -253,6 +240,14 @@ public class SubmissionPopup {
         this.markerId = submissionID;
     }
 
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
     /**
      * Used to fetch submission data from the server, pass submission ID as first parameter, return values is a List<String>
      * that includes the category IDs.
@@ -299,6 +294,7 @@ public class SubmissionPopup {
                     }
                     if (jsonObject.has("submitterId")) {
                         getSubmitterData(jsonObject.getString("submitterId"));
+                        SubmissionPopup.this.setUserId(jsonObject.getString("submitterId"));
                     }
                 } catch (JSONException e) {
                     Log.e(TAG, "Exception parsing JSONObject from string: ", e);

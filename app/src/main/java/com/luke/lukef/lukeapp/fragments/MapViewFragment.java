@@ -70,8 +70,9 @@ import com.luke.lukef.lukeapp.SubmissionDatabase;
 import com.luke.lukef.lukeapp.WelcomeActivity;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.model.SubmissionMarker;
+import com.luke.lukef.lukeapp.model.UserFromServer;
 import com.luke.lukef.lukeapp.tools.LukeNetUtils;
-import com.luke.lukef.lukeapp.tools.SubmissionPopup;
+import com.luke.lukef.lukeapp.popups.SubmissionPopup;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -168,7 +169,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.button_menu:
+            case R.id.button_back:
                 // TODO: 02/12/2016 open menu
                 break;
             case R.id.button_filters:
@@ -186,7 +187,9 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
                 reportSubmission();
                 break;
             case R.id.submissionSubmitterProfileImage:
-                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_PROFILE, null);
+                Bundle extras = new Bundle();
+                extras.putString("userId",submissionPopup.getUserId());
+                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_PROFILE, extras);
                 submissionPopup.dismissPopup();
                 break;
             case R.id.submissionImageMain:
@@ -253,7 +256,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     private void setupButtons() {
         filtersButon = (ImageButton) fragmentView.findViewById(R.id.button_filters);
         newSubmissionButton = (ImageButton) fragmentView.findViewById(R.id.button_new_submission);
-        menuButton = (ImageButton) fragmentView.findViewById(R.id.button_menu);
+        menuButton = (ImageButton) fragmentView.findViewById(R.id.button_back);
         filtersButon.setOnClickListener(this);
         newSubmissionButton.setOnClickListener(this);
         menuButton.setOnClickListener(this);
