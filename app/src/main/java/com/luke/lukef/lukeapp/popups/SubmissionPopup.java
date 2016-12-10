@@ -363,7 +363,7 @@ public class SubmissionPopup {
                         @Override
                         public void run() {
                             Log.e(TAG, "run: Setting image");
-                            submitterProfileImage.setImageResource(R.drawable.admin_marker);
+                            submitterProfileImage.setImageResource(R.drawable.luke_default_profile_pic);
                         }
                     });
                 }

@@ -68,7 +68,6 @@ public class LukeNetUtils {
                     URL checkUsernameUrl = new URL("http://www.balticapp.fi/lukeA/user/available?username=" + usernameToCheck);
                     HttpURLConnection httpURLConnection = (HttpURLConnection) checkUsernameUrl.openConnection();
                     httpURLConnection.setRequestProperty(context.getString(R.string.authorization), context.getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
-                    //httpURLConnection.setRequestProperty(context.getString(R.string.acstoken), SessionSingleton.getInstance().getAccessToken());
                     if (httpURLConnection.getResponseCode() == 200) {
                         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
                         StringBuilder stringBuilder = new StringBuilder();
@@ -238,6 +237,7 @@ public class LukeNetUtils {
                     @Override
                     public void onSuccess(UserProfile payload) {
                         try {
+
                             auth0Responder.receiveBitmapFromAuth0(getBitmapFromURL(payload.getPictureURL()));
                         } catch (ExecutionException e) {
                             e.printStackTrace();

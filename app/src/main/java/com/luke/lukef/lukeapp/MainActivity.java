@@ -14,19 +14,18 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.os.Build;
-import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.graphics.drawable.Drawable;
 import android.support.design.widget.NavigationView;
 
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.view.GravityCompat;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 
 import android.os.Bundle;
 
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -36,9 +35,9 @@ import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.luke.lukef.lukeapp.fragments.AchievementFragment;
 import com.luke.lukef.lukeapp.fragments.ConfirmationFragment;
 import com.luke.lukef.lukeapp.fragments.LeaderboardFragment;
 import com.luke.lukef.lukeapp.fragments.MapViewFragment;
@@ -76,6 +75,8 @@ public class MainActivity extends AppCompatActivity {
     private int progressStatus;
     private ProgressBar progressBar;
     private ImageView fullScreenImageView;
+    private ImageView drawerUserProfileImage;
+    private TextView drawerUsername;
     private boolean fullsScreenIsActive = false;
 
 
@@ -87,18 +88,13 @@ public class MainActivity extends AppCompatActivity {
         // Setup navigation drawer view
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         navigationView = (NavigationView) findViewById(R.id.nav_view);
-        //setupDrawerContent(navigationView);
+        this.fullScreenImageView = (ImageView) findViewById(R.id.fullscreenImage);
         Menu menu = navigationView.getMenu();
 
-        //Notification switch handler
-        MenuItem menuItem = menu.findItem(R.id.notification);
-        View actionView = MenuItemCompat.getActionView(menuItem);
-        actionView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //Do the function here
-            }
-        });
+        View hView = navigationView.getHeaderView(0);
+        this.drawerUsername = (TextView) hView.findViewById(R.id.drawerUsername);
+        this.drawerUserProfileImage = (ImageView) hView.findViewById(R.id.drawerUserProfileImage);
+
 
         //Custom header in Navigation Drawer
         View header = navigationView.getHeaderView(0);
@@ -118,12 +114,9 @@ public class MainActivity extends AppCompatActivity {
         animation.start();
 
         setBottomBarButtonsListeners();
-
-
         getCategories();
 
-        this.fullScreenImageView = (ImageView) findViewById(R.id.fullscreenImage);
-
+        setupDrawerContent(navigationView);
         //activate map fragment as default
         fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP, null);
         setStatusBarFlag();
@@ -327,14 +320,15 @@ public class MainActivity extends AppCompatActivity {
     //Implementation of Navigation Drawer
     @Override
     public void onBackPressed() {
+        Fragment f = getFragmentManager().findFragmentById(R.id.fragment_container);
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START);
         } else if (fullsScreenIsActive) {
             this.setFullScreenImageViewVisibility(false);
+            ((MapViewFragment) f).unhidePopup();
         } else {
-            Fragment f = getFragmentManager().findFragmentById(R.id.fragment_container);
             if (f instanceof MapViewFragment) {
-                ((MapViewFragment) f).unhidePopup();
+                makeExitConfirmationPopup();
             } else if (f instanceof ProfileFragment) {
                 //this is to avoid map lag
                 fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP, null);
@@ -344,8 +338,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void openDrawer() {
+        this.drawerLayout.openDrawer(GravityCompat.START);
+    }
+
     //Navigating between Menu Items
     private void setupDrawerContent(NavigationView navigationView) {
+        setUserData();
+
         navigationView.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
                     @SuppressWarnings("StatementWithEmptyBody")
@@ -357,34 +357,72 @@ public class MainActivity extends AppCompatActivity {
                         // Handle navigation view item clicks here.
                         int id = item.getItemId();
                         switch (id) {
-                            case R.id.achievements:
-                                fragmentClass = AchievementFragment.class;
+                            case R.id.my_profile:
+                                if (SessionSingleton.getInstance().isUserLogged()) {
+                                    Bundle bundle = new Bundle();
+                                    bundle.putString("userId", SessionSingleton.getInstance().getUserId());
+                                    fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_PROFILE, bundle);
+                                    fragmentClass = ProfileFragment.class;
+                                } else {
+                                    createLoginPrompt();
+                                }
                                 break;
-                            case R.id.my_findings:
+                            case R.id.achievements:
                                 fragmentClass = UserSubmissionFragment.class;
                                 break;
-                            case R.id.leaderboard:
-                                fragmentClass = LeaderboardFragment.class;
+                            case R.id.edit_profile:
+                                if (SessionSingleton.getInstance().isUserLogged()) {
+                                    startActivity(new Intent(MainActivity.this, NewUserActivity.class));
+                                } else {
+                                    createLoginPrompt();
+                                }
                                 break;
                             default:
                                 fragmentClass = MapViewFragment.class;
                         }
-                        try {
-                            fragment = (Fragment) fragmentClass.newInstance();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        // Insert the fragment by replacing any existing fragment
-                        FragmentManager fragmentManager = getFragmentManager();
-                        fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment).addToBackStack("BackStack").commit();
-                        // Highlight the selected item has been done by NavigationView
-                        item.setChecked(true);
-
-                        // Close the navigation drawer after select item
                         drawerLayout.closeDrawer(GravityCompat.START);
                         return true;
                     }
                 });
+    }
+
+    private void createLoginPrompt() {
+        // TODO: 10/12/2016 MOVE TO LUKEUTILS this is also used in MapFragment
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Please Log in")
+                .setCancelable(false)
+                .setPositiveButton("Login", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        startActivity(new Intent(getBaseContext(),WelcomeActivity.class));
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+        AlertDialog alert = builder.create();
+        alert.show();
+
+    }
+
+    private void setUserData() {
+        Bitmap b;
+        if (!TextUtils.isEmpty(SessionSingleton.getInstance().getIdToken())) {
+            this.drawerUsername.setText(SessionSingleton.getInstance().getUsername());
+            Bitmap img = SessionSingleton.getInstance().getUserImage();
+            if (SessionSingleton.getInstance().getUserImage() != null) {
+                b = SessionSingleton.getInstance().getUserImage();
+            } else {
+                b = BitmapFactory.decodeResource(this.getResources(), R.drawable.luke_default_profile_pic);
+            }
+        } else {
+            this.drawerUsername.setText("NOT LOGGED IN");
+            b = BitmapFactory.decodeResource(this.getResources(), R.drawable.luke_default_profile_pic);
+        }
+        this.drawerUserProfileImage.setImageBitmap(b);
+
     }
 
     public void makeToast(String toastString) {

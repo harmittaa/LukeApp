@@ -38,6 +38,7 @@ import com.auth0.android.result.Credentials;
 import com.auth0.android.result.UserProfile;
 import com.luke.lukef.lukeapp.model.Session;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
+import com.luke.lukef.lukeapp.tools.LukeNetUtils;
 import com.luke.lukef.lukeapp.tools.LukeUtils;
 
 import org.json.JSONException;
@@ -77,12 +78,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     private String idToken = "";
     private String accessToken = "";
     static final int REQUEST_IMAGE_CAPTURE = 1;
+    private LukeNetUtils lukeNetUtils;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_welcome);
-
+        lukeNetUtils = new LukeNetUtils(getApplicationContext());
         loginButton = (Button) findViewById(R.id.loginButton);
         skipLoginButton = (Button) findViewById(R.id.skipLoginButton);
 
@@ -282,11 +284,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         @Override
         protected Void doInBackground(Void... params) {
             try {
-                //URL lukeURL = new URL(getString(R.string.userUrl));
                 URL lukeURL = new URL("http://www.balticapp.fi/lukeA/user/me");
                 httpURLConnection = (HttpURLConnection) lukeURL.openConnection();
                 httpURLConnection.setRequestProperty(getString(R.string.authorization), getString(R.string.bearer) + idToken);
-                //httpURLConnection.setRequestProperty(getString(R.string.acstoken), accessToken);
                 if (httpURLConnection.getResponseCode() == 200) {
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
                     jsonString = "";
@@ -297,7 +297,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     }
                     jsonString = stringBuilder.toString();
                     bufferedReader.close();
-                    Log.e(TAG, "doInBackground: STRING IS " + jsonString );
+                    Log.e(TAG, "doInBackground: STRING IS " + jsonString);
 
                 } else {
                     //TODO: if error do something else, ERROR STREAM
@@ -320,19 +320,19 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     SessionSingleton.getInstance().setUserId(jsonObject.getString("id"));
                 }
                 SessionSingleton.getInstance().setXp(jsonObject.getInt("score"));
-                if (jsonObject.has("image_url")) {//!TextUtils.isEmpty(jsonObject.getString("image_url"))) {
-                    // TODO: 15/11/2016 parse url to bitmap
+                if (jsonObject.has("image_url")) {
+                    if (!TextUtils.isEmpty(jsonObject.getString("image_url")) && !jsonObject.getString("image_url").equals("null")) {
+                        SessionSingleton.getInstance().setUserImage(lukeNetUtils.getBitmapFromURL(jsonObject.getString("image_url")));
+                    }
                 }
                 if (jsonObject.has("username")) {
                     SessionSingleton.getInstance().setUsername(uname);
-                    // TODO: 15/11/2016 move to main activity
                     startActivity(new Intent(getApplicationContext(), MainActivity.class));
                 } else {
-                    // TODO: 15/11/2016 move to username setting screen
                     startActivity(new Intent(getApplicationContext(), NewUserActivity.class));
                 }
 
-            } catch (JSONException e) {
+            } catch (JSONException | InterruptedException | ExecutionException e) {
                 Log.e(TAG, "onPostExecute: ", e);
             }
         }

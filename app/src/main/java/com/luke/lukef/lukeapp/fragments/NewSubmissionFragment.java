@@ -217,7 +217,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inSampleSize = 4;
+            options.inSampleSize = 2;
             Bitmap imageBitmap = BitmapFactory.decodeFile(this.photoPath.toString(), options);
             if (imageBitmap != null) {
                 try {

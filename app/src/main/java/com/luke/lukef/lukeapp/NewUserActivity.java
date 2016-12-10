@@ -22,6 +22,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.luke.lukef.lukeapp.interfaces.Auth0Responder;
+import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.tools.LukeNetUtils;
 
 import java.io.File;
@@ -108,6 +109,7 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
                     if (lukeNetUtils.setUsername(uname)) {
                         if (this.selectedProfileImage != null) {
                             lukeNetUtils.updateUserImage(this.selectedProfileImage);
+                            SessionSingleton.getInstance().setUserImage(this.selectedProfileImage);
 
                         }
                         Log.e(TAG, "onEditorAction: username set");
