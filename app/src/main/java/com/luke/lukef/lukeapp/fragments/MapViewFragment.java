@@ -230,7 +230,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
                     .setCancelable(false)
                     .setPositiveButton("Login", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
-                            getMainActivity().startActivity(new Intent(getMainActivity().getApplicationContext(), WelcomeActivity.class));
+                            getActivity().startActivity(new Intent(getActivity().getApplicationContext(), WelcomeActivity.class));
                         }
                     })
                     .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

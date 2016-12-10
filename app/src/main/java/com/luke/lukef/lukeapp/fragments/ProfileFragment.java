@@ -92,12 +92,12 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
             if (!TextUtils.isEmpty(this.userFromServer.getImageUrl())) {
                 Bitmap b = lukeNetUtils.getBitmapFromURL(this.userFromServer.getImageUrl());
                 if (b == null) {
-                    this.profileImage.setImageResource(R.drawable.admin_marker);
+                    this.profileImage.setImageBitmap(BitmapFactory.decodeResource(getMainActivity().getResources(), R.drawable.luke_default_profile_pic));
                 } else {
                     this.profileImage.setImageBitmap(b);
                 }
             } else {
-                this.profileImage.setImageBitmap(BitmapFactory.decodeResource(getMainActivity().getResources(), R.drawable.no_img));
+                this.profileImage.setImageBitmap(BitmapFactory.decodeResource(getMainActivity().getResources(), R.drawable.luke_default_profile_pic));
             }
             this.username.setText(userFromServer.getUsername());
         } catch (ExecutionException | InterruptedException e) {
