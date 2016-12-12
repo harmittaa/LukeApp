@@ -37,14 +37,14 @@ import java.util.concurrent.ExecutionException;
 import static com.luke.lukef.lukeapp.WelcomeActivity.REQUEST_IMAGE_CAPTURE;
 
 public class NewUserActivity extends AppCompatActivity implements View.OnClickListener, RadioGroup.OnCheckedChangeListener, Auth0Responder {
-    private EditText username;
-    private ImageButton confirmButton;
+    private static final String TAG = "NewUserActivity";
+    private boolean isEditing = false;
+    private String photoPath;
+    private EditText userNameEditText;
     private ImageView userImageViewCamera;
     private ImageView userImageViewAuth0;
     private ImageView userImageViewDefault;
-    private static final String TAG = "NewUserActivity";
-    private String photoPath;
-    private File photofile;
+    private File photoFile;
     private LukeNetUtils lukeNetUtils;
     private RadioGroup radioGroupPicture;
     private Bitmap selectedProfileImage;
@@ -54,25 +54,38 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        checkBundle();
         this.lukeNetUtils = new LukeNetUtils(this);
         setContentView(R.layout.activity_new_user);
         this.userImageViewCamera = (ImageView) findViewById(R.id.newUserCameraImageView);
         this.userImageViewAuth0 = (ImageView) findViewById(R.id.newUserSocialMediaImageView);
         this.userImageViewDefault = (ImageView) findViewById(R.id.newUserDefaultImageView);
-        this.confirmButton = (ImageButton) findViewById(R.id.newUserConfirmButton);
-        this.confirmButton.setOnClickListener(this);
-        this.username = (EditText) findViewById(R.id.newUserName);
-        this.username.setImeActionLabel("Custom text", KeyEvent.ACTION_DOWN);
-        this.username.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+        if (this.isEditing) {
+            this.userImageViewDefault.setImageBitmap(SessionSingleton.getInstance().getUserImage());
+        }
+        ImageButton confirmButton = (ImageButton) findViewById(R.id.newUserConfirmButton);
+        confirmButton.setOnClickListener(this);
+        this.userNameEditText = (EditText) findViewById(R.id.newUserName);
+        if (this.isEditing) {
+            this.userNameEditText.setHint("Optional");
+        } else {
+            this.userNameEditText.setHint("Choose username");
+        }
+        this.userNameEditText.setImeActionLabel("Done", KeyEvent.ACTION_DOWN);
+        this.userNameEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (attemptSetUsername(username.getText().toString())) {
-                    // TODO: 05/12/2016 change activity
-                    Log.e(TAG, "onEditorAction: SHOULD CHANGE ACTIVITY NOW");
+                if (!TextUtils.isEmpty(userNameEditText.getText())) {
+                    if (attemptSetUsername(userNameEditText.getText().toString())) {
+                        // TODO: 05/12/2016 change activity
+                        Log.e(TAG, "onEditorAction: SHOULD CHANGE ACTIVITY NOW");
+                        startActivity(new Intent(NewUserActivity.this, MainActivity.class));
+                    } else {
+                        Log.e(TAG, "onEditorAction: SOME ERROR HAPPENED?");
+                        // TODO: 05/12/2016 display error
+                    }
+                } else if (isEditing) {
                     startActivity(new Intent(NewUserActivity.this, MainActivity.class));
-                } else {
-                    Log.e(TAG, "onEditorAction: SOME ERROR HAPPENED?");
-                    // TODO: 05/12/2016 display error
                 }
                 return false;
             }
@@ -81,6 +94,10 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
         this.radioGroupPicture.setOnCheckedChangeListener(this);
         getWindow().setSoftInputMode(
                 WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
+    }
+
+    private void checkBundle() {
+        this.isEditing = getIntent().getExtras().getBoolean("isEditing");
     }
 
     @Override
@@ -94,68 +111,75 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.newUserConfirmButton:
-                if (attemptSetUsername(this.username.getText().toString()))
+                if (attemptSetUsername(this.userNameEditText.getText().toString()))
                     break;
         }
     }
 
-    private boolean attemptSetUsername(String uname) {
-        if (checkUsernameValid(uname)) {
-            Log.e(TAG, "onEditorAction: Validitiy checked");
-            try {
-                if (this.lukeNetUtils.checkUsernameAvailable(uname)) {
-                    Log.e(TAG, "onEditorAction: username available");
-                    if (this.lukeNetUtils.setUsername(uname)) {
-                        if (this.selectedProfileImage != null) {
-                            this.lukeNetUtils.updateUserImage(this.selectedProfileImage);
-                            SessionSingleton.getInstance().setUserImage(this.selectedProfileImage);
-
+    /**
+     * Tries to set the chosen userNameEditText into the backend
+     *
+     * @param username The specified userNameEditText
+     * @return <b>true</b> if it can be set, <b>false</b> if not
+     */
+    private boolean attemptSetUsername(String username) {
+        if (!TextUtils.isEmpty(username)) {
+            if (checkUsernameValid(username)) {
+                try {
+                    if (this.lukeNetUtils.checkUsernameAvailable(username)) {
+                        if (this.lukeNetUtils.setUsername(username)) {
+                            if (this.selectedProfileImage != null) {
+                                this.lukeNetUtils.updateUserImage(this.selectedProfileImage);
+                                SessionSingleton.getInstance().setUserImage(this.selectedProfileImage);
+                            }
+                            startActivity(new Intent(NewUserActivity.this, MainActivity.class));
+                            return true;
+                        } else {
+                            Toast.makeText(this, "Couldn't set username", Toast.LENGTH_SHORT).show();
+                            return false;
                         }
-                        Log.e(TAG, "onEditorAction: username set");
-                        startActivity(new Intent(NewUserActivity.this, MainActivity.class));
-                        return true;
                     } else {
-                        Toast.makeText(this, "An Error Occured", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Username not available", Toast.LENGTH_SHORT).show();
                         return false;
                     }
-                } else {
-                    Toast.makeText(this, "Username Taken", Toast.LENGTH_SHORT).show();
+                } catch (ExecutionException | InterruptedException | IOException e) {
+                    Log.e(TAG, "attemptSetUsername: ", e);
+                    Toast.makeText(this, "An Error Occured", Toast.LENGTH_SHORT).show();
                     return false;
                 }
-            } catch (ExecutionException e) {
-                Toast.makeText(this, "An Error Occured", Toast.LENGTH_SHORT).show();
-                Log.e(TAG, "onEditorAction: ", e);
-                return false;
-            } catch (InterruptedException e) {
-                Toast.makeText(this, "An Error Occured", Toast.LENGTH_SHORT).show();
-                Log.e(TAG, "onEditorAction: ", e);
-                return false;
-            } catch (IOException e) {
-                Toast.makeText(this, "An Error Occured", Toast.LENGTH_SHORT).show();
-                Log.e(TAG, "onEditorAction: ", e);
+            } else {
+                Toast.makeText(this, "Username too long/short", Toast.LENGTH_SHORT).show();
                 return false;
             }
         } else {
-            Toast.makeText(this, "Invalid Username", Toast.LENGTH_SHORT).show();
-            return false;
+            if (this.isEditing) {
+                if (this.selectedProfileImage != null) {
+                    this.lukeNetUtils.updateUserImage(this.selectedProfileImage);
+                    SessionSingleton.getInstance().setUserImage(this.selectedProfileImage);
+                }
+                startActivity(new Intent(NewUserActivity.this, MainActivity.class));
+                return true;
+
+            } else {
+                Toast.makeText(this, "Set username", Toast.LENGTH_SHORT).show();
+                return false;
+            }
         }
     }
 
     /**
-     * Checks if the username is valid (not empty, length between 1 & 10 characters)
-     * @param uname username to check
+     * Checks if the userNameEditText is valid (not empty, length between 1 & 10 characters)
+     *
+     * @param username userNameEditText to check
      * @return returns true if all checks have passed
      */
-    private boolean checkUsernameValid(String uname) {
-        Log.e(TAG, "checkUsernameValid: USERNAME IS  " + uname);
-        if (!TextUtils.isEmpty(uname)) {
-            Log.e(TAG, "checkUsernameValid: passed first");
-            int length = uname.trim().length();
+    private boolean checkUsernameValid(String username) {
+        if (!TextUtils.isEmpty(username)) {
+            int length = username.trim().length();
             return (length >= 1) && (length <= 10);
         }
         return false;
     }
-
 
     /**
      * Creates the intent to start camera
@@ -165,10 +189,10 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             // Create the File where the photo should go
 
-            if (photofile != null) {
-                this.photoPath = photofile.getAbsolutePath();
+            if (photoFile != null) {
+                this.photoPath = photoFile.getAbsolutePath();
                 // Continue only if the File was successfully created
-                Uri photoURI = FileProvider.getUriForFile(this, "com.luke.lukef.lukeapp", photofile);
+                Uri photoURI = FileProvider.getUriForFile(this, "com.luke.lukef.lukeapp", photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
             } else {
@@ -200,7 +224,7 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
         // Save a file: path for use with ACTION_VIEW intents
         if (image != null) {
             this.photoPath = image.getAbsolutePath();
-            this.photofile = image;
+            this.photoFile = image;
         }
     }
 
@@ -212,10 +236,10 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
             options.inSampleSize = 2;
             Bitmap imageBitmap = BitmapFactory.decodeFile(this.photoPath, options);
             try {
-                Log.e(TAG, "onActivityResult: photo file before write" + this.photofile.length());
-                FileOutputStream fo = new FileOutputStream(this.photofile);
+                Log.e(TAG, "onActivityResult: photo file before write" + this.photoFile.length());
+                FileOutputStream fo = new FileOutputStream(this.photoFile);
                 imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fo);
-                Log.e(TAG, "onActivityResult: photo file after write" + this.photofile.length());
+                Log.e(TAG, "onActivityResult: photo file after write" + this.photoFile.length());
             } catch (FileNotFoundException e) {
                 Log.e(TAG, "onActivityResult: ", e);
             }
@@ -252,7 +276,6 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
             @Override
             public void run() {
                 NewUserActivity.this.userImageViewAuth0.setImageBitmap(b);
-                Log.e(TAG, "run: AUTH0");
                 NewUserActivity.this.auth0ProfileImage = b;
             }
         });

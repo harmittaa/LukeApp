@@ -25,7 +25,6 @@ public class UserSubmissionFragment extends Fragment {
     private RecyclerView recyclerView;
     private String userId;
     private ArrayList<Submission> submissions;
-    private LukeNetUtils lukeNetUtils;
     private CardViewAdapter cardViewAdapter;
     private static final String TAG = "UserSubmissionFragment";
 
@@ -75,7 +74,7 @@ public class UserSubmissionFragment extends Fragment {
 
         @Override
         protected Void doInBackground(Void... params) {
-            lukeNetUtils = new LukeNetUtils(getMainActivity());
+            LukeNetUtils lukeNetUtils = new LukeNetUtils(getMainActivity());
             UserSubmissionFragment.this.submissions = lukeNetUtils.getSubmissionsByUser(this.userId);
             Log.e(TAG, "doInBackground: SUBMISSIONS IS: " + UserSubmissionFragment.this.submissions);
             return null;
