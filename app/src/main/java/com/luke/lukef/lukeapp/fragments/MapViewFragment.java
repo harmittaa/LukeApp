@@ -164,6 +164,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
                 getMainActivity().openDrawer();
                 break;
             case R.id.button_filters:
+                Log.e(TAG, "onClick: CLICKED CALENDAR!");
                 showCalendarPicker();
                 break;
             case R.id.button_new_submission:
@@ -393,13 +394,12 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     private void showCalendarPicker() {
         // Inflate the popup_layout.xml
         ConstraintLayout viewGroup = (ConstraintLayout) getMainActivity().findViewById(R.id.popup_calendar_root);
-        LayoutInflater layoutInflater = (LayoutInflater) getMainActivity()
-                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        LayoutInflater layoutInflater = (LayoutInflater) getMainActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         final View layout = layoutInflater.inflate(R.layout.popup_calendar, viewGroup);
         // Some offset to align the popup a bit to the right, and a bit down, relative to button's position.
         //or if popup is on edge display it to the left of the circle
         Display display = getMainActivity().getWindowManager().getDefaultDisplay();
-        Point size = new Point();
+        Point size = new Point(0,0);
         display.getSize(size);
 
         int OFFSET_X = 25;
