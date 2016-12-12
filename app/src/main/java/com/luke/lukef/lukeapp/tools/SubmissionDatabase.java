@@ -1,4 +1,4 @@
-package com.luke.lukef.lukeapp;
+package com.luke.lukef.lukeapp.tools;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -7,7 +7,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.VisibleRegion;
 
 import org.json.JSONArray;
@@ -20,12 +19,11 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-
 /**
- * SQLiteHelper class to save fetched Submissions into SQLite
+ * SQLiteHelper class to save fetched Submissions and admin markers into SQLite
  */
 public class SubmissionDatabase extends SQLiteOpenHelper {
-    DateFormat format;
+    private DateFormat format;
     private static final String TAG = "SubmissionDatabase";
     private SQLiteDatabase database;
     private Cursor cursor;
@@ -50,7 +48,6 @@ public class SubmissionDatabase extends SQLiteOpenHelper {
     private static final String ADMIN_MARKER_TITLE = "admin_marker_title";
     private static final String ADMIN_MARKER_LATITUDE = "admin_marker_latitude";
     private static final String ADMIN_MARKER_LONGITUDE = "admin_marker_longitude";
-
 
     private static final String SQL_CREATE_TABLE_SUBMISSION =
             "CREATE TABLE " + TABLE_SUBMISSION + " (" +
@@ -80,7 +77,7 @@ public class SubmissionDatabase extends SQLiteOpenHelper {
         this.database = this.getReadableDatabase();
     }
 
-    public void clearCache() {
+    void clearCache() {
         Log.e(TAG, "clearCache: Emptying the cache");
         this.database = this.getWritableDatabase();
         this.database.execSQL("DROP TABLE IF EXISTS submission");
@@ -113,7 +110,7 @@ public class SubmissionDatabase extends SQLiteOpenHelper {
         this.database = this.getWritableDatabase();
         if (jsonArray.length() > 0) {
             for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject jsonObject = null;
+                JSONObject jsonObject;
                 try {
                     jsonObject = jsonArray.getJSONObject(i);
                     ContentValues values = new ContentValues();
@@ -172,7 +169,7 @@ public class SubmissionDatabase extends SQLiteOpenHelper {
         this.database = this.getWritableDatabase();
         if (jsonArray.length() > 0) {
             for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject jsonObject = null;
+                JSONObject jsonObject;
                 try {
                     jsonObject = jsonArray.getJSONObject(i);
                     ContentValues values = new ContentValues();

@@ -32,10 +32,10 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.leaderboard_map_button:
-                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP,null);
+                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP, null);
                 break;
             case R.id.user_profile_button:
-                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_PROFILE,null);
+                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_PROFILE, null);
                 break;
         }
     }

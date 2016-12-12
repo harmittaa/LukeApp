@@ -2,99 +2,65 @@ package com.luke.lukef.lukeapp;
 
 
 import android.Manifest;
-import android.animation.ObjectAnimator;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.AsyncTask;
 
-import android.os.Environment;
-import android.provider.MediaStore;
-import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.DecelerateInterpolator;
 import android.widget.Button;
-import android.widget.ProgressBar;
 
 import com.auth0.android.Auth0;
-import com.auth0.android.authentication.AuthenticationAPIClient;
-import com.auth0.android.authentication.AuthenticationException;
-import com.auth0.android.callback.BaseCallback;
 import com.auth0.android.lock.AuthenticationCallback;
 import com.auth0.android.lock.Lock;
 import com.auth0.android.lock.LockCallback;
 import com.auth0.android.lock.utils.LockException;
 import com.auth0.android.result.Credentials;
-import com.auth0.android.result.UserProfile;
-import com.luke.lukef.lukeapp.model.Session;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.tools.LukeNetUtils;
 import com.luke.lukef.lukeapp.tools.LukeUtils;
+import com.luke.lukef.lukeapp.tools.SubmissionFetchService;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
-import java.net.URLEncoder;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
-import javax.net.ssl.HttpsURLConnection;
-
+/**
+ * Handles parsing Auth0 response of login,
+ */
 public class WelcomeActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String TAG = "WelcomeActivity";
+    static final int REQUEST_IMAGE_CAPTURE = 1;
     private Button loginButton;
     private Button skipLoginButton;
     private Lock lock;
     private String idToken = "";
     private String accessToken = "";
-    static final int REQUEST_IMAGE_CAPTURE = 1;
     private LukeNetUtils lukeNetUtils;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_welcome);
-        lukeNetUtils = new LukeNetUtils(getApplicationContext());
-        loginButton = (Button) findViewById(R.id.loginButton);
-        skipLoginButton = (Button) findViewById(R.id.skipLoginButton);
-
-        loginButton.setOnClickListener(this);
-        skipLoginButton.setOnClickListener(this);
-
+        this.lukeNetUtils = new LukeNetUtils(getApplicationContext());
+        this.loginButton = (Button) findViewById(R.id.loginButton);
+        this.skipLoginButton = (Button) findViewById(R.id.skipLoginButton);
+        this.loginButton.setOnClickListener(this);
+        this.skipLoginButton.setOnClickListener(this);
         requestPermission();
-
         startService(new Intent(this, SubmissionFetchService.class));
-
     }
 
     private void requestPermission() {
@@ -106,35 +72,32 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.skipLoginButton:
-                if (SessionSingleton.getInstance().checkInternetStatus(this)) {
+                if (LukeUtils.checkInternetStatus(this)) {
                     SessionSingleton.getInstance().setUserLogged(false);
                     startActivity(new Intent(WelcomeActivity.this, MainActivity.class));
                 }
 
                 break;
             case R.id.loginButton:
-                if (SessionSingleton.getInstance().checkInternetStatus(this)) {
+                if (LukeUtils.checkInternetStatus(this)) {
                     SessionSingleton.getInstance().setUserLogged(false);
-                    SetupTask setupTask = new SetupTask(getString(R.string.auth0URL));
-                    setupTask.execute();
+                    Auth0SetupTask auth0SetupTask = new Auth0SetupTask(getString(R.string.auth0URL));
+                    auth0SetupTask.execute();
 
                 }
                 break;
         }
     }
 
+
     /*
-
     AUTH0 STUFF
-
-
      */
-
 
     private void doLogin(String clientId, String domain) {
         Auth0 auth0 = new Auth0(clientId, domain);
-        lock = Lock.newBuilder(auth0, callBack).build(this);
-        startActivity(lock.newIntent(this));
+        this.lock = Lock.newBuilder(auth0, this.callBack).build(this);
+        startActivity(this.lock.newIntent(this));
     }
 
     private final LockCallback callBack = new AuthenticationCallback() {
@@ -144,8 +107,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             idToken = credentials.getIdToken();
             SessionSingleton.getInstance().setAccessToken(accessToken);
             SessionSingleton.getInstance().setIdToken(idToken);
-            Log.e(TAG, "onAuthentication: LOGIN INFO");
-            Log.e(TAG, "onAuthentication: acstoken " + accessToken);
             Log.e(TAG, "onAuthentication: idToken " + idToken);
             // TODO: 15/11/2016 login to luke, check username, change to new user screen if first time login
             LoginCallable loginTask = new LoginCallable();
@@ -155,8 +116,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             try {
                 if (booleanFutureTask.get()) {
                     // TODO: 15/11/2016 check username, if exists -> main screen, if not -> go to username creation
-                    CheckUsernameTask checkUsernameTask = new CheckUsernameTask();
-                    checkUsernameTask.execute();
+                    FetchUserDataTask fetchUserDataTask = new FetchUserDataTask();
+                    fetchUserDataTask.execute();
                     SessionSingleton.getInstance().setUserLogged(true);
                     finish();
                 } else {
@@ -171,29 +132,30 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
         @Override
         public void onCanceled() {
-
         }
 
         @Override
         public void onError(LockException error) {
-
         }
     };
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (lock != null) {
-            lock.onDestroy(this);
-            lock = null;
+        if (this.lock != null) {
+            this.lock.onDestroy(this);
+            this.lock = null;
         }
     }
 
-    private class SetupTask extends AsyncTask<Void, Void, Void> {
+    /**
+     * Fetches information required for Auth0 setup
+     */
+    private class Auth0SetupTask extends AsyncTask<Void, Void, Void> {
         String url;
         String jsonString;
 
-        SetupTask(String url) {
+        Auth0SetupTask(String url) {
             this.url = url;
         }
 
@@ -245,25 +207,28 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             if (parseCheck(auth0Domain, auth0ClienID)) {
                 doLogin(auth0ClienID, auth0Domain);
                 SessionSingleton.getInstance().setAuth0Domain(auth0Domain);
-                SessionSingleton.getInstance().setAuth0ClienID(auth0ClienID);
+                SessionSingleton.getInstance().setAuth0ClientID(auth0ClienID);
             }
         }
     }
 
+    /**
+     * Pushes login to server
+     */
     private class LoginCallable implements Callable<Boolean> {
-        HttpURLConnection httpURLConnection;
+        private HttpURLConnection httpURLConnection;
 
         @Override
         public Boolean call() throws Exception {
             try {
                 URL lukeURL = new URL(getString(R.string.loginUrl));
-                httpURLConnection = (HttpURLConnection) lukeURL.openConnection();
-                httpURLConnection.setRequestProperty(getString(R.string.authorization), getString(R.string.bearer) + idToken);
-                httpURLConnection.setRequestProperty(getString(R.string.acstoken), accessToken);
-                if (httpURLConnection.getResponseCode() == 200) {
+                this.httpURLConnection = (HttpURLConnection) lukeURL.openConnection();
+                this.httpURLConnection.setRequestProperty(getString(R.string.authorization), getString(R.string.bearer) + idToken);
+                if (this.httpURLConnection.getResponseCode() == 200) {
                     return true;
                 } else {
-                    //TODO: if error do something else, ERROR STREAM
+                    Log.e(TAG, "call: LOGIN DIDN'T WORK" );
+                    // TODO: 12/12/2016 DANIEL
                     return false;
                 }
             } catch (MalformedURLException e) {
@@ -276,10 +241,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
-    private class CheckUsernameTask extends AsyncTask<Void, Void, Void> {
+    /**
+     * Fetches user data like ID, image and URL from the server
+     */
+    private class FetchUserDataTask extends AsyncTask<Void, Void, Void> {
         private String jsonString;
-        private String uname;
-        HttpURLConnection httpURLConnection;
+        private HttpURLConnection httpURLConnection;
 
         @Override
         protected Void doInBackground(Void... params) {
@@ -326,7 +293,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     }
                 }
                 if (jsonObject.has("username")) {
-                    SessionSingleton.getInstance().setUsername(uname);
+                    SessionSingleton.getInstance().setUsername(jsonObject.getString("username"));
                     startActivity(new Intent(getApplicationContext(), MainActivity.class));
                 } else {
                     startActivity(new Intent(getApplicationContext(), NewUserActivity.class));

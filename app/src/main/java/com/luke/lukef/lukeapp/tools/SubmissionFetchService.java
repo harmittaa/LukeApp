@@ -1,4 +1,4 @@
-package com.luke.lukef.lukeapp;
+package com.luke.lukef.lukeapp.tools;
 
 import android.app.Service;
 import android.content.Context;
@@ -22,17 +22,6 @@ public class SubmissionFetchService extends Service {
     private Context context;
     private SubmissionDatabase SubmissionDatabase;
 
-    public SubmissionFetchService(Context context) {
-        this.context = context;
-        System.out.println("DB created");
-
-    }
-
-
-    public SubmissionFetchService() {
-
-    }
-
     @Override
     public void onCreate() {
         super.onCreate();
@@ -51,7 +40,6 @@ public class SubmissionFetchService extends Service {
                 getSubmissions();
             }
         });
-
         serviceThread.start();
         return START_NOT_STICKY;
     }
@@ -104,6 +92,9 @@ public class SubmissionFetchService extends Service {
         }
     }
 
+    /**
+     * Fetches all admin markers from the server, and passes the resulting JSONArray to SQLiteHelper
+     */
     private void getAdminMarkers() {
         String jsonString;
         try {

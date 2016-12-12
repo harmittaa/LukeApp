@@ -1,19 +1,6 @@
 package com.luke.lukef.lukeapp;
 
-import android.Manifest;
-
-import android.animation.ObjectAnimator;
-import android.app.AlertDialog;
-import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.location.Location;
-import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.graphics.drawable.Drawable;
 import android.support.design.widget.NavigationView;
@@ -27,12 +14,9 @@ import android.os.Bundle;
 
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -42,9 +26,7 @@ import com.luke.lukef.lukeapp.fragments.ConfirmationFragment;
 import com.luke.lukef.lukeapp.fragments.LeaderboardFragment;
 import com.luke.lukef.lukeapp.fragments.MapViewFragment;
 import com.luke.lukef.lukeapp.fragments.NewSubmissionFragment;
-import com.luke.lukef.lukeapp.fragments.PointOfInterestFragment;
 import com.luke.lukef.lukeapp.fragments.ProfileFragment;
-import com.luke.lukef.lukeapp.fragments.UserSubmissionFragment;
 
 import com.luke.lukef.lukeapp.model.Category;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
@@ -52,7 +34,6 @@ import com.luke.lukef.lukeapp.model.SessionSingleton;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -66,10 +47,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import android.Manifest;
+import android.animation.ObjectAnimator;
+import android.app.AlertDialog;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.location.Location;
+import android.os.Build;
 
+
+// TODO: 12/12/2016 DANIEL
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
-    private ImageButton leftButton;
+    final private int REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS = 124;
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private int progressStatus;
@@ -86,10 +82,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // Setup navigation drawer view
-        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        navigationView = (NavigationView) findViewById(R.id.nav_view);
+        this.drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        this.navigationView = (NavigationView) findViewById(R.id.nav_view);
         this.fullScreenImageView = (ImageView) findViewById(R.id.fullscreenImage);
-        Menu menu = navigationView.getMenu();
+        //Menu menu = this.navigationView.getMenu();
 
         View hView = navigationView.getHeaderView(0);
         this.drawerUsername = (TextView) hView.findViewById(R.id.drawerUsername);
@@ -97,30 +93,27 @@ public class MainActivity extends AppCompatActivity {
 
 
         //Custom header in Navigation Drawer
-        View header = navigationView.getHeaderView(0);
-        progressStatus = 25;
+        View header = this.navigationView.getHeaderView(0);
+        this.progressStatus = 25;
         Drawable drawable = ResourcesCompat.getDrawable(getResources(), R.drawable.progress_bar, null);
-        progressBar = (ProgressBar) header.findViewById(R.id.progressbar1);
+        this.progressBar = (ProgressBar) header.findViewById(R.id.progressbar1);
         // Main Progress
-        progressBar.setProgress(progressStatus);
+        this.progressBar.setProgress(progressStatus);
         // Maximum Progress
-        progressBar.setMax(100);
-        progressBar.setProgressDrawable(drawable);
+        this.progressBar.setMax(100);
+        this.progressBar.setProgressDrawable(drawable);
 
         //Animation when drawing process
-        ObjectAnimator animation = ObjectAnimator.ofInt(progressBar, "progress", 0, progressStatus);
+        ObjectAnimator animation = ObjectAnimator.ofInt(this.progressBar, "progress", 0, this.progressStatus);
         animation.setDuration(990);
         animation.setInterpolator(new DecelerateInterpolator());
         animation.start();
 
-        setBottomBarButtonsListeners();
         getCategories();
 
-        setupDrawerContent(navigationView);
+        setupDrawerContent(this.navigationView);
         //activate map fragment as default
         fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP, null);
-        setStatusBarFlag();
-
     }
 
     @Override
@@ -159,9 +152,6 @@ public class MainActivity extends AppCompatActivity {
                 fragment = new NewSubmissionFragment();
                 addToBackStack = true;
                 break;
-            case FRAGMENT_POINT_OF_INTEREST:
-                fragment = new PointOfInterestFragment();
-                break;
             case FRAGMENT_PROFILE:
                 fragment = new ProfileFragment();
                 addToBackStack = true;
@@ -172,19 +162,22 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
         //replace the fragment
-        if (fragment != null) {
-            if (bundleToSend != null) {
-                fragment.setArguments(bundleToSend);
-            }
-            if (addToBackStack) {
-                fragmentTransaction.replace(R.id.fragment_container, fragment).addToBackStack("BackStack").commit();
+        if (bundleToSend != null) {
+            fragment.setArguments(bundleToSend);
+        }
+        if (addToBackStack) {
+            fragmentTransaction.replace(R.id.fragment_container, fragment).addToBackStack("BackStack").commit();
 
-            } else {
-                fragmentTransaction.replace(R.id.fragment_container, fragment).commit();
-            }
+        } else {
+            fragmentTransaction.replace(R.id.fragment_container, fragment).commit();
         }
     }
 
+    /**
+     * Shows the given image as full screen
+     *
+     * @param b The Bitmap to be shown
+     */
     public void setFullScreenImageViewImage(final Bitmap b) {
         runOnUiThread(new Runnable() {
             @Override
@@ -194,6 +187,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    // TODO: 12/12/2016 DANIEL
     public void setFullScreenImageViewVisibility(final boolean isVisible) {
         runOnUiThread(new Runnable() {
             @Override
@@ -216,10 +210,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void setStatusBarFlag() {
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-    }
-
+    // TODO: 12/12/2016 DANIEL
     private Bundle constructBundleFromMap(MapViewFragment mf) {
         Bundle bundle = new Bundle();
         Location gettedLoc = mf.getLastLoc();
@@ -229,66 +220,47 @@ public class MainActivity extends AppCompatActivity {
         return bundle;
     }
 
+    /**
+     * Handles making submission when user has long pressed on the map.
+     */
     public void makeSubmission() {
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        Fragment fragment = null;
+        Fragment fragment;
         Bundle bundleToSend = null;
         if (getCurrentFragment(fragmentManager) instanceof MapViewFragment) {
             bundleToSend = constructBundleFromMap((MapViewFragment) getCurrentFragment(fragmentManager));
         }
         fragment = new NewSubmissionFragment();
-        if (fragment != null) {
-            if (bundleToSend != null) {
-                fragment.setArguments(bundleToSend);
-            }
-            fragmentTransaction.replace(R.id.fragment_container, fragment).addToBackStack("BackStack").commit();
+        if (bundleToSend != null) {
+            fragment.setArguments(bundleToSend);
         }
+        fragmentTransaction.replace(R.id.fragment_container, fragment).addToBackStack("BackStack").commit();
     }
 
     private Fragment getCurrentFragment(FragmentManager fm) {
         return fm.findFragmentById(R.id.fragment_container);
     }
 
-    public void setBottomBarButtonsListeners() {
-        View.OnClickListener clBack = new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onBackPressed();
-            }
-        };
-        View.OnClickListener clNewSub = new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-            }
-        };
-    }
-
-    final private int REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS = 124;
-
+    // TODO: 12/12/2016 DANIEL move ot LukeUtils?
     private void checkPermissions() {
-
         List<String> permissions = new ArrayList<>();
-        String message = "osmdroid permissions:";
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
-            message += "\nLocation to show user location.";
         }
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-            message += "\nStorage access to store map tiles.";
         }
         if (!permissions.isEmpty()) {
-            //Toast.makeText(this, message, Toast.LENGTH_LONG).show();
             String[] params = permissions.toArray(new String[permissions.size()]);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 requestPermissions(params, REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS);
             }
-        } // else: We already have permissions, so handle as normal
+        }
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
             case REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS: {
                 Map<String, Integer> perms = new HashMap<>();
@@ -301,15 +273,6 @@ public class MainActivity extends AppCompatActivity {
                 // Check for ACCESS_FINE_LOCATION and WRITE_EXTERNAL_STORAGE
                 Boolean location = perms.get(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
                 Boolean storage = perms.get(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
-                if (location && storage) {
-                    // All Permissions Granted
-                } else if (location) {
-                    //Toast.makeText(this, "Storage permission is required to store map tiles to reduce data usage and for offline usage.", Toast.LENGTH_LONG).show();
-                } else if (storage) {
-                    //Toast.makeText(this, "Location permission is required to show the user's location on map.", Toast.LENGTH_LONG).show();
-                } else { // !location && !storage case
-                    // Permission Denied
-                }
             }
             break;
             default:
@@ -344,16 +307,13 @@ public class MainActivity extends AppCompatActivity {
 
     //Navigating between Menu Items
     private void setupDrawerContent(NavigationView navigationView) {
-        setUserData();
+        setDrawerUserData();
 
         navigationView.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
                     @SuppressWarnings("StatementWithEmptyBody")
                     @Override
-                    public boolean onNavigationItemSelected(MenuItem item) {
-                        // Create a new fragment and specify the fragment to show based on nav item clicked
-                        Fragment fragment = null;
-                        Class fragmentClass;
+                    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                         // Handle navigation view item clicks here.
                         int id = item.getItemId();
                         switch (id) {
@@ -362,13 +322,11 @@ public class MainActivity extends AppCompatActivity {
                                     Bundle bundle = new Bundle();
                                     bundle.putString("userId", SessionSingleton.getInstance().getUserId());
                                     fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_PROFILE, bundle);
-                                    fragmentClass = ProfileFragment.class;
                                 } else {
                                     createLoginPrompt();
                                 }
                                 break;
                             case R.id.achievements:
-                                fragmentClass = UserSubmissionFragment.class;
                                 break;
                             case R.id.edit_profile:
                                 if (SessionSingleton.getInstance().isUserLogged()) {
@@ -378,7 +336,6 @@ public class MainActivity extends AppCompatActivity {
                                 }
                                 break;
                             default:
-                                fragmentClass = MapViewFragment.class;
                         }
                         drawerLayout.closeDrawer(GravityCompat.START);
                         return true;
@@ -386,6 +343,9 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Creates a login prompt
+     */
     private void createLoginPrompt() {
         // TODO: 10/12/2016 MOVE TO LUKEUTILS this is also used in MapFragment
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -393,7 +353,7 @@ public class MainActivity extends AppCompatActivity {
                 .setCancelable(false)
                 .setPositiveButton("Login", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        startActivity(new Intent(getBaseContext(),WelcomeActivity.class));
+                        startActivity(new Intent(getBaseContext(), WelcomeActivity.class));
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -407,28 +367,32 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void setUserData() {
+    /**
+     * Sets user data to the drawer
+     */
+    private void setDrawerUserData() {
         Bitmap b;
         if (!TextUtils.isEmpty(SessionSingleton.getInstance().getIdToken())) {
             this.drawerUsername.setText(SessionSingleton.getInstance().getUsername());
-            Bitmap img = SessionSingleton.getInstance().getUserImage();
             if (SessionSingleton.getInstance().getUserImage() != null) {
                 b = SessionSingleton.getInstance().getUserImage();
             } else {
                 b = BitmapFactory.decodeResource(this.getResources(), R.drawable.luke_default_profile_pic);
             }
         } else {
-            this.drawerUsername.setText("NOT LOGGED IN");
+            this.drawerUsername.setText(getResources().getText(R.string.not_logged_in));
             b = BitmapFactory.decodeResource(this.getResources(), R.drawable.luke_default_profile_pic);
         }
         this.drawerUserProfileImage.setImageBitmap(b);
-
     }
 
     public void makeToast(String toastString) {
         Toast.makeText(this, toastString, Toast.LENGTH_SHORT).show();
     }
 
+    /**
+     * Handles creating an exit confirmation pop up with buttons Yes and No.
+     */
     public void makeExitConfirmationPopup() {
         new AlertDialog.Builder(this)
                 .setTitle("Quit Application?")
@@ -474,7 +438,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Fetches categories from the server, parses them and adds new ones to the {@link SessionSingleton#getCategoryList()}
+     * Fetches categories from the server, parses them and adds new ones to the {@link SessionSingleton#getCategoryList()}.
      */
     private void getCategories() {
         Runnable checkUsernameRunnable = new Runnable() {
@@ -551,7 +515,7 @@ public class MainActivity extends AppCompatActivity {
                                 } else {
                                     c.setTitle("No title");
                                 }
-                                Bitmap bitmap = null;
+                                Bitmap bitmap;
                                 if (jsonCategory.has("image_url")) {
                                     String imageUrl = jsonCategory.getString("image_url");
                                     try {
@@ -587,6 +551,4 @@ public class MainActivity extends AppCompatActivity {
         Thread thread = new Thread(checkUsernameRunnable);
         thread.start();
     }
-
-
 }

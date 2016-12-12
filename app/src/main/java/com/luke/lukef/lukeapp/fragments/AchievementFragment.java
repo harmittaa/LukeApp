@@ -15,6 +15,7 @@ import com.luke.lukef.lukeapp.R;
 
 public class AchievementFragment extends Fragment {
     View fragmentView;
+
     public AchievementFragment() {
         super();
     }

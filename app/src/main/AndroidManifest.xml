@@ -74,7 +74,7 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyD4AFZBvA2mMOzhYtXcjmUTeUCmCycxffw"/>
 
-        <service android:name=".SubmissionFetchService" />
+        <service android:name=".tools.SubmissionFetchService" />
 
     </application>
 

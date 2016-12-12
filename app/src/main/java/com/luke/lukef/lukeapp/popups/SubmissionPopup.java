@@ -15,10 +15,9 @@ import android.widget.TextView;
 
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
-import com.luke.lukef.lukeapp.SubmissionDatabase;
+import com.luke.lukef.lukeapp.tools.SubmissionDatabase;
 import com.luke.lukef.lukeapp.model.Category;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
-import com.luke.lukef.lukeapp.model.UserFromServer;
 import com.luke.lukef.lukeapp.tools.LukeUtils;
 
 import org.json.JSONArray;
@@ -377,7 +376,7 @@ public class SubmissionPopup {
                                 submissionSubmitterName.setText(jsonObject.getString("username"));
                             } catch (JSONException e) {
                                 submissionSubmitterName.setText("not availble");
-                                Log.e(TAG, "run: error parsing username ", e );
+                                Log.e(TAG, "run: error parsing username ", e);
                             }
                         }
                     });
