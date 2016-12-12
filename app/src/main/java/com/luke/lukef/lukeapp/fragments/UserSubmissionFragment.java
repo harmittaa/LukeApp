@@ -59,7 +59,7 @@ public class UserSubmissionFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        recyclerView = (RecyclerView) fragmentView.findViewById(R.id.submit_list);
+        recyclerView = (RecyclerView) fragmentView.findViewById(R.id.recyclerViewUserSubmissions);
         recyclerView.setHasFixedSize(true);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -67,18 +67,6 @@ public class UserSubmissionFragment extends Fragment {
         this.userId = getArguments().getString("userId");
         UserSubmissionsAsync userSubmissionsAsync = new UserSubmissionsAsync(this.userId);
         userSubmissionsAsync.execute();
-    }
-
-    //  Create a list of user's submissions
-    private List<Submission> createList(int size) {
-        List<Submission> result = new ArrayList<>();
-        for (int i = 0; i < size; i++) {
-            Submission submission = new Submission();
-//            submission.datE = Submission.DATE + i;
-//            submission.contenT = Submission.CONTENT + i;
-            result.add(submission);
-        }
-        return result;
     }
 
     public String getUserId() {
