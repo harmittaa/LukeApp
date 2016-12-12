@@ -36,8 +36,8 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
         lukeNetUtils = new LukeNetUtils(activity);
         mapsBitmaps = new ArrayList<>();
         picsBitmaps = new ArrayList<>();
-        getAllMapThumbs();
-        getAllPicsThumbs();
+        /*getAllMapThumbs();
+        getAllPicsThumbs();*/
     }
 
     @Override
@@ -55,7 +55,7 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
             @Override
             public void run() {
                 try {
-                    if (picsBitmaps == null) {
+                    if (picsBitmaps == null || picsBitmaps.size() == 0) {
                         if (!TextUtils.isEmpty(submission.getImageUrl())) {
                             holder.rightImg.setImageBitmap(lukeNetUtils.getBitmapFromURL(submission.getImageUrl()));
                         } else {
@@ -64,7 +64,7 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
                     } else {
                         holder.rightImg.setImageBitmap(picsBitmaps.get(position));
                     }
-                    if (mapsBitmaps == null) {
+                    if (mapsBitmaps == null || mapsBitmaps.size() == 0) {
                         holder.leftImg.setImageBitmap(lukeNetUtils.getMapThumbnail(submission.getLocation(), 400, 400));
                     } else {
                         holder.leftImg.setImageBitmap(mapsBitmaps.get(position));
