@@ -31,40 +31,39 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
 import static com.luke.lukef.lukeapp.WelcomeActivity.REQUEST_IMAGE_CAPTURE;
 
 public class NewUserActivity extends AppCompatActivity implements View.OnClickListener, RadioGroup.OnCheckedChangeListener, Auth0Responder {
-
     private EditText username;
     private ImageButton confirmButton;
-    private String usernameString;
-    ImageView userImageViewCamera;
-    ImageView userImageViewAuth0;
-    ImageView userImageViewDefault;
+    private ImageView userImageViewCamera;
+    private ImageView userImageViewAuth0;
+    private ImageView userImageViewDefault;
     private static final String TAG = "NewUserActivity";
     private String photoPath;
     private File photofile;
-    LukeNetUtils lukeNetUtils;
-    RadioGroup radioGroupPicture;
-    Bitmap selectedProfileImage;
-    Bitmap auth0ProfileImage;
-    Bitmap cameraProfileImage;
+    private LukeNetUtils lukeNetUtils;
+    private RadioGroup radioGroupPicture;
+    private Bitmap selectedProfileImage;
+    private Bitmap auth0ProfileImage;
+    private Bitmap cameraProfileImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        lukeNetUtils = new LukeNetUtils(this);
+        this.lukeNetUtils = new LukeNetUtils(this);
         setContentView(R.layout.activity_new_user);
-        userImageViewCamera = (ImageView) findViewById(R.id.newUserCameraImageView);
-        userImageViewAuth0 = (ImageView) findViewById(R.id.newUserSocialMediaImageView);
-        userImageViewDefault = (ImageView) findViewById(R.id.newUserDefaultImageView);
-        confirmButton = (ImageButton) findViewById(R.id.newUserConfirmButton);
-        confirmButton.setOnClickListener(this);
-        username = (EditText) findViewById(R.id.newUserName);
-        username.setImeActionLabel("Custom text", KeyEvent.ACTION_DOWN);
-        username.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+        this.userImageViewCamera = (ImageView) findViewById(R.id.newUserCameraImageView);
+        this.userImageViewAuth0 = (ImageView) findViewById(R.id.newUserSocialMediaImageView);
+        this.userImageViewDefault = (ImageView) findViewById(R.id.newUserDefaultImageView);
+        this.confirmButton = (ImageButton) findViewById(R.id.newUserConfirmButton);
+        this.confirmButton.setOnClickListener(this);
+        this.username = (EditText) findViewById(R.id.newUserName);
+        this.username.setImeActionLabel("Custom text", KeyEvent.ACTION_DOWN);
+        this.username.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (attemptSetUsername(username.getText().toString())) {
@@ -78,8 +77,8 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
                 return false;
             }
         });
-        radioGroupPicture = (RadioGroup) findViewById(R.id.radioGroupPicture);
-        radioGroupPicture.setOnCheckedChangeListener(this);
+        this.radioGroupPicture = (RadioGroup) findViewById(R.id.radioGroupPicture);
+        this.radioGroupPicture.setOnCheckedChangeListener(this);
         getWindow().setSoftInputMode(
                 WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
     }
@@ -95,7 +94,7 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.newUserConfirmButton:
-                if (attemptSetUsername(username.getText().toString()))
+                if (attemptSetUsername(this.username.getText().toString()))
                     break;
         }
     }
@@ -104,11 +103,11 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
         if (checkUsernameValid(uname)) {
             Log.e(TAG, "onEditorAction: Validitiy checked");
             try {
-                if (lukeNetUtils.checkUsernameAvailable(uname)) {
+                if (this.lukeNetUtils.checkUsernameAvailable(uname)) {
                     Log.e(TAG, "onEditorAction: username available");
-                    if (lukeNetUtils.setUsername(uname)) {
+                    if (this.lukeNetUtils.setUsername(uname)) {
                         if (this.selectedProfileImage != null) {
-                            lukeNetUtils.updateUserImage(this.selectedProfileImage);
+                            this.lukeNetUtils.updateUserImage(this.selectedProfileImage);
                             SessionSingleton.getInstance().setUserImage(this.selectedProfileImage);
 
                         }
@@ -143,8 +142,7 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     /**
-     * Yeah boi
-     *
+     * Checks if the username is valid (not empty, length between 1 & 10 characters)
      * @param uname username to check
      * @return returns true if all checks have passed
      */
@@ -159,6 +157,9 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
     }
 
 
+    /**
+     * Creates the intent to start camera
+     */
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
@@ -177,9 +178,12 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
+    /**
+     * Creates an image file from the photo that was taken
+     */
     private void createImageFile() {
         // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File image = null;
@@ -194,8 +198,10 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
         }
 
         // Save a file: path for use with ACTION_VIEW intents
-        this.photoPath = image.getAbsolutePath();
-        this.photofile = image;
+        if (image != null) {
+            this.photoPath = image.getAbsolutePath();
+            this.photofile = image;
+        }
     }
 
 
@@ -204,7 +210,7 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inSampleSize = 2;
-            Bitmap imageBitmap = BitmapFactory.decodeFile(this.photoPath.toString(), options);
+            Bitmap imageBitmap = BitmapFactory.decodeFile(this.photoPath, options);
             try {
                 Log.e(TAG, "onActivityResult: photo file before write" + this.photofile.length());
                 FileOutputStream fo = new FileOutputStream(this.photofile);
@@ -219,7 +225,7 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
             if (imageBitmap != null)
                 Log.e(TAG, "onActivityResult: photo exists, size : " + imageBitmap.getByteCount());
             Log.e(TAG, "run: CAMERA");
-            userImageViewCamera.setImageBitmap(imageBitmap);
+            this.userImageViewCamera.setImageBitmap(imageBitmap);
             this.cameraProfileImage = imageBitmap;
             this.selectedProfileImage = this.cameraProfileImage;
         }
@@ -238,10 +244,6 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
                 dispatchTakePictureIntent();
                 break;
         }
-    }
-
-    private void getSelectedBitmap() {
-
     }
 
     @Override

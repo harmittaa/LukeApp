@@ -44,11 +44,19 @@ import java.util.concurrent.FutureTask;
 public class LukeNetUtils {
     private Context context;
     private final String TAG = "LukeNetUtils";
-    
+
     public LukeNetUtils(Context context) {
         this.context = context;
     }
 
+    /**
+     * Checks from server username is available
+     *
+     * @param usernameToCheck The username that should be checked
+     * @return <b>true</b> if the username exists already, <b>false</b> if not
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
     public boolean checkUsernameAvailable(final String usernameToCheck) throws ExecutionException, InterruptedException {
         Log.e(TAG, "confirmUsername: checking if username available");
         Callable<Boolean> booleanCallable = new Callable<Boolean>() {
@@ -64,7 +72,7 @@ public class LukeNetUtils {
                         StringBuilder stringBuilder = new StringBuilder();
                         String line;
                         while ((line = bufferedReader.readLine()) != null) {
-                            stringBuilder.append(line + "\n");
+                            stringBuilder.append(line).append("\n");
                         }
                         bufferedReader.close();
                         jsonString = stringBuilder.toString();
@@ -72,12 +80,8 @@ public class LukeNetUtils {
                         JSONObject jsonObject;
                         try {
                             jsonObject = new JSONObject(jsonString);
-                            if (!jsonObject.getBoolean("exists")) {
-                                return true;
-                            } else {
-                                // TODO: 17/11/2016 make alert that username is taken
-                                return false;
-                            }
+                            // TODO: 17/11/2016 make alert that username is taken
+                            return !jsonObject.getBoolean("exists");
                         } catch (JSONException e) {
                             Log.e(TAG, "onPostExecute: ", e);
                             return false;
@@ -94,13 +98,22 @@ public class LukeNetUtils {
                 }
             }
         };
-        FutureTask<Boolean> booleanFutureTask = new FutureTask<Boolean>(booleanCallable);
+        FutureTask<Boolean> booleanFutureTask = new FutureTask<>(booleanCallable);
         Thread thread = new Thread(booleanFutureTask);
         thread.start();
         return booleanFutureTask.get();
 
     }
 
+    /**
+     * Sets the the username of the current user into the server
+     *
+     * @param username The username to be set
+     * @return <b>true</b> if the request passes, <b>false</b> if it doesn't
+     * @throws IOException
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
     public boolean setUsername(final String username) throws IOException, ExecutionException, InterruptedException {
         Callable<Boolean> booleanCallable = new Callable<Boolean>() {
             @Override
@@ -110,27 +123,28 @@ public class LukeNetUtils {
                 httpURLConnection = (HttpURLConnection) setUsernameUrl.openConnection();
                 httpURLConnection.setRequestProperty(context.getString(R.string.authorization), context.getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
                 httpURLConnection.setRequestProperty(context.getString(R.string.acstoken), SessionSingleton.getInstance().getAccessToken());
-                if (httpURLConnection.getResponseCode() == 200) {
-                    return true;
-                } else {
-                    return false;
-
-                }
+                return httpURLConnection.getResponseCode() == 200;
             }
         };
-        FutureTask<Boolean> booleanFutureTask = new FutureTask<Boolean>(booleanCallable);
+        FutureTask<Boolean> booleanFutureTask = new FutureTask<>(booleanCallable);
         Thread t = new Thread(booleanFutureTask);
         t.start();
         return booleanFutureTask.get();
     }
 
+    /**
+     * Sets an image for the user into the backend
+     *
+     * @param bitmap The bitmap that should be set
+     * @return <b>true</b> if the update passes, <b>false</b> if not
+     */
     public boolean updateUserImage(final Bitmap bitmap) {
 
         Callable<Boolean> booleanCallable = new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
 
-                HttpURLConnection conn = null;
+                HttpURLConnection conn;
                 try {
                     //create a json object from this submission to be sent to the server and convert it to string
                     JSONObject jsonObject = new JSONObject();
@@ -139,8 +153,6 @@ public class LukeNetUtils {
 
                     URL url = new URL("http://www.balticapp.fi/lukeA/user/update");
                     conn = (HttpURLConnection) url.openConnection();
-                    //set header values, (tokens, content type and charset)
-                    // TODO: 25/11/2016 check if tokens are valid
                     conn.setRequestMethod("POST");
                     conn.setRequestProperty(context.getString(R.string.authorization), context.getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
                     conn.setRequestProperty("Content-Type", "application/json");
@@ -157,21 +169,21 @@ public class LukeNetUtils {
                     writer.flush();
                     writer.close();
 
-                    //get the response, if succesful, get inurstream, if unsuccesful get errorstream
+                    //get the response, if successfull, get inputstream, if unsuccessful get errorStream
                     BufferedReader bufferedReader;
                     Log.e(TAG, "updateUserImage call: RESPONSE CODE:" + conn.getResponseCode());
                     if (conn.getResponseCode() != 200) {
                         bufferedReader = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
 
                     } else {
-                        // TODO: 25/11/2016 check for authorization error, respons accordingly
+                        // TODO: 25/11/2016 check for authorization error, respond accordingly
                         bufferedReader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                     }
-                    String jsonString = "";
+                    String jsonString;
                     StringBuilder stringBuilder = new StringBuilder();
                     String line2;
                     while ((line2 = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(line2 + "\n");
+                        stringBuilder.append(line2).append("\n");
                     }
                     bufferedReader.close();
                     jsonString = stringBuilder.toString();
@@ -194,22 +206,19 @@ public class LukeNetUtils {
                 }
 
                 //disconnect from the urlConnection
-                if (conn != null) {
-                    conn.disconnect();
-                }
+                conn.disconnect();
                 return true;
             }
 
 
         };
 
-        FutureTask<Boolean> futureTask = new FutureTask<Boolean>(booleanCallable);
+        FutureTask<Boolean> futureTask = new FutureTask<>(booleanCallable);
         Thread t = new Thread(futureTask);
         t.start();
 
         try {
-            Boolean b = futureTask.get();
-            return b;
+            return futureTask.get();
         } catch (InterruptedException e) {
             Log.e(TAG, "submitToServer: ", e);
             return false;
@@ -219,6 +228,7 @@ public class LukeNetUtils {
         }
     }
 
+    // TODO: 12/12/2016 DANIEL
     public void getUserImageFromAuth0(final Auth0Responder auth0Responder) {
         AuthenticationAPIClient client = new AuthenticationAPIClient(
                 new Auth0(SessionSingleton.getInstance().getAuth0ClientID(), SessionSingleton.getInstance().getAuth0Domain()));
@@ -228,12 +238,9 @@ public class LukeNetUtils {
                     @Override
                     public void onSuccess(UserProfile payload) {
                         try {
-
                             auth0Responder.receiveBitmapFromAuth0(getBitmapFromURL(payload.getPictureURL()));
-                        } catch (ExecutionException e) {
-                            e.printStackTrace();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
+                        } catch (ExecutionException | InterruptedException e) {
+                            Log.e(TAG, "onSuccess: Error fetching Auth0 image", e);
                         }
                     }
 
@@ -243,38 +250,52 @@ public class LukeNetUtils {
                 });
     }
 
-    public Bitmap getBitmapFromURL(final String src) throws ExecutionException, InterruptedException {
+    /**
+     * Fetches Bitmap from the given URL
+     *
+     * @param imageUrl The URL of the image
+     * @return The image as an Bitmap object, otherwise <b>null</b>
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
+    public Bitmap getBitmapFromURL(final String imageUrl) throws ExecutionException, InterruptedException {
         Callable<Bitmap> bitmapCallable = new Callable<Bitmap>() {
             @Override
             public Bitmap call() throws Exception {
                 try {
-                    URL url = new URL(src);
+                    URL url = new URL(imageUrl);
                     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                     connection.setDoInput(true);
                     connection.connect();
                     InputStream input = connection.getInputStream();
-                    Bitmap myBitmap = BitmapFactory.decodeStream(input);
-                    return myBitmap;
+                    return BitmapFactory.decodeStream(input);
                 } catch (IOException e) {
-                    // Log exception
                     Log.e(TAG, "call: ", e);
                     return null;
                 }
             }
         };
-        FutureTask<Bitmap> bitmapFutureTask = new FutureTask<Bitmap>(bitmapCallable);
+        FutureTask<Bitmap> bitmapFutureTask = new FutureTask<>(bitmapCallable);
         Thread t = new Thread(bitmapFutureTask);
         t.start();
         return bitmapFutureTask.get();
     }
 
+    /**
+     * Fetches user data from the backend based on given userId
+     *
+     * @param userId The ID of the user whose data is fetched
+     * @return {@link UserFromServer} object containing the user data
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
     public UserFromServer getUserFromUserId(final String userId) throws ExecutionException, InterruptedException {
         Callable<UserFromServer> bitmapCallable = new Callable<UserFromServer>() {
             @Override
             public UserFromServer call() throws Exception {
-                String jsonString = "";
+                String jsonString;
                 UserFromServer userFromServer = new UserFromServer();
-                URL lukeURL = null;
+                URL lukeURL;
                 try {
                     lukeURL = new URL("http://www.balticapp.fi/lukeA/user?id=" + userId);
 
@@ -329,26 +350,31 @@ public class LukeNetUtils {
                 return null;
             }
         };
-        FutureTask<UserFromServer> bitmapFutureTask = new FutureTask<UserFromServer>(bitmapCallable);
+        FutureTask<UserFromServer> bitmapFutureTask = new FutureTask<>(bitmapCallable);
         Thread t = new Thread(bitmapFutureTask);
         t.start();
         return bitmapFutureTask.get();
 
     }
 
+    /**
+     * Creates a report for the submission into the server.
+     *
+     * @param submissionId The ID of the given submission.
+     * @return <b>true</b> if the request passes, <b>false</b> if it doesn't.
+     */
     public boolean reportSubmission(final String submissionId) {
         Callable<Boolean> booleanCallable = new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
-                URL reportUrl = null;
-                boolean returnValue = false;
+                URL reportUrl;
+                boolean returnValue;
                 try {
                     reportUrl = new URL("http://www.balticapp.fi/lukeA/report/flag?id=" + submissionId);
 
                     HttpURLConnection connection = (HttpURLConnection) reportUrl.openConnection();
                     connection.setRequestMethod("GET");
                     connection.setRequestProperty(context.getString(R.string.authorization), context.getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
-                    connection.setRequestProperty(context.getString(R.string.acstoken), SessionSingleton.getInstance().getAccessToken());
                     connection.setRequestProperty("Content-Type", "application/json");
                     connection.setRequestProperty("charset", "utf-8");
 
@@ -362,11 +388,11 @@ public class LukeNetUtils {
                         bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                         returnValue = true;
                     }
-                    String jsonString = "";
+                    String jsonString;
                     StringBuilder stringBuilder = new StringBuilder();
                     String line2;
                     while ((line2 = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(line2 + "\n");
+                        stringBuilder.append(line2).append("\n");
                     }
                     bufferedReader.close();
                     jsonString = stringBuilder.toString();
@@ -396,7 +422,7 @@ public class LukeNetUtils {
                 }
             }
         };
-        FutureTask<Boolean> booleanFutureTask = new FutureTask<Boolean>(booleanCallable);
+        FutureTask<Boolean> booleanFutureTask = new FutureTask<>(booleanCallable);
         Thread t = new Thread(booleanFutureTask);
         t.start();
         try {
@@ -411,13 +437,17 @@ public class LukeNetUtils {
 
     }
 
+    /**
+     * Fetches user's submissions from the server.
+     *
+     * @param userID The ID of the user whose submissions should be fetched.
+     * @return Returns an ArrayList of {@link Submission} objects.
+     */
     public ArrayList<Submission> getSubmissionsByUser(final String userID) {
-        // TODO: 08/12/2016 do all this parsing nonsense 
         Callable<ArrayList<Submission>> booleanCallable = new Callable<ArrayList<Submission>>() {
             @Override
             public ArrayList<Submission> call() throws Exception {
-                URL reportUrl = null;
-                boolean returnValue = false;
+                URL reportUrl;
                 try {
                     reportUrl = new URL("http://www.balticapp.fi/lukeA/report?submitterId=" + userID);
 
@@ -432,17 +462,15 @@ public class LukeNetUtils {
                     Log.e(TAG, "updateUserImage call: RESPONSE CODE:" + connection.getResponseCode());
                     if (connection.getResponseCode() != 200) {
                         bufferedReader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
-                        returnValue = false;
                     } else {
                         // TODO: 25/11/2016 check for authorization error, respons accordingly
                         bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                        returnValue = true;
                     }
-                    String jsonString = "";
+                    String jsonString;
                     StringBuilder stringBuilder = new StringBuilder();
                     String line2;
                     while ((line2 = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(line2 + "\n");
+                        stringBuilder.append(line2).append("\n");
                     }
                     bufferedReader.close();
                     jsonString = stringBuilder.toString();
@@ -480,11 +508,21 @@ public class LukeNetUtils {
         }
     }
 
+    /**
+     * Fetches a thumbnail of the map from Google's API based on given location.
+     *
+     * @param center Center of the wanted thumbnail.
+     * @param width  Width in px of the wanted thumbnail.
+     * @param height Height in px of the wanted thumbnail.
+     * @return The thumbnail of the map as a Bitmap.
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
     public Bitmap getMapThumbnail(final Location center, final int width, final int height) throws ExecutionException, InterruptedException {
-        //https://maps.googleapis.com/maps/api/staticmap?center=29.390946,%2076.963502&zoom=10&size=600x300&maptype=normal
-        final String urlString1 = "https://maps.googleapis.com/maps/api/staticmap?center=" + center.getLatitude() + ",%20" + center.getLongitude() + "&zoom=18&size=" + width + "x" + height + "&maptype=normal";
+        final String urlString1 = "https://maps.googleapis.com/maps/api/staticmap?center=" +
+                center.getLatitude() + ",%20" + center.getLongitude() + "&zoom=18&size=" +
+                width + "x" + height + "&maptype=normal";
         return getBitmapFromURL(urlString1);
     }
-
 
 }

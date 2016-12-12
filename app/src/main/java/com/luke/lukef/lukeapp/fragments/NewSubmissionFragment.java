@@ -31,7 +31,7 @@ import android.widget.LinearLayout;
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
-import com.luke.lukef.lukeapp.SubmissionFetchService;
+import com.luke.lukef.lukeapp.tools.SubmissionFetchService;
 import com.luke.lukef.lukeapp.model.Category;
 import com.luke.lukef.lukeapp.model.Submission;
 import com.luke.lukef.lukeapp.popups.CategoriesPopup;

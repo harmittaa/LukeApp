@@ -20,14 +20,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-
+// TODO: 12/12/2016 DANIEL kommentoi koko homma
 public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyViewHolder> {
 
     private List<Submission> submissionList;
     private Activity activity;
     private List<Bitmap> mapsBitmaps;
     private List<Bitmap> picsBitmaps;
-    LukeNetUtils lukeNetUtils;
+    private LukeNetUtils lukeNetUtils;
     private static final String TAG = "CardViewAdapter";
 
     public CardViewAdapter(List<Submission> submissionList, Activity activity) {
@@ -70,18 +70,11 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
                         holder.leftImg.setImageBitmap(mapsBitmaps.get(position));
                     }
                 } catch (ExecutionException | InterruptedException e) {
-                    Log.e(TAG, "run: ERROR ", e );
+                    Log.e(TAG, "run: ERROR ", e);
                 }
 
             }
         });
-//        holder.mDate.setText((CharSequence) submission.getDate());
-//        holder.content.setText(submission.getContent());
-//        holder.leftImg.setImageBitmap(submission.getImage());
-        //  I dont know how to get the mapView to here
-//        holder.rightImg.setImageBitmap(submission.getLocation());
-
-
     }
 
     private void setupDateTime(String fullDate, TextView left, TextView right) {
@@ -99,7 +92,7 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
             try {
                 mapsBitmaps.add(lukeNetUtils.getMapThumbnail(s.getLocation(), 400, 400));
             } catch (ExecutionException | InterruptedException e) {
-                Log.e(TAG, "getAllMapThumbs: ERROR ", e );
+                Log.e(TAG, "getAllMapThumbs: ERROR ", e);
             }
         }
     }
@@ -118,7 +111,7 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
                     picsBitmaps.add(bm);
                 }
             } catch (ExecutionException | InterruptedException e) {
-                Log.e(TAG, "getAllPicsThumbs: ERROR ", e );
+                Log.e(TAG, "getAllPicsThumbs: ERROR ", e);
             }
         }
     }
@@ -126,18 +119,17 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
 
     @Override
     public int getItemCount() {
-        int i = 0;
         return submissionList.size();
     }
 
-    public static class MyViewHolder extends RecyclerView.ViewHolder {
+    static class MyViewHolder extends RecyclerView.ViewHolder {
         TextView mDate;
         TextView mTime;
         TextView content;
         ImageView leftImg;
         ImageView rightImg;
 
-        public MyViewHolder(View itemView) {
+        MyViewHolder(View itemView) {
             super(itemView);
             mDate = (TextView) itemView.findViewById(R.id.postDate);
             mTime = (TextView) itemView.findViewById(R.id.postTime);

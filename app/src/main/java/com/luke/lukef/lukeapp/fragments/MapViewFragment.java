@@ -60,7 +60,7 @@ import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
 
-import com.luke.lukef.lukeapp.SubmissionDatabase;
+import com.luke.lukef.lukeapp.tools.SubmissionDatabase;
 import com.luke.lukef.lukeapp.WelcomeActivity;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.model.ClusterMarker;
@@ -93,7 +93,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     private List<String> submissionMarkerIdList;
     private GoogleApiClient googleApiClient;
     private LocationRequest locationRequest;
-    private LatLng currentCameraPosition;
     private Location longPressLoc;
     private ImageButton menuButton;
     private ImageButton filtersButon;
@@ -127,29 +126,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         }
         setupButtons();
         return fragmentView;
-    }
-
-    // fetches previous location, so that map can be zoomed in
-    public Location getLastLoc() {
-        if (longPressLoc == null) {
-            if (this.lastLoc != null) {
-                Location jeeben = new Location("");
-                jeeben.setAltitude(this.lastLoc.getAltitude());
-                jeeben.setLatitude(this.lastLoc.getLatitude());
-                jeeben.setLongitude(this.lastLoc.getLongitude());
-                return jeeben;
-            } else if (this.lastKnownLoc != null) {
-                Location jeeben = new Location("");
-                jeeben.setAltitude(this.lastKnownLoc.getAltitude());
-                jeeben.setLatitude(this.lastKnownLoc.getLatitude());
-                jeeben.setLongitude(this.lastKnownLoc.getLongitude());
-                return jeeben;
-            } else {
-                return null;
-            }
-        } else {
-            return longPressLoc;
-        }
     }
 
     @Override
@@ -192,12 +168,40 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     }
 
     /**
-     * Reports the submission
+     * Returns a location, if user has long pressed the map, then returns the location that was pressed,
+     * otherwise sets users last known location and returns it.
+     *
+     * @return Location object, either long press location, last known location or null if no location is available.
+     */
+    public Location getLastLoc() {
+        if (this.longPressLoc == null) {
+            Location location = new Location("");
+            if (this.lastLoc != null) {
+                location.setAltitude(this.lastLoc.getAltitude());
+                location.setLatitude(this.lastLoc.getLatitude());
+                location.setLongitude(this.lastLoc.getLongitude());
+                return location;
+            } else if (this.lastKnownLoc != null) {
+                location.setAltitude(this.lastKnownLoc.getAltitude());
+                location.setLatitude(this.lastKnownLoc.getLatitude());
+                location.setLongitude(this.lastKnownLoc.getLongitude());
+                return location;
+            } else {
+                return null;
+            }
+        } else {
+            return this.longPressLoc;
+        }
+    }
+
+    /**
+     * Handles reporting the selected submission
      */
     private void reportSubmission() {
         if (SessionSingleton.getInstance().isUserLogged()) {
             LukeNetUtils lukeNetUtils = new LukeNetUtils(getMainActivity());
             if (lukeNetUtils.reportSubmission(submissionPopup.getSubmissionID())) {
+                getMainActivity().makeToast("Submission reported");
             } else {
                 getMainActivity().makeToast("Error when reporting this submission");
             }
@@ -220,23 +224,30 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
             }
 
         } else {
-            AlertDialog.Builder builder = new AlertDialog.Builder(getMainActivity());
-            builder.setMessage("Please Log in to Submit")
-                    .setCancelable(false)
-                    .setPositiveButton("Login", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            getActivity().startActivity(new Intent(getActivity().getApplicationContext(), WelcomeActivity.class));
-                        }
-                    })
-                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                        }
-                    });
-            AlertDialog alert = builder.create();
-            alert.show();
+            createLoginPrompt();
         }
+    }
+
+    /**
+     * Creates a login prompt with <b>Login</b> and <b>Cancel</b> buttons
+     */
+    private void createLoginPrompt() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getMainActivity());
+        builder.setMessage("Please Log in to Submit")
+                .setCancelable(false)
+                .setPositiveButton("Login", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        getActivity().startActivity(new Intent(getActivity().getApplicationContext(), WelcomeActivity.class));
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+        AlertDialog alert = builder.create();
+        alert.show();
     }
 
     /**
@@ -291,7 +302,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
                     .zoom(17)                  // Sets the tilt of the luke_camera to 30 degrees
                     .build();                   // Creates a CameraPosition from the builder
             googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-            currentCameraPosition = googleMap.getCameraPosition().target;
         }
     }
 
@@ -299,7 +309,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
      * Setup method for Marker clustering
      */
     private void setupClustering() {
-        this.clusterManager = new ClusterManager<ClusterMarker>(getActivity(), this.googleMap);
+        this.clusterManager = new ClusterManager<>(getActivity(), this.googleMap);
         CompositeOnCameraIdleListener compositeOnCameraIdleListener = new CompositeOnCameraIdleListener();
         CompositeOnMarkerClickListener compositeOnMarkerClickListener = new CompositeOnMarkerClickListener();
         this.googleMap.setOnCameraIdleListener(compositeOnCameraIdleListener);
@@ -313,6 +323,9 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         this.clusterManager.setRenderer(new MarkerRenderer(getActivity(), this.googleMap, this.clusterManager));
     }
 
+    /**
+     * Handles connecting to the Google API
+     */
     private void connectToGoogleApi() {
         this.googleApiClient = new GoogleApiClient.Builder(getMainActivity()).addConnectionCallbacks(this).addOnConnectionFailedListener(this).addApi(LocationServices.API).build();
         this.googleApiClient.connect();
@@ -354,11 +367,11 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
 
     /**
      * Adds submissions to the map based on the provided <code>VisibleRegion</code>. Passes the VisibleRegion
-     * to the {@link com.luke.lukef.lukeapp.SubmissionDatabase#querySubmissions(VisibleRegion, Long)}
+     * to the {@link SubmissionDatabase#querySubmissions(VisibleRegion, Long)}
      *
      * @param visibleRegion The region currently visible on the map
      */
-    private void addSubmissionsToMap(VisibleRegion visibleRegion, Long dateTimeInMs) {
+    private void addSubmissionsToMap(VisibleRegion visibleRegion) {
         SubmissionDatabase submissionDatabase = new SubmissionDatabase(getActivity());
         Cursor queryCursor;
         if (this.minDateInMs > 0) {
@@ -421,7 +434,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
 
         // Displaying the popup at the specified location, + offsets.
         popup.showAtLocation(layout, Gravity.NO_GRAVITY, 200 + OFFSET_X, 300 + OFFSET_Y);
-        Calendar minDate = null;
+        Calendar minDate;
         minDate = Calendar.getInstance();
         tempY = minDate.get(Calendar.YEAR);
         tempM = minDate.get(Calendar.MONTH);
@@ -472,9 +485,9 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     public void setMinDateInMs(long minDateInMs) {
         this.minDateInMs = minDateInMs;
         if (this.minDateInMs > 0) {
-            addSubmissionsToMap(this.googleMap.getProjection().getVisibleRegion(), minDateInMs);
+            addSubmissionsToMap(this.googleMap.getProjection().getVisibleRegion());
         } else {
-            addSubmissionsToMap(this.googleMap.getProjection().getVisibleRegion(), minDateInMs);
+            addSubmissionsToMap(this.googleMap.getProjection().getVisibleRegion());
         }
     }
 
@@ -553,11 +566,15 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         this.googleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
             @Override
             public void onMapLongClick(LatLng latLng) {
-                longPressLoc = new Location("jippii");
-                longPressLoc.setLatitude(latLng.latitude);
-                longPressLoc.setLongitude(latLng.longitude);
-                longPressLoc.setAltitude(0);
-                getMainActivity().makeSubmission();
+                if (SessionSingleton.getInstance().isUserLogged()) {
+                    longPressLoc = new Location("jippii");
+                    longPressLoc.setLatitude(latLng.latitude);
+                    longPressLoc.setLongitude(latLng.longitude);
+                    longPressLoc.setAltitude(0);
+                    getMainActivity().makeSubmission();
+                } else {
+                    createLoginPrompt();
+                }
             }
         });
     }
@@ -579,9 +596,9 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
                 this.visibleRegion = this.googleMap.getProjection().getVisibleRegion();
                 // if a filter has been set then pass the filter, if not the null
                 if (this.minDateInMs > 0) {
-                    addSubmissionsToMap(this.visibleRegion, this.minDateInMs);
+                    addSubmissionsToMap(this.visibleRegion);
                 } else {
-                    addSubmissionsToMap(this.visibleRegion, null);
+                    addSubmissionsToMap(this.visibleRegion);
                 }
                 // adds admin markers to the map regardless of filters or region
                 addAdminMarkersToMap();
@@ -589,9 +606,9 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
                 // TODO: 29/11/2016 check here if the luke_camera has moved enough to get new stuff from the DB or not
                 this.visibleRegion = this.googleMap.getProjection().getVisibleRegion();
                 if (this.minDateInMs > 0) {
-                    addSubmissionsToMap(this.visibleRegion, this.minDateInMs);
+                    addSubmissionsToMap(this.visibleRegion);
                 } else {
-                    addSubmissionsToMap(this.visibleRegion, null);
+                    addSubmissionsToMap(this.visibleRegion);
                 }
                 addAdminMarkersToMap();
             }
