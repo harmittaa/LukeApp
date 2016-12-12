@@ -2,10 +2,7 @@ package com.luke.lukef.lukeapp.interfaces;
 
 import android.graphics.Bitmap;
 
-/**
- * Created by Daniel on 05/12/2016.
- */
-
+// TODO: 12/12/2016 DANIEL
 public interface Auth0Responder {
-    public void receiveBitmapFromAuth0(Bitmap b);
+    void receiveBitmapFromAuth0(Bitmap b);
 }

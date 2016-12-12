@@ -4,7 +4,6 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.support.annotation.NonNull;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -57,7 +56,6 @@ public class CategoriesPopup {
         this.onCancelListener = onCancelListener;
     }
 
-
     /**
      * Setup the elements for the pop up, like click and cancel listeners
      */
@@ -88,7 +86,7 @@ public class CategoriesPopup {
      * categories as selected based on the <code>confirmedCategories</code> ArrayList.
      */
     public class ListViewAdapter extends ArrayAdapter<Category> {
-        LayoutInflater make = (LayoutInflater) mainActivity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        LayoutInflater layoutInflater = (LayoutInflater) mainActivity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         ListViewAdapter(Context context, int resource, List<Category> objects) {
             super(context, resource, objects);
@@ -99,7 +97,7 @@ public class CategoriesPopup {
         public View getView(int position, View convertView, ViewGroup parent) {
             View v = convertView;
             if (v == null) {
-                v = make.inflate(R.layout.popup_categories_item, parent, false);
+                v = layoutInflater.inflate(R.layout.popup_categories_item, parent, false);
             }
             ((TextView) v.findViewById(R.id.popup_category_title)).setText(SessionSingleton.getInstance().getCategoryList().get(position).getTitle());
             ((TextView) v.findViewById(R.id.popup_category_description)).setText(SessionSingleton.getInstance().getCategoryList().get(position).getDescription());

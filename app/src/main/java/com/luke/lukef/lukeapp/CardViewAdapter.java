@@ -16,7 +16,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.luke.lukef.lukeapp.model.SubmissionFromServer;
+import com.luke.lukef.lukeapp.model.Submission;
 import com.luke.lukef.lukeapp.tools.LukeNetUtils;
 import com.luke.lukef.lukeapp.tools.LukeUtils;
 
@@ -27,14 +27,14 @@ import java.util.concurrent.ExecutionException;
 
 public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyViewHolder> {
 
-    private List<SubmissionFromServer> submissionList;
+    private List<Submission> submissionList;
     private Activity activity;
     private List<Bitmap> mapsBitmaps;
     private List<Bitmap> picsBitmaps;
     LukeNetUtils lukeNetUtils;
     private static final String TAG = "CardViewAdapter";
 
-    public CardViewAdapter(List<SubmissionFromServer> submissionList, Activity activity) {
+    public CardViewAdapter(List<Submission> submissionList, Activity activity) {
         this.activity = activity;
         this.submissionList = submissionList;
         lukeNetUtils = new LukeNetUtils(activity);
@@ -50,7 +50,7 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
 
     @Override
     public void onBindViewHolder(final MyViewHolder holder, final int position) {
-        final SubmissionFromServer submission = submissionList.get(position);
+        final Submission submission = submissionList.get(position);
         holder.content.setText(submission.getDescription());
         setupDateTime(LukeUtils.parseDateFromString(submission.getDate()), holder.mDate, holder.mTime);
 
@@ -75,7 +75,6 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
 
     }
 
-
     /**
      * Called when a view created by this adapter has been recycled.
      * <p>
@@ -93,6 +92,7 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
      *
      * @param holder The ViewHolder for the view being recycled
      */
+
     @Override
     public void onViewRecycled(MyViewHolder holder) {
         holder.progressBarMap.setVisibility(View.VISIBLE);

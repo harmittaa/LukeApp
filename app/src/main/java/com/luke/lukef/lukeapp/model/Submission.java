@@ -3,28 +3,16 @@ package com.luke.lukef.lukeapp.model;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.location.Location;
-import android.text.TextUtils;
-import android.util.Base64;
 import android.util.Log;
 
 import com.luke.lukef.lukeapp.R;
 import com.luke.lukef.lukeapp.tools.LukeUtils;
-import com.squareup.okhttp.Callback;
-import com.squareup.okhttp.Headers;
-import com.squareup.okhttp.MediaType;
-import com.squareup.okhttp.MultipartBuilder;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.RequestBody;
-import com.squareup.okhttp.Response;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -35,50 +23,64 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
-import okio.BufferedSink;
-
 /**
- * handles submissions made by users
+ * Submission model class, includes functionality to create new submissions and pass them to server.
  */
 public class Submission {
-    private Bitmap image;
-    private Location location;
-    private String title;
-    private ArrayList<String> category;
-    private Date date;
-    private String description;
     private static final String TAG = "Submission";
+    private String description;
+    private String title;
+    private ArrayList<Category> categories;
+    private String date;
     private Context context;
     private File file;
-    private Boolean positive;
-    private ArrayList<Category> categories;
+    private Bitmap image;
+    private Location location;
 
-    //all values present
-    public Submission(Context context, String title, ArrayList<Category> category, Date date, String description, Bitmap image, Location location) {
-        this.image = image;
+    private String submissionId;
+    private String imageUrl;
+    private List<String> submissionCategoryList;
+    private String submitterId;
+
+
+    /**
+     * Constructor with only the mandatory values required when creating a submission
+     *
+     * @param context      For accessing resources
+     * @param categoryList List of categories chosen for the submission
+     * @param description  Description of the submission
+     * @param location     Location of the submission
+     */
+    public Submission(Context context, ArrayList<Category> categoryList, String description, Location location) {
         this.location = location;
-        this.title = title;
-        this.categories = category;
-        this.date = date;
+        this.categories = categoryList;
         this.description = description;
         this.context = context;
-        this.positive = positive;
     }
 
+    /**
+     * Empty constructor when creating submissions when fetching them from the server
+     */
     public Submission() {
-        //For testing the dummy cardView
     }
 
+
+    /**
+     * Checks whether the submission should be true/false/neutral based on the amount of categories
+     * linked to the submission.
+     *
+     * @return Boolean.TRUE if mostly positive categories, Boolean.FALSE if negative and null if neutral
+     */
     private Boolean parsePositive() {
         int positiveCategories = 0;
         int negativeCategories = 0;
         int neutralCategories = 0;
-        for (Category c : categories) {
+        for (Category c : this.categories) {
             if (c.getPositive() == null) {
                 neutralCategories++;
             } else if (!c.getPositive()) {
@@ -98,15 +100,11 @@ public class Submission {
         }
     }
 
-    //only mandatory values
-    public Submission(Context context, ArrayList<Category> category, Date date, String description, Location location) {
-        this.location = location;
-        this.categories = category;
-        this.date = date;
-        this.description = description;
-        this.context = context;
-    }
-
+    /**
+     * Turns the Submission into a JSONObject to be passed to the server.
+     *
+     * @return The submission as a JSONObject
+     */
     private JSONObject convertToJson() {
         JSONObject jsonObject = new JSONObject();
         try {
@@ -118,7 +116,7 @@ public class Submission {
                     .put("latitude", Submission.this.location.getLatitude())
                     .put("altitude", Submission.this.location.getAltitude());
             if (this.image != null) {
-                jsonObject.put("image", LukeUtils.bitapToBase64String(this.getImage()));
+                jsonObject.put("image", LukeUtils.bitmapToBase64String(this.getImage()));
             }
             jsonObject.put("description", Submission.this.description);
             jsonObject.put("categoryId", convertCategoriesToJsonArray());
@@ -126,42 +124,12 @@ public class Submission {
             if (parsePositive() != null) {
                 jsonObject.put("positive", parsePositive() + "");
             }
-            // TODO: 25/11/2016 When image implementation on server is done, add image to json object if not null
             Log.e(TAG, "convertToJson: Created json object that looks like: " + jsonObject.toString());
 
         } catch (JSONException e) {
             e.printStackTrace();
         }
         return jsonObject;
-
-        /*
-         * MULTIPART MADNESS
-
-        MultipartBuilder builder = new MultipartBuilder();
-        builder.type(MultipartBuilder.FORM);
-
-
-        if (this.title != null) {
-            builder.addFormDataPart("title", this.title);
-        }
-        builder
-                .addFormDataPart("longitude", Submission.this.location.getLongitude() + "")
-                .addFormDataPart("latitude", Submission.this.location.getLatitude() + "")
-                .addFormDataPart("altitude", Submission.this.location.getAltitude() + "");
-        if (this.image != null) {
-            Log.e(TAG, "convertToJson: Created file with lenght" + file.length());
-            Log.e(TAG, "convertToJson: Created file with total space" + file.getTotalSpace());
-            RequestBody requestBody = RequestBody.create(MediaType.parse("image/jpg"), this.file);
-            builder.addPart(requestBody);
-        }
-        builder.addFormDataPart("description", Submission.this.description);
-        builder.addFormDataPart("categoryId", convertCategoriesToJsonArray().toString());
-
-        if (!TextUtils.isEmpty(Submission.this.title)) {
-            builder.addFormDataPart("title", Submission.this.title);
-        }
-        return builder.build();*/
-
     }
 
 
@@ -185,7 +153,6 @@ public class Submission {
                     // TODO: 25/11/2016 check if tokens are valid
                     conn.setRequestMethod("POST");
                     conn.setRequestProperty(context.getString(R.string.authorization), context.getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
-                    conn.setRequestProperty(context.getString(R.string.acstoken), SessionSingleton.getInstance().getAccessToken());
                     conn.setRequestProperty("Content-Type", "application/json");
                     conn.setRequestProperty("charset", "utf-8");
                     conn.setDoOutput(true);
@@ -214,7 +181,7 @@ public class Submission {
                     StringBuilder stringBuilder = new StringBuilder();
                     String line2;
                     while ((line2 = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(line2 + "\n");
+                        stringBuilder.append(line2).append("\n");
                     }
                     bufferedReader.close();
                     jsonString = stringBuilder.toString();
@@ -262,6 +229,11 @@ public class Submission {
         }
     }
 
+    /**
+     * Creates a JSONArray of the category IDs selected by the user
+     *
+     * @return A JSONArray of categories
+     */
     private JSONArray convertCategoriesToJsonArray() {
         JSONArray jsn = new JSONArray();
         for (Category c : this.categories) {
@@ -279,26 +251,6 @@ public class Submission {
         return this.file;
     }
 
-    //editing an existing submission
-    public boolean update() {
-        return true;
-    }
-
-    //deleting a submission
-    public boolean delete() {
-        return true;
-    }
-
-    //share submissions on other medias
-    public boolean share() {
-        return true;
-    }
-
-    //add a review flag
-    public boolean flag() {
-        return true;
-    }
-
     public Bitmap getImage() {
         return image;
     }
@@ -307,20 +259,33 @@ public class Submission {
         this.image = image;
     }
 
-    public Location getLocation() {
-        return location;
-    }
-
     public String getTitle() {
         return title;
     }
 
-    public ArrayList<String> getCategory() {
-        return category;
+
+    public void setSubmissionId(String submissionId) {
+        this.submissionId = submissionId;
     }
 
-    public Date getDate() {
-        return this.date;
+    public Location getLocation() {
+        return location;
+    }
+
+    public void setLocation(Location location) {
+        this.location = location;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public String getDescription() {
@@ -331,19 +296,21 @@ public class Submission {
         this.description = description;
     }
 
-    public Boolean getPositive() {
-        return positive;
+    public String getDate() {
+        return date;
     }
 
-    public void setPositive(Boolean positive) {
-        this.positive = positive;
+    public void setDate(String date) {
+        this.date = date;
     }
 
-    public ArrayList<Category> getCategories() {
-        return categories;
+    public void setSubmissionCategoryList(List<String> submissionCategoryList) {
+        this.submissionCategoryList = submissionCategoryList;
     }
 
-    public void setCategories(ArrayList<Category> categories) {
-        this.categories = categories;
+    public void setSubmitterId(String submitterId) {
+        this.submitterId = submitterId;
     }
+
+
 }

@@ -49,50 +49,45 @@ import java.util.concurrent.ExecutionException;
 
 import static android.app.Activity.RESULT_OK;
 
+/**
+ * Handles the new submission screen, includes sending the submissions, dispatching the camera intent
+ * and listening to the category pop up clicks.
+ */
 public class NewSubmissionFragment extends Fragment implements View.OnClickListener, AdapterView.OnItemClickListener, Dialog.OnCancelListener {
-    View fragmentView;
-    EditText submissionTitle;
-    EditText submissionDescription;
-    static final int REQUEST_IMAGE_CAPTURE = 1;
-    ImageView photoThumbnail;
-    ImageView mapThumbnail;
-    private LinearLayout categoriesLinearLayout;
-    Bitmap currentPhoto;
-    Button categorySelectButton;
     private final static String TAG = NewSubmissionFragment.class.toString();
-    ArrayList<String> selectedCategories;
-    ArrayList<Category> confirmedCategories;
-    ArrayList<Category> tempCategories;
-
-    ImageButton makeSubmissionButton;
-    ImageButton backButton;
-    Location location;
-    private File photoFile;
+    private static final int REQUEST_IMAGE_CAPTURE = 1;
     private String photoPath;
-    CategoriesPopup popMaker;
+    private ArrayList<Category> confirmedCategories;
+    private ArrayList<Category> tempCategories;
+    private Location location;
+    private File photoFile;
+    private Bitmap currentPhoto;
+
+    private Button categorySelectButton;
+    private View fragmentView;
+    private EditText submissionDescription;
+    private ImageView photoThumbnail;
+    private ImageView mapThumbnail;
+    private LinearLayout categoriesLinearLayout;
+    private ImageButton makeSubmissionButton;
+    private ImageButton backButton;
+    private CategoriesPopup popMaker;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        fragmentView = inflater.inflate(R.layout.fragment_new_submission, container, false);
-
-        makeSubmissionButton = (ImageButton) fragmentView.findViewById(R.id.button_tick_submit);
-        backButton = (ImageButton) fragmentView.findViewById(R.id.button_back);
-        backButton.setOnClickListener(this);
-        this.categoriesLinearLayout = (LinearLayout) fragmentView.findViewById(R.id.categoriesLinearLayout);
-        submissionDescription = (EditText) fragmentView.findViewById(R.id.newSubmissionEditTextDescrption);
-        submissionTitle = (EditText) fragmentView.findViewById(R.id.newSubmissionEditTextTitle);
-        submissionDescription.setImeOptions(EditorInfo.IME_ACTION_DONE);
-        submissionTitle.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        this.fragmentView = inflater.inflate(R.layout.fragment_new_submission, container, false);
+        // find the views and add listeners
+        findViews();
         setupClickListeners();
         fetchBundleFromArguments();
-        selectedCategories = new ArrayList<>();
-        this.categorySelectButton = (Button) fragmentView.findViewById(R.id.categorySelectButtonNewSubmission);
+
+        ArrayList<String> selectedCategories = new ArrayList<>();
         this.categorySelectButton.setOnClickListener(this);
         this.confirmedCategories = new ArrayList<>();
         this.tempCategories = new ArrayList<>();
-        setupThumbnailMap();
-        ViewTreeObserver vto = mapThumbnail.getViewTreeObserver();
+
+        ViewTreeObserver vto = this.mapThumbnail.getViewTreeObserver();
         vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
@@ -102,10 +97,8 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
                     public void run() {
                         try {
                             mapThumbnail.setImageBitmap(lukeNetUtils.getMapThumbnail(location, mapThumbnail.getWidth(), mapThumbnail.getHeight()));
-                        } catch (ExecutionException e) {
-                            e.printStackTrace();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
+                        } catch (ExecutionException | InterruptedException e) {
+                            Log.e(TAG, "run: ERROR SETTING IMAGE", e);
                         }
                     }
                 });
@@ -114,6 +107,22 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
             }
         });
         return fragmentView;
+    }
+
+    /**
+     * Finds the fragmen't views
+     */
+    private void findViews() {
+        this.makeSubmissionButton = (ImageButton) this.fragmentView.findViewById(R.id.button_tick_submit);
+        this.backButton = (ImageButton) this.fragmentView.findViewById(R.id.button_back);
+        this.categoriesLinearLayout = (LinearLayout) this.fragmentView.findViewById(R.id.categoriesLinearLayout);
+        this.submissionDescription = (EditText) this.fragmentView.findViewById(R.id.newSubmissionEditTextDescrption);
+        EditText submissionTitle = (EditText) this.fragmentView.findViewById(R.id.newSubmissionEditTextTitle);
+        this.submissionDescription.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        submissionTitle.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        this.categorySelectButton = (Button) fragmentView.findViewById(R.id.categorySelectButtonNewSubmission);
+        this.photoThumbnail = (ImageView) this.fragmentView.findViewById(R.id.photoThumbnail);
+        this.mapThumbnail = (ImageView) this.fragmentView.findViewById(R.id.newSubmissionMapThumbnail);
     }
 
     @Override
@@ -148,36 +157,38 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         return (MainActivity) getActivity();
     }
 
+    /**
+     * Sets up the listeners
+     */
     private void setupClickListeners() {
         this.categoriesLinearLayout.setOnClickListener(this);
-        makeSubmissionButton.setOnClickListener(this);
+        this.makeSubmissionButton.setOnClickListener(this);
+        this.photoThumbnail.setOnClickListener(this);
+        this.backButton.setOnClickListener(this);
+
     }
 
+    /**
+     * Fetches the location from the bundle
+     */
     private void fetchBundleFromArguments() {
         Bundle b = getArguments();  // getMainActivity().getIntent().getExtras();
         if (b != null) {
-            location = new Location("jes");
-            location.setLatitude(b.getDouble("latitude"));
-            location.setLongitude(b.getDouble("longitude"));
-            location.setAltitude(b.getDouble("altitude"));
+            this.location = new Location("jes");
+            this.location.setLatitude(b.getDouble("latitude"));
+            this.location.setLongitude(b.getDouble("longitude"));
+            this.location.setAltitude(b.getDouble("altitude"));
             Log.e(TAG, "onCreateView: bundle received: " + location.toString());
         }
     }
 
-
-    private void setupThumbnailMap() {
-        photoThumbnail = (ImageView) fragmentView.findViewById(R.id.photoThumbnail);
-        mapThumbnail = (ImageView) fragmentView.findViewById(R.id.newSubmissionMapThumbnail);
-        //getMapThumbnail(location,mapThumbnail.getWidth(),mapThumbnail.getHeight());
-        photoThumbnail.setOnClickListener(this);
-    }
-
-    //activates luke_camera intent
+    /**
+     * Activates camera intent
+     */
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getMainActivity().getPackageManager()) != null) {
             // Create the File where the photo should go
-
             if (photoFile != null) {
                 this.photoPath = photoFile.getAbsolutePath();
                 // Continue only if the File was successfully created
@@ -191,6 +202,9 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         }
     }
 
+    /**
+     * Creates the image file from the taken image
+     */
     private void createImageFile() {
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
@@ -218,7 +232,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inSampleSize = 2;
-            Bitmap imageBitmap = BitmapFactory.decodeFile(this.photoPath.toString(), options);
+            Bitmap imageBitmap = BitmapFactory.decodeFile(this.photoPath, options);
             if (imageBitmap != null) {
                 try {
                     Log.e(TAG, "onActivityResult: photo file before write" + this.photoFile.length());
@@ -241,22 +255,14 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         }
     }
 
-
-    private void changeMapThumbnail(final Bitmap bm) {
-        getMainActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mapThumbnail.setImageBitmap(bm);
-            }
-        });
-    }
-
+    /**
+     * Makes the submission and pushes it to the server
+     */
     private void makeSubmission() {
         if (checkFieldsValidity()) {
-            // TODO: 22/11/2016 create submission object, make httprequest and send to server(put this request into submission?)
-            Submission newSub = new Submission(getMainActivity(), this.confirmedCategories, new Date(), submissionDescription.getText().toString(), this.location);
+            Submission newSub = new Submission(getMainActivity(), this.confirmedCategories, this.submissionDescription.getText().toString(), this.location);
             newSub.setFile(this.photoFile);
-            if (currentPhoto != null) {
+            if (this.currentPhoto != null) {
                 newSub.setImage(this.currentPhoto);
             }
             if (newSub.submitToServer()) {
@@ -274,9 +280,13 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         }
     }
 
+    /**
+     * Checks that all the parameters for the submission are valid
+     *
+     * @return <b>true</b> if the parameters are valid, <b>false</b> if not
+     */
     private boolean checkFieldsValidity() {
-        // TODO: 22/11/2016 check if location != null , check if
-        if (!TextUtils.isEmpty(submissionDescription.getText().toString())) {
+        if (!TextUtils.isEmpty(this.submissionDescription.getText().toString())) {
             if (this.location != null) {
                 if (this.confirmedCategories.size() > 0) {
                     return true;
@@ -302,8 +312,8 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         this.tempCategories.clear();
         this.tempCategories = new ArrayList<>(this.confirmedCategories);
         Log.e(TAG, "makeCategoryListPopup: confirmed size " + this.confirmedCategories.size());
-        popMaker = new CategoriesPopup(getMainActivity(), this, this, this.confirmedCategories, this);
-        popMaker.setupCategoriesPopup();
+        this.popMaker = new CategoriesPopup(getMainActivity(), this, this, this.confirmedCategories, this);
+        this.popMaker.setupCategoriesPopup();
     }
 
     // listens to the checkbox being clicked and adds/removes the selected categories

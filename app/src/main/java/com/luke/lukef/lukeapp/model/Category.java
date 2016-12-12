@@ -3,9 +3,8 @@ package com.luke.lukef.lukeapp.model;
 import android.graphics.Bitmap;
 
 /**
- * Created by Daniel on 22/11/2016.
+ * Model class for the category
  */
-
 public class Category {
     private String id;
     private String title;
@@ -13,7 +12,8 @@ public class Category {
     private Bitmap image;
     private Boolean isPositive;
 
-    public Category(){}
+    public Category() {
+    }
 
     public String getId() {
         return id;
@@ -49,10 +49,6 @@ public class Category {
 
     public Boolean getPositive() {
         return isPositive;
-    }
-
-    public void setPositive(Boolean positive) {
-        isPositive = positive;
     }
 
     @Override

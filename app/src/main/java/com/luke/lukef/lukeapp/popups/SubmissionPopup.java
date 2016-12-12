@@ -1,5 +1,6 @@
 package com.luke.lukef.lukeapp.popups;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -121,7 +122,6 @@ public class SubmissionPopup {
      */
     private void getExternalSubmissionData() {
         String[] taskParams = {this.markerId};
-        new GetSubmissionDataTask().execute(taskParams);
     }
 
     /**
@@ -139,7 +139,6 @@ public class SubmissionPopup {
                     imgUrl = imgUrl.trim();
                     if (!imgUrl.isEmpty()) {
                         String[] taskParams = {imgUrl};
-                        new GetSubmissionImage().execute(taskParams);
                     }
                 } catch (IllegalArgumentException e) {
                     Log.e(TAG, "addDataToDialog: illegal arg ", e);
@@ -249,6 +248,14 @@ public class SubmissionPopup {
     }
 
     private class GetSubmissionData extends AsyncTask<Void,Void,Void>{
+
+        View popupView;
+        Activity activity;
+
+        public GetSubmissionData(Activity activity, View v){
+            this.popupView = v;
+            this.activity = activity;
+        }
 
         @Override
         protected Void doInBackground(Void... params) {
