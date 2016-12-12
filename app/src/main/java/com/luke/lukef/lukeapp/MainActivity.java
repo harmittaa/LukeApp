@@ -42,7 +42,6 @@ import com.luke.lukef.lukeapp.fragments.ConfirmationFragment;
 import com.luke.lukef.lukeapp.fragments.LeaderboardFragment;
 import com.luke.lukef.lukeapp.fragments.MapViewFragment;
 import com.luke.lukef.lukeapp.fragments.NewSubmissionFragment;
-import com.luke.lukef.lukeapp.fragments.PointOfInterestFragment;
 import com.luke.lukef.lukeapp.fragments.ProfileFragment;
 import com.luke.lukef.lukeapp.fragments.UserSubmissionFragment;
 
@@ -158,9 +157,6 @@ public class MainActivity extends AppCompatActivity {
                 }
                 fragment = new NewSubmissionFragment();
                 addToBackStack = true;
-                break;
-            case FRAGMENT_POINT_OF_INTEREST:
-                fragment = new PointOfInterestFragment();
                 break;
             case FRAGMENT_PROFILE:
                 fragment = new ProfileFragment();
@@ -385,6 +381,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
     }
+
 
     private void createLoginPrompt() {
         // TODO: 10/12/2016 MOVE TO LUKEUTILS this is also used in MapFragment

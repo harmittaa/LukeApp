@@ -12,7 +12,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.luke.lukef.lukeapp.model.SubmissionFromServer;
+import com.luke.lukef.lukeapp.model.Submission;
 import com.luke.lukef.lukeapp.tools.LukeNetUtils;
 import com.luke.lukef.lukeapp.tools.LukeUtils;
 
@@ -23,14 +23,14 @@ import java.util.concurrent.ExecutionException;
 
 public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyViewHolder> {
 
-    private List<SubmissionFromServer> submissionList;
+    private List<Submission> submissionList;
     private Activity activity;
     private List<Bitmap> mapsBitmaps;
     private List<Bitmap> picsBitmaps;
     LukeNetUtils lukeNetUtils;
     private static final String TAG = "CardViewAdapter";
 
-    public CardViewAdapter(List<SubmissionFromServer> submissionList, Activity activity) {
+    public CardViewAdapter(List<Submission> submissionList, Activity activity) {
         this.activity = activity;
         this.submissionList = submissionList;
         lukeNetUtils = new LukeNetUtils(activity);
@@ -48,7 +48,7 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
 
     @Override
     public void onBindViewHolder(final MyViewHolder holder, final int position) {
-        final SubmissionFromServer submission = submissionList.get(position);
+        final Submission submission = submissionList.get(position);
         holder.content.setText(submission.getDescription());
         setupDateTime(LukeUtils.parseDateFromString(submission.getDate()), holder.mDate, holder.mTime);
         activity.runOnUiThread(new Runnable() {
@@ -95,7 +95,7 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
     }
 
     private void getAllMapThumbs() {
-        for (SubmissionFromServer s : submissionList) {
+        for (Submission s : submissionList) {
             try {
                 mapsBitmaps.add(lukeNetUtils.getMapThumbnail(s.getLocation(), 400, 400));
             } catch (ExecutionException | InterruptedException e) {
@@ -108,7 +108,7 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
      * Fetches images for the cards, if no image URL is present, uses default
      */
     private void getAllPicsThumbs() {
-        for (SubmissionFromServer s : submissionList) {
+        for (Submission s : this.submissionList) {
             try {
                 String url = s.getImageUrl();
                 if (!TextUtils.isEmpty(s.getImageUrl()) && !url.equals("null")) {

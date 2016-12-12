@@ -27,70 +27,80 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+// TODO: 12/12/2016 DANIEL
+
+/**
+ * Handles the profile fragment, setting up the tab layout
+ */
 public class ProfileFragment extends Fragment implements View.OnClickListener {
-    View fragmentView;
-    TextView username, title, score;
-    ImageView profileImage;
-    TabLayout tabLayout;
-    ViewPager viewPager;
+    private View fragmentView;
+    private TextView username;
+    private TextView title;
+    private TextView score;
+    private ImageView profileImage;
+    private TabLayout tabLayout;
+    private ViewPager viewPager;
     private String userID;
-    private ImageButton backButton;
-    Bundle extras;
-    LukeNetUtils lukeNetUtils;
-    UserFromServer userFromServer;
+    private Bundle extras;
+    private LukeNetUtils lukeNetUtils;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        fragmentView = inflater.inflate(R.layout.fragment_profile, container, false);
-        lukeNetUtils = new LukeNetUtils(getMainActivity());
-        tabLayout = (TabLayout) fragmentView.findViewById(R.id.tabLayout);
-        viewPager = (ViewPager) fragmentView.findViewById(R.id.viewPager);
-        username = (TextView) fragmentView.findViewById(R.id.usernamedisplay);
-        title = (TextView) fragmentView.findViewById(R.id.title);
-        score = (TextView) fragmentView.findViewById(R.id.progressTextView);
-        profileImage = (ImageView) fragmentView.findViewById(R.id.profieImage);
-        this.backButton = (ImageButton) fragmentView.findViewById(R.id.button_back);
-        this.backButton.setOnClickListener(this);
-        extras = getArguments();
+        this.fragmentView = inflater.inflate(R.layout.fragment_profile, container, false);
+        this.lukeNetUtils = new LukeNetUtils(getMainActivity());
+        setupViews();
+        this.extras = getArguments();
         this.userID = extras.getString("userId");
         setupTabLayout();
         setUserProfile();
-        return fragmentView;
+        return this.fragmentView;
     }
 
+    /**
+     * Finds the view elements and sets the necessary onClick listeners
+     */
+    private void setupViews() {
+        this.tabLayout = (TabLayout) this.fragmentView.findViewById(R.id.tabLayout);
+        this.viewPager = (ViewPager) this.fragmentView.findViewById(R.id.viewPager);
+        this.username = (TextView) this.fragmentView.findViewById(R.id.usernamedisplay);
+        this.title = (TextView) this.fragmentView.findViewById(R.id.title);
+        this.score = (TextView) this.fragmentView.findViewById(R.id.progressTextView);
+        this.profileImage = (ImageView) this.fragmentView.findViewById(R.id.profieImage);
+        ImageButton backButton = (ImageButton) this.fragmentView.findViewById(R.id.button_back);
+        backButton.setOnClickListener(this);
+    }
+
+    // TODO: 12/12/2016 DANIEL
     private void setupTabLayout() {
         PageAdapter pageAdapter = new PageAdapter(getMainActivity().getSupportFragmentManager(), this.extras);
-        viewPager.setAdapter(pageAdapter);
+        this.viewPager.setAdapter(pageAdapter);
 
-        tabLayout.setupWithViewPager(viewPager);
-        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+        this.tabLayout.setupWithViewPager(this.viewPager);
+        this.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
             }
 
             @Override
             public void onPageSelected(int position) {
-
             }
 
             @Override
             public void onPageScrollStateChanged(int state) {
-
             }
         });
     }
 
     /**
-     * Sets the user profile image from URL or if there's no URL then defaults
+     * Sets the user profile image from URL or if there's no URL then sets the default profile image
      */
     private void setUserProfile() {
         try {
-            this.userFromServer = lukeNetUtils.getUserFromUserId(this.userID);
+            UserFromServer userFromServer = this.lukeNetUtils.getUserFromUserId(this.userID);
 
-            if (!TextUtils.isEmpty(this.userFromServer.getImageUrl())) {
-                Bitmap b = lukeNetUtils.getBitmapFromURL(this.userFromServer.getImageUrl());
+            if (!TextUtils.isEmpty(userFromServer.getImageUrl())) {
+                Bitmap b = this.lukeNetUtils.getBitmapFromURL(userFromServer.getImageUrl());
                 if (b == null) {
                     this.profileImage.setImageBitmap(BitmapFactory.decodeResource(getMainActivity().getResources(), R.drawable.luke_default_profile_pic));
                 } else {
@@ -104,7 +114,6 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
             e.printStackTrace();
         }
     }
-
 
     @Override
     public void onClick(View view) {
@@ -124,15 +133,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         return (MainActivity) getActivity();
     }
 
-    public String getUserID() {
-        return userID;
-    }
-
-    public void setUserID(String userID) {
-        this.userID = userID;
-    }
-
-
+    // TODO: 12/12/2016 DANIEL
     private class PageAdapter extends FragmentStatePagerAdapter {
 
         private String[] tabTitles = new String[]{"Submissions", "Achievements"};
@@ -140,32 +141,32 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
 
         @Override
         public CharSequence getPageTitle(int position) {
-            return tabTitles[position];
+            return this.tabTitles[position];
         }
 
         List<android.support.v4.app.Fragment> fragments;
 
-        public PageAdapter(FragmentManager fm, Bundle extras) {
+        PageAdapter(FragmentManager fm, Bundle extras) {
             super(fm);
             UserSubmissionFragment userSubmissionFragment = new UserSubmissionFragment();
             userSubmissionFragment.setUserId(ProfileFragment.this.userID);
             TabFragmentAchievements achievementFragment = new TabFragmentAchievements();
-            fragments = new ArrayList<>();
-            fragments.add(userSubmissionFragment);
-            fragments.add(achievementFragment);
+            this.fragments = new ArrayList<>();
+            this.fragments.add(userSubmissionFragment);
+            this.fragments.add(achievementFragment);
             this.bundle = extras;
         }
 
         @Override
         public android.support.v4.app.Fragment getItem(int position) {
-            android.support.v4.app.Fragment f = fragments.get(position);
+            android.support.v4.app.Fragment f = this.fragments.get(position);
             f.setArguments(this.bundle);
             return f;
         }
 
         @Override
         public int getCount() {
-            return fragments.size();
+            return this.fragments.size();
         }
     }
 }

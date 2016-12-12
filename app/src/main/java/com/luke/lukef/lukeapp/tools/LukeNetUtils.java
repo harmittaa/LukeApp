@@ -1,14 +1,11 @@
 package com.luke.lukef.lukeapp.tools;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.text.TextUtils;
 import android.util.Log;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.auth0.android.Auth0;
@@ -16,13 +13,10 @@ import com.auth0.android.authentication.AuthenticationAPIClient;
 import com.auth0.android.authentication.AuthenticationException;
 import com.auth0.android.callback.BaseCallback;
 import com.auth0.android.result.UserProfile;
-import com.luke.lukef.lukeapp.MainActivity;
-import com.luke.lukef.lukeapp.NewUserActivity;
 import com.luke.lukef.lukeapp.R;
 import com.luke.lukef.lukeapp.interfaces.Auth0Responder;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.model.Submission;
-import com.luke.lukef.lukeapp.model.SubmissionFromServer;
 import com.luke.lukef.lukeapp.model.UserFromServer;
 
 import org.json.JSONArray;
@@ -40,20 +34,17 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
 /**
- * Created by Daniel on 05/12/2016.
+ * Contains methods for interaction with the server
  */
-
 public class LukeNetUtils {
-
     private Context context;
     private final String TAG = "LukeNetUtils";
-
+    
     public LukeNetUtils(Context context) {
         this.context = context;
     }
@@ -143,7 +134,7 @@ public class LukeNetUtils {
                 try {
                     //create a json object from this submission to be sent to the server and convert it to string
                     JSONObject jsonObject = new JSONObject();
-                    jsonObject.put("image", LukeUtils.bitapToBase64String(bitmap));
+                    jsonObject.put("image", LukeUtils.bitmapToBase64String(bitmap));
                     String urlParameters = jsonObject.toString();
 
                     URL url = new URL("http://www.balticapp.fi/lukeA/user/update");
@@ -230,7 +221,7 @@ public class LukeNetUtils {
 
     public void getUserImageFromAuth0(final Auth0Responder auth0Responder) {
         AuthenticationAPIClient client = new AuthenticationAPIClient(
-                new Auth0(SessionSingleton.getInstance().getAuth0ClienID(), SessionSingleton.getInstance().getAuth0Domain()));
+                new Auth0(SessionSingleton.getInstance().getAuth0ClientID(), SessionSingleton.getInstance().getAuth0Domain()));
 
         client.tokenInfo(SessionSingleton.getInstance().getIdToken())
                 .start(new BaseCallback<UserProfile, AuthenticationException>() {
@@ -266,7 +257,7 @@ public class LukeNetUtils {
                     return myBitmap;
                 } catch (IOException e) {
                     // Log exception
-                    Log.e(TAG, "call: ",e );
+                    Log.e(TAG, "call: ", e);
                     return null;
                 }
             }
@@ -420,11 +411,11 @@ public class LukeNetUtils {
 
     }
 
-    public ArrayList<SubmissionFromServer> getSubmissionsByUser(final String userID) {
+    public ArrayList<Submission> getSubmissionsByUser(final String userID) {
         // TODO: 08/12/2016 do all this parsing nonsense 
-        Callable<ArrayList<SubmissionFromServer>> booleanCallable = new Callable<ArrayList<SubmissionFromServer>>() {
+        Callable<ArrayList<Submission>> booleanCallable = new Callable<ArrayList<Submission>>() {
             @Override
-            public ArrayList<SubmissionFromServer> call() throws Exception {
+            public ArrayList<Submission> call() throws Exception {
                 URL reportUrl = null;
                 boolean returnValue = false;
                 try {
@@ -456,9 +447,9 @@ public class LukeNetUtils {
                     bufferedReader.close();
                     jsonString = stringBuilder.toString();
                     if (!TextUtils.isEmpty(jsonString)) {
-                        JSONArray josn = new JSONArray(jsonString);
-                        Log.e(TAG, "call: josn boii" + josn.toString());
-                        return LukeUtils.parseSubmissionsFromJsonArray(josn);
+                        JSONArray jsonArray = new JSONArray(jsonString);
+                        Log.e(TAG, "call: jsonArray" + jsonArray.toString());
+                        return LukeUtils.parseSubmissionsFromJsonArray(jsonArray);
                     } else {
                         return null;
                     }
@@ -475,7 +466,7 @@ public class LukeNetUtils {
                 }
             }
         };
-        FutureTask<ArrayList<SubmissionFromServer>> booleanFutureTask = new FutureTask<ArrayList<SubmissionFromServer>>(booleanCallable);
+        FutureTask<ArrayList<Submission>> booleanFutureTask = new FutureTask<>(booleanCallable);
         Thread t = new Thread(booleanFutureTask);
         t.start();
         try {
