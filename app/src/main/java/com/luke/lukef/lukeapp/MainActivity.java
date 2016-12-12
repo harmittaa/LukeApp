@@ -330,7 +330,11 @@ public class MainActivity extends AppCompatActivity {
                                 break;
                             case R.id.edit_profile:
                                 if (SessionSingleton.getInstance().isUserLogged()) {
-                                    startActivity(new Intent(MainActivity.this, NewUserActivity.class));
+                                    Bundle bundle = new Bundle();
+                                    bundle.putBoolean("isEditing", true);
+                                    Intent intent = new Intent(MainActivity.this, NewUserActivity.class);
+                                    intent.putExtras(bundle);
+                                    startActivity(intent);
                                 } else {
                                     createLoginPrompt();
                                 }
