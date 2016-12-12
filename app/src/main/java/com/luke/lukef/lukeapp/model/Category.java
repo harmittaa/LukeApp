@@ -55,4 +55,8 @@ public class Category {
     public String toString() {
         return id;
     }
+
+    public void setPositive(Boolean positive) {
+        isPositive = positive;
+    }
 }

@@ -10,6 +10,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -98,21 +99,23 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     private void setUserProfile() {
         try {
             UserFromServer userFromServer = this.lukeNetUtils.getUserFromUserId(this.userID);
-
-            if (!TextUtils.isEmpty(userFromServer.getImageUrl())) {
-                Bitmap b = this.lukeNetUtils.getBitmapFromURL(userFromServer.getImageUrl());
-                if (b == null) {
-                    this.profileImage.setImageBitmap(BitmapFactory.decodeResource(getMainActivity().getResources(), R.drawable.luke_default_profile_pic));
+            if (userFromServer != null) {
+                if (!TextUtils.isEmpty(userFromServer.getImageUrl())) {
+                    Bitmap b = this.lukeNetUtils.getBitmapFromURL(userFromServer.getImageUrl());
+                    if (b == null) {
+                        this.profileImage.setImageBitmap(BitmapFactory.decodeResource(getMainActivity().getResources(), R.drawable.luke_default_profile_pic));
+                    } else {
+                        this.profileImage.setImageBitmap(b);
+                    }
                 } else {
-                    this.profileImage.setImageBitmap(b);
+                    this.profileImage.setImageBitmap(BitmapFactory.decodeResource(getMainActivity().getResources(), R.drawable.luke_default_profile_pic));
                 }
-            } else {
-                this.profileImage.setImageBitmap(BitmapFactory.decodeResource(getMainActivity().getResources(), R.drawable.luke_default_profile_pic));
+                this.username.setText(userFromServer.getUsername());
             }
-            this.username.setText(userFromServer.getUsername());
-        } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-        }
+            }catch(ExecutionException | InterruptedException e){
+            Log.e("AAAAAAAAAAAA", "setUserProfile: ",e );
+            }
+
     }
 
     @Override

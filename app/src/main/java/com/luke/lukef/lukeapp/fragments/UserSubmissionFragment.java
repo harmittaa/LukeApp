@@ -48,8 +48,7 @@ public class UserSubmissionFragment extends Fragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        this.recyclerView = (RecyclerView) this.fragmentView.findViewById(R.id.submit_list);
+        this.recyclerView = (RecyclerView) this.fragmentView.findViewById(R.id.recyclerViewUserSubmissions);
         this.recyclerView.setHasFixedSize(true);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -58,7 +57,6 @@ public class UserSubmissionFragment extends Fragment {
         UserSubmissionsAsync userSubmissionsAsync = new UserSubmissionsAsync(this.userId);
         userSubmissionsAsync.execute();
     }
-
     public void setUserId(String userId) {
         this.userId = userId;
     }

@@ -16,6 +16,8 @@
     <color name="marker_neutral">#009dbd</color>
     <color name="marker_negative">#bd0000</color>
     <color name="congress_blue">#004E89</color>
+    <color name="category_popup_background_positivie">#e6ffe6</color>
+    <color name="category_popup_background_negative">#ffd6cc</color>
 
 
 </resources>

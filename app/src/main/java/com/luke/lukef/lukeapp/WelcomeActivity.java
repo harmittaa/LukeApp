@@ -61,6 +61,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         this.skipLoginButton.setOnClickListener(this);
         requestPermission();
         startService(new Intent(this, SubmissionFetchService.class));
+        getCategories();
+
     }
 
     private void requestPermission() {
@@ -303,5 +305,26 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 Log.e(TAG, "onPostExecute: ", e);
             }
         }
+    }
+
+
+    private void getCategories() {
+        Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                if(SessionSingleton.getInstance().getCategoryList().size() < 1) {
+                    LukeNetUtils lukeNetUtils = new LukeNetUtils(WelcomeActivity.this);
+                    try {
+                        SessionSingleton.getInstance().getCategoryList().addAll(lukeNetUtils.getCategories());
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        };
+        Thread t = new Thread(r);
+        t.start();
     }
 }

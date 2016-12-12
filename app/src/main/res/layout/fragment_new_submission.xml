@@ -51,38 +51,41 @@
         tools:layout_editor_absoluteX="192dp"
         tools:layout_editor_absoluteY="0dp" />
 
-    <RelativeLayout
+    <LinearLayout
         android:id="@+id/relativeLayout"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:background="@color/colorPrimaryDark"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/guideline4">
+        app:layout_constraintTop_toTopOf="@+id/guideline4"
+        android:orientation="horizontal">
 
         <ImageButton
             android:id="@+id/button_back"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_alignParentLeft="true"
             android:background="@null"
-            android:text="Button"
-            app:srcCompat="@drawable/luke_back" />
+            app:srcCompat="@drawable/luke_back"
+            android:scaleType="fitStart"
+            android:adjustViewBounds="true"
+            android:padding="8dp"
+            android:layout_weight="1"/>
 
         <ImageButton
             android:id="@+id/button_tick_submit"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_alignParentRight="true"
             android:background="@null"
-            android:text="Button"
-            android:scaleType="fitCenter"
-            app:srcCompat="@drawable/luke_tick" />
+            app:srcCompat="@drawable/luke_tick"
+            android:scaleType="fitEnd"
+            android:padding="8dp"
+            android:layout_weight="1"/>
 
-    </RelativeLayout>
+    </LinearLayout>
 
     <EditText
         android:id="@+id/newSubmissionEditTextTitle"
