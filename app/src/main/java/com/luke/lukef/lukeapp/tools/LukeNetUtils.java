@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
+import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
@@ -15,6 +16,7 @@ import com.auth0.android.callback.BaseCallback;
 import com.auth0.android.result.UserProfile;
 import com.luke.lukef.lukeapp.R;
 import com.luke.lukef.lukeapp.interfaces.Auth0Responder;
+import com.luke.lukef.lukeapp.model.Category;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.model.Submission;
 import com.luke.lukef.lukeapp.model.UserFromServer;
@@ -34,6 +36,7 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -44,7 +47,7 @@ import java.util.concurrent.FutureTask;
 public class LukeNetUtils {
     private Context context;
     private final String TAG = "LukeNetUtils";
-    
+
     public LukeNetUtils(Context context) {
         this.context = context;
     }
@@ -486,7 +489,7 @@ public class LukeNetUtils {
         return getBitmapFromURL(urlString1);
     }
 
-    public Submission getSubmissionFromId(String id){
+    public Submission getSubmissionFromId(String id) {
         try {
             URL lukeURL = new URL(this.context.getString(R.string.report_id_url) + id);
             HttpURLConnection httpURLConnection = (HttpURLConnection) lukeURL.openConnection();
@@ -514,9 +517,64 @@ public class LukeNetUtils {
             Log.e(TAG, "Exception with fetching data: " + e.toString());
             return null;
         } catch (JSONException e) {
-            Log.e(TAG, "getSubmissionFromId: ",e );
+            Log.e(TAG, "getSubmissionFromId: ", e);
             return null;
         }
     }
+
+
+    /**
+     * Fetches categories from the server, parses them and adds new ones to the {@link SessionSingleton#getCategoryList()}
+     */
+    public ArrayList<Category> getCategories() throws ExecutionException, InterruptedException {
+        Callable<ArrayList<Category>> categoriesCallable = new Callable<ArrayList<Category>>() {
+            @Override
+            public ArrayList<Category> call() throws Exception {
+                String jsonString;
+
+                try {
+                    URL categoriesUrl = new URL("http://www.balticapp.fi/lukeA/category");
+                    HttpURLConnection httpURLConnection = (HttpURLConnection) categoriesUrl.openConnection();
+                    if (httpURLConnection.getResponseCode() == 200) {
+                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
+                        jsonString = "";
+                        StringBuilder stringBuilder = new StringBuilder();
+                        String line;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            stringBuilder.append(line).append("\n");
+                        }
+                        bufferedReader.close();
+                        jsonString = stringBuilder.toString();
+                        JSONArray jsonArr;
+                        jsonArr = new JSONArray(jsonString);
+                        return LukeUtils.getCategoryObjectsFromJsonArray(jsonArr);
+                    } else {
+                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getErrorStream()));
+                        jsonString = "";
+                        StringBuilder stringBuilder = new StringBuilder();
+                        String line;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            stringBuilder.append(line).append("\n");
+                        }
+                        bufferedReader.close();
+                        jsonString = stringBuilder.toString();
+                        Log.e(TAG, "run: ERROR WITH CATEGORIES : " + jsonString);
+                        return null;
+                    }
+                } catch (IOException e) {
+                    Log.e(TAG, "doInBackground: ", e);
+                    return null;
+                } catch (JSONException e) {
+                    Log.e(TAG, "JSON parsing exception");
+                    return null;
+                }
+            }
+        };
+        FutureTask<ArrayList<Category>> arrayListFutureTask = new FutureTask<ArrayList<Category>>(categoriesCallable);
+        Thread t = new Thread(arrayListFutureTask);
+        t.start();
+        return arrayListFutureTask.get();
+    }
+
 
 }

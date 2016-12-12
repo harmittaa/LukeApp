@@ -47,6 +47,7 @@ import com.luke.lukef.lukeapp.fragments.UserSubmissionFragment;
 
 import com.luke.lukef.lukeapp.model.Category;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
+import com.luke.lukef.lukeapp.tools.LukeNetUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -64,6 +65,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -113,14 +115,13 @@ public class MainActivity extends AppCompatActivity {
         animation.start();
 
         setBottomBarButtonsListeners();
-        getCategories();
-
         setupDrawerContent(navigationView);
         //activate map fragment as default
         fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP, null);
         setStatusBarFlag();
 
     }
+
 
     @Override
     protected void onResume() {
@@ -468,121 +469,6 @@ public class MainActivity extends AppCompatActivity {
         for (android.support.v4.app.Fragment fragment : getSupportFragmentManager().getFragments()) {
             fragment.onActivityResult(requestCode, resultCode, data);
         }
-    }
-
-    /**
-     * Fetches categories from the server, parses them and adds new ones to the {@link SessionSingleton#getCategoryList()}
-     */
-    private void getCategories() {
-        Runnable checkUsernameRunnable = new Runnable() {
-            String jsonString;
-
-            @Override
-            public void run() {
-                try {
-                    URL categoriesUrl = new URL("http://www.balticapp.fi/lukeA/category");
-                    HttpURLConnection httpURLConnection = (HttpURLConnection) categoriesUrl.openConnection();
-                    if (httpURLConnection.getResponseCode() == 200) {
-                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
-                        jsonString = "";
-                        StringBuilder stringBuilder = new StringBuilder();
-                        String line;
-                        while ((line = bufferedReader.readLine()) != null) {
-                            stringBuilder.append(line).append("\n");
-                        }
-                        bufferedReader.close();
-                        jsonString = stringBuilder.toString();
-                        JSONArray jsonArr;
-                        jsonArr = new JSONArray(jsonString);
-                        parseCategories(jsonArr);
-                    } else {
-                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getErrorStream()));
-                        jsonString = "";
-                        StringBuilder stringBuilder = new StringBuilder();
-                        String line;
-                        while ((line = bufferedReader.readLine()) != null) {
-                            stringBuilder.append(line).append("\n");
-                        }
-                        bufferedReader.close();
-                        jsonString = stringBuilder.toString();
-                        Log.e(TAG, "run: ERROR WITH CATEGORIES : " + jsonString);
-                        Toast.makeText(getApplicationContext(), "Couldn't fetch categories", Toast.LENGTH_LONG).show();
-                    }
-                } catch (IOException e) {
-                    Log.e(TAG, "doInBackground: ", e);
-                } catch (JSONException e) {
-                    Log.e(TAG, "JSON parsing exception");
-                }
-            }
-
-            /**
-             * Parses {@link com.luke.lukef.lukeapp.model.Category} objects from the provided <code>JSONArray</code>.
-             * Compares the fetched categories to the existing categories, adds new discards old.
-             * @param jsonArr The JSONArray fetched from server.
-             */
-            private void parseCategories(JSONArray jsonArr) {
-                try {
-                    List<Category> tempCategoryList = new ArrayList<>();
-                    for (int i = 0; i < jsonArr.length(); i++) {
-                        JSONObject jsonCategory = jsonArr.getJSONObject(i);
-                        // check that the object has ID tag
-                        if (jsonCategory.has("id")) {
-                            Boolean found = false;
-                            // loop through the SessionSingleton's Categories list and see if the category is already there
-                            for (Category ca : SessionSingleton.getInstance().getCategoryList()) {
-                                if (ca.getId().equals(jsonCategory.getString("id"))) {
-                                    found = true;
-                                }
-                            }
-                            // if the category doesn't exist yet on the list, then create it and add it to temp list
-                            if (!found) {
-                                Category c = new Category();
-                                c.setId(jsonCategory.getString("id"));
-                                if (jsonCategory.has("description")) {
-                                    c.setDescription(jsonCategory.getString("description"));
-                                } else {
-                                    c.setDescription("No description");
-                                }
-                                if (jsonCategory.has("title")) {
-                                    c.setTitle(jsonCategory.getString("title"));
-                                } else {
-                                    c.setTitle("No title");
-                                }
-                                Bitmap bitmap = null;
-                                if (jsonCategory.has("image_url")) {
-                                    String imageUrl = jsonCategory.getString("image_url");
-                                    try {
-                                        InputStream in = new URL(imageUrl).openStream();
-                                        bitmap = BitmapFactory.decodeStream(in);
-                                    } catch (MalformedURLException e) {
-                                        // Error downloading / parsing the image, setting to default
-                                        bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.no_category_image);
-                                    } catch (IOException e) {
-                                        Log.e(TAG, "parseCategories: IOException ", e);
-                                        bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.no_category_image);
-                                    }
-                                } else {
-                                    // there was no image for the category, setting default
-                                    bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.no_category_image);
-                                }
-                                c.setImage(bitmap);
-                                tempCategoryList.add(c);
-                            }
-                        }
-                    }
-                    if (!tempCategoryList.isEmpty()) {
-                        // add the temporary list to the SubmissionSingleton's list
-                        SessionSingleton.getInstance().getCategoryList().addAll(tempCategoryList);
-                    } else {
-                        Log.e(TAG, "parseCategories: no new categories to add");
-                    }
-                } catch (JSONException e) {
-                    Log.e(TAG, "onPostExecute: ", e);
-                }
-            }
-        };
-        Thread thread = new Thread(checkUsernameRunnable);
-        thread.start();
     }
 
 

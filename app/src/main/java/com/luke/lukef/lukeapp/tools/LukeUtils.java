@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
@@ -21,10 +22,15 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -83,7 +89,7 @@ public class LukeUtils {
             location.setLongitude(jsonObject.getDouble("longitude"));
             submission.setLocation(location);
         }
-        if(jsonObject.has("submitterId")){
+        if (jsonObject.has("submitterId")) {
             submission.setSubmitterId(jsonObject.getString("submitterId"));
         }
         return submission;
@@ -168,11 +174,11 @@ public class LukeUtils {
         alert.show();
     }
 
-    public static ArrayList<Category> getCategoryObjectsFromSubmission(Submission submission){
+    public static ArrayList<Category> getCategoryObjectsFromSubmission(Submission submission) {
         ArrayList<Category> categories = new ArrayList<>();
-        for (String s: submission.getSubmissionCategoryList()){
-            for (Category c : SessionSingleton.getInstance().getCategoryList()){
-                if(c.getId().equals(s)){
+        for (String s : submission.getSubmissionCategoryList()) {
+            for (Category c : SessionSingleton.getInstance().getCategoryList()) {
+                if (c.getId().equals(s)) {
                     categories.add(c);
                 }
             }
@@ -180,5 +186,64 @@ public class LukeUtils {
         return categories;
     }
 
-
+    /**
+     * Parses {@link com.luke.lukef.lukeapp.model.Category} objects from the provided <code>JSONArray</code>.
+     * Compares the fetched categories to the existing categories, adds new discards old.
+     *
+     * @param jsonArr The JSONArray fetched from server.
+     */
+    public static ArrayList<Category> getCategoryObjectsFromJsonArray(JSONArray jsonArr) throws JSONException {
+        ArrayList<Category> tempCategoryList = new ArrayList<>();
+        for (int i = 0; i < jsonArr.length(); i++) {
+            JSONObject jsonCategory = jsonArr.getJSONObject(i);
+            // check that the object has ID tag
+            if (jsonCategory.has("id")) {
+                Boolean found = false;
+                // loop through the SessionSingleton's Categories list and see if the category is already there
+                for (Category ca : SessionSingleton.getInstance().getCategoryList()) {
+                    if (ca.getId().equals(jsonCategory.getString("id"))) {
+                        found = true;
+                    }
+                }
+                // if the category doesn't exist yet on the list, then create it and add it to temp list
+                if (!found) {
+                    Category c = new Category();
+                    c.setId(jsonCategory.getString("id"));
+                    if (jsonCategory.has("description")) {
+                        c.setDescription(jsonCategory.getString("description"));
+                    } else {
+                        c.setDescription("No description");
+                    }
+                    if (jsonCategory.has("title")) {
+                        c.setTitle(jsonCategory.getString("title"));
+                    } else {
+                        c.setTitle("No title");
+                    }
+                    if(jsonCategory.has("positive")){
+                        c.setPositive(jsonCategory.getBoolean("positive"));
+                    }
+                    Bitmap bitmap = null;
+                    if (jsonCategory.has("image_url")) {
+                        String imageUrl = jsonCategory.getString("image_url");
+                        try {
+                            InputStream in = new URL(imageUrl).openStream();
+                            bitmap = BitmapFactory.decodeStream(in);
+                        } catch (MalformedURLException e) {
+                            // Error downloading / parsing the image, setting to default
+                            bitmap = null;//BitmapFactory.decodeResource(ContextCompat.getDrawable(context, R.drawable.no_category_image));
+                        } catch (IOException e) {
+                            Log.e(TAG, "parseCategories: IOException ", e);
+                            bitmap = null;//BitmapFactory.decodeResource(getResources(), R.drawable.no_category_image);
+                        }
+                    } else {
+                        // there was no image for the category, setting default
+                        bitmap = null;//BitmapFactory.decodeResource(getResources(), R.drawable.no_category_image);
+                    }
+                    c.setImage(bitmap);
+                    tempCategoryList.add(c);
+                }
+            }
+        }
+        return tempCategoryList;
+    }
 }

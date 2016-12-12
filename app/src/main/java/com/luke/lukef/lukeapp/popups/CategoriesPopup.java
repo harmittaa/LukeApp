@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -106,6 +107,14 @@ public class CategoriesPopup {
                 ((CheckBox) v.findViewById(R.id.popup_categories_checkbox)).setChecked(true);
             } else {
                 ((CheckBox) v.findViewById(R.id.popup_categories_checkbox)).setChecked(false);
+            }
+            ArrayList<Category> categories = SessionSingleton.getInstance().getCategoryList();
+            if(SessionSingleton.getInstance().getCategoryList().get(position).getPositive() == Boolean.TRUE){
+                v.setBackgroundColor(ContextCompat.getColor(getContext(),R.color.category_popup_background_positivie));
+            }else if(SessionSingleton.getInstance().getCategoryList().get(position).getPositive() == Boolean.FALSE) {
+                v.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.category_popup_background_negative));
+            }else {
+
             }
             return v;
         }

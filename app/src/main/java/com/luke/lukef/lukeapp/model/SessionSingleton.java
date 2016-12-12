@@ -11,7 +11,6 @@ import java.util.ArrayList;
 public class SessionSingleton {
     private static SessionSingleton ourInstance = new SessionSingleton();
     private static final String TAG = "SessionSingleton";
-
     private String userId;
     private String accessToken;
     private String idToken;
