@@ -248,170 +248,17 @@ public class SubmissionPopup {
         this.userId = userId;
     }
 
-    /**
-     * Used to fetch submission data from the server, pass submission ID as first parameter, return values is a List<String>
-     * that includes the category IDs.
-     */
-    private class GetSubmissionDataTask extends AsyncTask<String, Void, List<String>> {
-        private String jsonString;
-        private HttpURLConnection httpURLConnection;
+    private class GetSubmissionData extends AsyncTask<Void,Void,Void>{
 
         @Override
-        protected List<String> doInBackground(String... params) {
-            try {
-                URL lukeURL = new URL(mainActivity.getString(R.string.report_id_url) + params[0]);
-                httpURLConnection = (HttpURLConnection) lukeURL.openConnection();
-                if (httpURLConnection.getResponseCode() == 200) {
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
-                    jsonString = "";
-                    StringBuilder stringBuilder = new StringBuilder();
-                    String line;
-                    while ((line = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(line).append("\n");
-                    }
-                    jsonString = stringBuilder.toString();
-                    bufferedReader.close();
-
-                } else {
-                    //TODO: if error do something else, ERROR STREAM
-                    mainActivity.makeToast("Error");
-                    Log.e(TAG, "response code something else");
-                }
-            } catch (IOException e) {
-                Log.e(TAG, "Exception with fetching data: " + e.toString());
-            }
-
-            List<String> categoryIds = new ArrayList<>();
-            if (jsonString != null && !jsonString.equals("[]")) {
-                try {
-                    JSONArray jsonArray = new JSONArray(jsonString);
-                    JSONObject jsonObject = jsonArray.getJSONObject(0);
-                    if (jsonObject.has("categoryId")) {
-                        JSONArray categoryArray = jsonObject.getJSONArray("categoryId");
-                        for (int i = 0; i < categoryArray.length(); i++) {
-                            categoryIds.add(categoryArray.get(i).toString());
-                        }
-                    }
-                    if (jsonObject.has("submitterId")) {
-                        getSubmitterData(jsonObject.getString("submitterId"));
-                        SubmissionPopup.this.setUserId(jsonObject.getString("submitterId"));
-                    }
-                } catch (JSONException e) {
-                    Log.e(TAG, "Exception parsing JSONObject from string: ", e);
-                }
-            }
-            Log.e(TAG, "doInBackground: size of categories " + categoryIds.size());
-            return categoryIds;
+        protected Void doInBackground(Void... params) {
+            return null;
         }
 
         @Override
-        protected void onPostExecute(List<String> strings) {
-            super.onPostExecute(strings);
-            // set the categories
-            setCategories(strings);
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
         }
     }
-
-    private void getSubmitterData(String userId) {
-        String jsonString = "";
-        try {
-            URL lukeURL = new URL("http://www.balticapp.fi/lukeA/user?id=" + userId);
-            HttpURLConnection httpURLConnection = (HttpURLConnection) lukeURL.openConnection();
-            if (httpURLConnection.getResponseCode() == 200) {
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
-                StringBuilder stringBuilder = new StringBuilder();
-                String line;
-                while ((line = bufferedReader.readLine()) != null) {
-                    stringBuilder.append(line).append("\n");
-                }
-                jsonString = stringBuilder.toString();
-                bufferedReader.close();
-                Log.e(TAG, "getSubmitterData: jsonString " + jsonString);
-
-            } else {
-                //TODO: if error do something else, ERROR STREAM
-                mainActivity.makeToast("Error");
-                Log.e(TAG, "response code something else");
-            }
-        } catch (IOException e) {
-            Log.e(TAG, "Exception with fetching data: " + e.toString());
-        }
-
-        if (!TextUtils.isEmpty(jsonString)) {
-            try {
-                final JSONObject jsonObject = new JSONObject(jsonString);
-                if (jsonObject.has("image_url")) {
-                    Bitmap bitmap = null;
-                    imageUrl = jsonObject.getString("image_url");
-                    try {
-                        InputStream in = new URL(imageUrl).openStream();
-                        bitmap = BitmapFactory.decodeStream(in);
-                        final Bitmap finalBitmap = bitmap;
-                        mainActivity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Log.e(TAG, "run: Setting image");
-                                submitterProfileImage.setImageBitmap(finalBitmap);
-                            }
-                        });
-                    } catch (IOException e) {
-                        Log.e(TAG, "doInBackground: Exception parsing image ", e);
-                    }
-                } else {
-                    Log.e(TAG, "getSubmitterData: NO USER IMG");
-                    mainActivity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Log.e(TAG, "run: Setting image");
-                            submitterProfileImage.setImageResource(R.drawable.luke_default_profile_pic);
-                        }
-                    });
-                }
-
-                if (jsonObject.has("username")) {
-                    mainActivity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Log.e(TAG, "run: Setting image");
-                            try {
-                                submissionSubmitterName.setText(jsonObject.getString("username"));
-                            } catch (JSONException e) {
-                                submissionSubmitterName.setText("not availble");
-                                Log.e(TAG, "run: error parsing username ", e );
-                            }
-                        }
-                    });
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    /**
-     * Gets the submission's image from the provided URL (first parameter)
-     */
-    private class GetSubmissionImage extends AsyncTask<String, Void, Bitmap> {
-        @Override
-        protected Bitmap doInBackground(String... params) {
-            String imageUrl = params[0];
-            Bitmap bitmap = null;
-            try {
-                InputStream in = new URL(imageUrl).openStream();
-                bitmap = BitmapFactory.decodeStream(in);
-            } catch (IOException e) {
-                Log.e(TAG, "doInBackground: Exception parsing image ", e);
-            }
-            return bitmap;
-        }
-
-        @Override
-        protected void onPostExecute(Bitmap bitmap) {
-            super.onPostExecute(bitmap);
-            setSubmissionImage(bitmap);
-            SubmissionPopup.this.mainImageBitmap = bitmap;
-        }
-    }
-
 
 }
