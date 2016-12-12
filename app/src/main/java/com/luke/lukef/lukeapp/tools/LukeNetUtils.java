@@ -257,7 +257,7 @@ public class LukeNetUtils {
                     return myBitmap;
                 } catch (IOException e) {
                     // Log exception
-                    Log.e(TAG, "call: ", e);
+                    Log.e(TAG, "call:", e);
                     return null;
                 }
             }
@@ -486,5 +486,37 @@ public class LukeNetUtils {
         return getBitmapFromURL(urlString1);
     }
 
+    public Submission getSubmissionFromId(String id){
+        try {
+            URL lukeURL = new URL(this.context.getString(R.string.report_id_url) + id);
+            HttpURLConnection httpURLConnection = (HttpURLConnection) lukeURL.openConnection();
+            if (httpURLConnection.getResponseCode() == 200) {
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
+                String jsonString = "";
+                StringBuilder stringBuilder = new StringBuilder();
+                String line;
+                while ((line = bufferedReader.readLine()) != null) {
+                    stringBuilder.append(line).append("\n");
+                }
+                jsonString = stringBuilder.toString();
+                bufferedReader.close();
+
+                JSONArray jsonArray = new JSONArray(jsonString);
+                Submission submission = LukeUtils.parseSubmissionFromJsonObject(jsonArray.getJSONObject(0));
+                return submission;
+
+            } else {
+                //TODO: if error do something else, ERROR STREAM
+                Log.e(TAG, "response code something else");
+                return null;
+            }
+        } catch (IOException e) {
+            Log.e(TAG, "Exception with fetching data: " + e.toString());
+            return null;
+        } catch (JSONException e) {
+            Log.e(TAG, "getSubmissionFromId: ",e );
+            return null;
+        }
+    }
 
 }

@@ -313,4 +313,11 @@ public class Submission {
     }
 
 
+    public String getSubmitterId() {
+        return submitterId;
+    }
+
+    public List<String> getSubmissionCategoryList() {
+        return submissionCategoryList;
+    }
 }

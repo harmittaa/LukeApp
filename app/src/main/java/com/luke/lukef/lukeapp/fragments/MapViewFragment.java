@@ -177,6 +177,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
                 break;
             case R.id.submissionSubmitterProfileImage:
                 Bundle extras = new Bundle();
+                String jea = submissionPopup.getUserId();
                 extras.putString("userId", submissionPopup.getUserId());
                 getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_PROFILE, extras);
                 submissionPopup.dismissPopup();

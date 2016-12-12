@@ -12,6 +12,8 @@ import android.net.NetworkInfo;
 import android.util.Base64;
 import android.util.Log;
 
+import com.luke.lukef.lukeapp.model.Category;
+import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.model.Submission;
 
 import org.json.JSONArray;
@@ -46,37 +48,45 @@ public class LukeUtils {
         ArrayList<Submission> submissions = new ArrayList<>();
         for (int i = 0; i < jsonArray.length(); i++) {
             JSONObject jsonObject = jsonArray.getJSONObject(i);
-            Submission submission = new Submission();
-            if (jsonObject.has("id")) {
-                submission.setSubmissionId(jsonObject.getString("id"));
-            }
-            if (jsonObject.has("image_url")) {
-                submission.setImageUrl(jsonObject.getString("image_url"));
-            }
-            if (jsonObject.has("title")) {
-                submission.setTitle(jsonObject.getString("title"));
-            }
-            if (jsonObject.has("description")) {
-                submission.setDescription(jsonObject.getString("description"));
-            }
-            if (jsonObject.has("submittedId")) {
-                submission.setSubmitterId(jsonObject.getString("submitterId"));
-            }
-            if (jsonObject.has("date")) {
-                submission.setDate(jsonObject.getString("date"));
-            }
-            if (jsonObject.has("categoryId")) {
-                submission.setSubmissionCategoryList(parseStringsFromJsonArray(jsonObject.getJSONArray("categoryId")));
-            }
-            if (jsonObject.has("latitude") && jsonObject.has("longitude")) {
-                Location location = new Location("jea");
-                location.setLatitude(jsonObject.getDouble("latitude"));
-                location.setLongitude(jsonObject.getDouble("longitude"));
-                submission.setLocation(location);
-            }
+            Submission submission = parseSubmissionFromJsonObject(jsonObject);
             submissions.add(submission);
         }
         return submissions;
+    }
+
+    public static Submission parseSubmissionFromJsonObject(JSONObject jsonObject) throws JSONException {
+        Submission submission = new Submission();
+        if (jsonObject.has("id")) {
+            submission.setSubmissionId(jsonObject.getString("id"));
+        }
+        if (jsonObject.has("image_url")) {
+            submission.setImageUrl(jsonObject.getString("image_url"));
+        }
+        if (jsonObject.has("title")) {
+            submission.setTitle(jsonObject.getString("title"));
+        }
+        if (jsonObject.has("description")) {
+            submission.setDescription(jsonObject.getString("description"));
+        }
+        if (jsonObject.has("submittedId")) {
+            submission.setSubmitterId(jsonObject.getString("submitterId"));
+        }
+        if (jsonObject.has("date")) {
+            submission.setDate(jsonObject.getString("date"));
+        }
+        if (jsonObject.has("categoryId")) {
+            submission.setSubmissionCategoryList(parseStringsFromJsonArray(jsonObject.getJSONArray("categoryId")));
+        }
+        if (jsonObject.has("latitude") && jsonObject.has("longitude")) {
+            Location location = new Location("jea");
+            location.setLatitude(jsonObject.getDouble("latitude"));
+            location.setLongitude(jsonObject.getDouble("longitude"));
+            submission.setLocation(location);
+        }
+        if(jsonObject.has("submitterId")){
+            submission.setSubmitterId(jsonObject.getString("submitterId"));
+        }
+        return submission;
     }
 
     public static ArrayList<String> parseStringsFromJsonArray(JSONArray toParse) {
@@ -139,7 +149,6 @@ public class LukeUtils {
         }
     }
 
-
     private static void alertDialogBuilder(final Context context, String alertText, final String settings) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setMessage(alertText)
@@ -158,4 +167,18 @@ public class LukeUtils {
         final AlertDialog alert = builder.create();
         alert.show();
     }
+
+    public static ArrayList<Category> getCategoryObjectsFromSubmission(Submission submission){
+        ArrayList<Category> categories = new ArrayList<>();
+        for (String s: submission.getSubmissionCategoryList()){
+            for (Category c : SessionSingleton.getInstance().getCategoryList()){
+                if(c.getId().equals(s)){
+                    categories.add(c);
+                }
+            }
+        }
+        return categories;
+    }
+
+
 }

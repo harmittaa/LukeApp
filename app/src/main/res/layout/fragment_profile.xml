@@ -27,18 +27,9 @@
         android:text="TextView"
         app:layout_constraintLeft_toLeftOf="@+id/guideline24"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/profieImage" />
-
-    <TextView
-        android:id="@+id/title"
-        android:layout_width="0dp"
-        android:layout_height="28dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginTop="8dp"
-        android:text="TextView"
-        app:layout_constraintLeft_toLeftOf="@+id/usernamedisplay"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/usernamedisplay" />
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintTop_toTopOf="@+id/profieImage"
+        android:layout_marginTop="16dp" />
 
     <ProgressBar
         android:id="@+id/scoreBar"
@@ -47,11 +38,14 @@
         android:layout_height="29dp"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginEnd="16dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintLeft_toLeftOf="@+id/title"
+        android:layout_marginEnd="112dp"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/title" />
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/usernamedisplay"
+        app:layout_constraintLeft_toLeftOf="@+id/guideline24"
+        app:layout_constraintHorizontal_bias="0.0"
+        android:max="9001"
+        android:progress="4000" />
 
     <android.support.constraint.Guideline
         android:id="@+id/guideline"
@@ -153,23 +147,11 @@
         android:id="@+id/progressTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         android:text="9001"
         app:layout_constraintBottom_toBottomOf="@+id/scoreBar"
         app:layout_constraintLeft_toLeftOf="@+id/scoreBar"
         app:layout_constraintRight_toRightOf="@+id/scoreBar"
-        app:layout_constraintTop_toBottomOf="@+id/title" />
-
-    <ProgressBar
-        android:id="@+id/progressBarProfile"
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@+id/guideline2"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/guideline" />
+        app:layout_constraintTop_toTopOf="@+id/scoreBar" />
 
 
 </android.support.constraint.ConstraintLayout>

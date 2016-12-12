@@ -6,12 +6,16 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.luke.lukef.lukeapp.MainActivity;
@@ -19,7 +23,9 @@ import com.luke.lukef.lukeapp.R;
 import com.luke.lukef.lukeapp.SubmissionDatabase;
 import com.luke.lukef.lukeapp.model.Category;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
+import com.luke.lukef.lukeapp.model.Submission;
 import com.luke.lukef.lukeapp.model.UserFromServer;
+import com.luke.lukef.lukeapp.tools.LukeNetUtils;
 import com.luke.lukef.lukeapp.tools.LukeUtils;
 
 import org.json.JSONArray;
@@ -34,6 +40,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 
 /**
@@ -62,6 +69,8 @@ public class SubmissionPopup {
     private View.OnClickListener clickListener;
     private Bitmap mainImageBitmap;
     private String userId;
+    private ProgressBar loadingSpinny;
+    private View mainView;
 
     public SubmissionPopup(MainActivity mainActivity, View.OnClickListener clickListener) {
         this.mainActivity = mainActivity;
@@ -102,6 +111,8 @@ public class SubmissionPopup {
         this.popupButtonPositive = (ImageButton) this.dialog.findViewById(R.id.popup_button_positive);
         this.submissionReportButton = (ImageButton) this.dialog.findViewById(R.id.submissionReportButton);
         this.submissionCategoriesLinear = (LinearLayout) this.dialog.findViewById(R.id.submissionCategoriesLinear);
+        this.loadingSpinny = (ProgressBar) this.dialog.findViewById(R.id.progressBarSubmissionPopup);
+        this.mainView = this.dialog.findViewById(R.id.popupMainContent);
 
         // set click listeners
         this.popupButtonPositive.setOnClickListener(clickListener);
@@ -115,6 +126,8 @@ public class SubmissionPopup {
         getLocalSubmissionData();
 
         this.dialog.show();
+        GetSubmissionData getSubmissionData = new GetSubmissionData(mainActivity, this);
+        getSubmissionData.execute();
     }
 
     /**
@@ -133,24 +146,7 @@ public class SubmissionPopup {
 
         // passes if it's a submission, goes to else if admin marker
         if (this.queryCursor.getColumnIndex("submission_img_url") != -1) {
-            String imgUrl = this.queryCursor.getString(this.queryCursor.getColumnIndexOrThrow("submission_img_url"));
-            if (imgUrl != null && !imgUrl.isEmpty() && !imgUrl.equals("null")) {
-                try {
-                    imgUrl = imgUrl.trim();
-                    if (!imgUrl.isEmpty()) {
-                        String[] taskParams = {imgUrl};
-                    }
-                } catch (IllegalArgumentException e) {
-                    Log.e(TAG, "addDataToDialog: illegal arg ", e);
-                    this.submissionImage.setImageResource(R.drawable.no_img);
-                } catch (NullPointerException e) {
-                    this.submissionImage.setImageResource(R.drawable.no_img);
-                    Log.e(TAG, "addDataToDialog: NPE ", e);
-                }
-            } else {
-                // no img
-                this.submissionImage.setImageResource(R.drawable.no_img);
-            }
+
         } else {
             Log.e(TAG, "addDataToDialog: admin marker, not setting image");
             this.submissionImage.setImageResource(R.drawable.admin_marker);
@@ -190,29 +186,34 @@ public class SubmissionPopup {
         addDataToDialog();
     }
 
+
     /**
-     * Called from {@link GetSubmissionDataTask#onPostExecute(List)},
-     * uses the list of category IDs and finds the correct categories from {@link SessionSingleton#getCategoryList()}
-     * and fetches the images from those.
+     * Adds imageviews to the categories section of the popup, with the thumbnails of the categories.
+     * Dimensions of the parent view can only be retreived once they are drawn, so a GlobalLayoutListener is needed.
      *
-     * @param strings The list of category IDs that the submission has.
+     * @param categories list of categories whose images are to be added to the category list
      */
-    private void setCategories(List<String> strings) {
-        this.arrayIds = strings;
-        for (String s : this.arrayIds) {
-            for (Category c : SessionSingleton.getInstance().getCategoryList()) {
-                if (c.getId().equals(s)) {
-                    ImageView categoryImg = new ImageView(this.mainActivity);
-                    categoryImg.setImageBitmap(c.getImage());
-                    LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(new LinearLayout.LayoutParams(
-                            this.submissionCategoriesLinear.getHeight(),
-                            this.submissionCategoriesLinear.getHeight()));
-                    categoryImg.setLayoutParams(layoutParams);
-                    this.submissionCategoriesLinear.addView(categoryImg);
+    private void setCategories(List<Category> categories) {
+        for (Category c : categories) {
+            final ImageView categoryImg = new ImageView(this.mainActivity);
+            categoryImg.setImageBitmap(c.getImage());
+            final LinearLayout.LayoutParams[] layoutParams = new LinearLayout.LayoutParams[1];
+            this.submissionCategoriesLinear.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    layoutParams[0] = new LinearLayout.LayoutParams(new LinearLayout.LayoutParams(
+                            SubmissionPopup.this.submissionCategoriesLinear.getHeight(),
+                            SubmissionPopup.this.submissionCategoriesLinear.getHeight()));
+                    categoryImg.setLayoutParams(layoutParams[0]);
+                    if (categoryImg.getParent() != null) {
+                        ((ViewGroup) categoryImg.getParent()).removeView(categoryImg);
+                    }
+                    SubmissionPopup.this.submissionCategoriesLinear.addView(categoryImg);
                 }
-            }
+            });
         }
     }
+
 
     /**
      * Sets the provided bitmap into the ImageView view.
@@ -247,25 +248,91 @@ public class SubmissionPopup {
         this.userId = userId;
     }
 
-    private class GetSubmissionData extends AsyncTask<Void,Void,Void>{
+    private class GetSubmissionData extends AsyncTask<Void, Void, Void> {
 
-        View popupView;
         Activity activity;
+        SubmissionPopup submissionPopup;
+        Bitmap submissionImage;
+        Bitmap submitterImage;
+        String submitterName;
+        List<Category> categories;
 
-        public GetSubmissionData(Activity activity, View v){
-            this.popupView = v;
+        public GetSubmissionData(Activity activity, SubmissionPopup submissionPopup) {
             this.activity = activity;
+            this.submissionPopup = submissionPopup;
+            this.categories = new ArrayList<>();
         }
 
         @Override
         protected Void doInBackground(Void... params) {
+            final LukeNetUtils lukeNetUtils = new LukeNetUtils(activity);
+            final Submission s = lukeNetUtils.getSubmissionFromId(this.submissionPopup.markerId);
+            if (s != null) {
+                if (!TextUtils.isEmpty(s.getImageUrl()) && !s.getImageUrl().equals("null")) {
+                    try {
+                        this.submissionImage = lukeNetUtils.getBitmapFromURL(s.getImageUrl());
+                    } catch (ExecutionException e) {
+                        Log.e(TAG, "doInBackground: ", e);
+                    } catch (InterruptedException e) {
+                        Log.e(TAG, "doInBackground: ", e);
+                    }
+
+                }
+                if (!TextUtils.isEmpty(s.getSubmitterId()) && !s.getSubmitterId().equals("null")) {
+                    submissionPopup.setUserId(s.getSubmitterId());
+                }
+                this.categories = LukeUtils.getCategoryObjectsFromSubmission(s);
+                UserFromServer userFromServer = null;
+                try {
+                    userFromServer = lukeNetUtils.getUserFromUserId(s.getSubmitterId());
+                } catch (ExecutionException e) {
+                    Log.e(TAG, "doInBackground: ", e);
+                } catch (InterruptedException e) {
+                    Log.e(TAG, "doInBackground: ", e);
+                }
+                if (userFromServer != null) {
+                    try {
+                        this.submitterImage = lukeNetUtils.getBitmapFromURL(userFromServer.getImageUrl());
+                        this.submitterName = userFromServer.getUsername();
+                    } catch (ExecutionException e) {
+                        Log.e(TAG, "doInBackground: ", e);
+                    } catch (InterruptedException e) {
+                        Log.e(TAG, "doInBackground: ", e);
+                    }
+                }
+            }
+
             return null;
         }
 
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    // TODO: 12/12/2016 hide spinny thing and show content AFTER setting values
+                    if (submissionImage != null) {
+                        submissionPopup.submissionImage.setImageBitmap(submissionImage);
+                    } else {
+                        submissionPopup.submissionImage.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.no_img));
+                    }
+                    if (submitterImage != null) {
+                        submissionPopup.submitterProfileImage.setImageBitmap(submitterImage);
+                    } else {
+                        submissionPopup.submitterProfileImage.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.luke_default_profile_pic));
+                    }
+                    if (categories.size() > 0) {
+                        setCategories(categories);
+                    }
+                    submissionPopup.submissionSubmitterName.setText(submitterName);
+                    submissionPopup.loadingSpinny.setVisibility(View.GONE);
+                    submissionPopup.mainView.setVisibility(View.VISIBLE);
+                }
+            });
         }
     }
 
 }
+
+
