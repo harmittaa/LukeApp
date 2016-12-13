@@ -3,6 +3,7 @@ package com.luke.lukef.lukeapp;
 
 import android.Manifest;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.AsyncTask;
 
 import android.support.v4.app.ActivityCompat;
@@ -12,6 +13,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.auth0.android.Auth0;
 import com.auth0.android.lock.AuthenticationCallback;
@@ -51,6 +53,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     private String idToken = "";
     private String accessToken = "";
     private LukeNetUtils lukeNetUtils;
+    TextView title;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +62,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         this.lukeNetUtils = new LukeNetUtils(getApplicationContext());
         this.loginButton = (Button) findViewById(R.id.loginButton);
         this.skipLoginButton = (Button) findViewById(R.id.skipLoginButton);
+        this.title = (TextView) findViewById(R.id.textView);
         this.loginButton.setOnClickListener(this);
         this.skipLoginButton.setOnClickListener(this);
         requestPermission();
@@ -66,6 +70,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         getCategories();
         ShowLinkTask showLinkTask = new ShowLinkTask();
         showLinkTask.execute();
+
     }
 
     private void requestPermission() {
@@ -93,7 +98,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 break;
         }
     }
-
 
 
     private void doLogin(String clientId, String domain) {
@@ -209,6 +213,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     } catch (ExecutionException | InterruptedException e) {
                         Log.e(TAG, "run: ERROR ", e);
                     }
+
                 }
             }
         };
@@ -239,4 +244,5 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     private void creaeLinkPopup(Link l){
         LinkPopup linkPopup = new LinkPopup(this,l);
     }
+
 }

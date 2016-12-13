@@ -206,7 +206,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
             LukeNetUtils lukeNetUtils = new LukeNetUtils(getMainActivity());
                 getMainActivity().makeToast(lukeNetUtils.reportSubmission(submissionPopup.getSubmissionID()));
         } else {
-            // TODO: 08/12/2016 make a popup promt to log in
             getMainActivity().makeToast("You need to log in to do this");
         }
     }

@@ -19,7 +19,9 @@ import com.luke.lukef.lukeapp.tools.LukeNetUtils;
 
 import java.util.ArrayList;
 
-// TODO: 12/12/2016 DANIEL
+/**
+ * Fragment to be passed into the tablayout that displays all of a users submissions in a cardview
+ */
 public class UserSubmissionFragment extends Fragment {
     private View fragmentView;
     private RecyclerView recyclerView;
@@ -64,7 +66,9 @@ public class UserSubmissionFragment extends Fragment {
         return (MainActivity) getActivity();
     }
 
-    // TODO: 12/12/2016 DANIEL
+    /**
+     * Asynctask that fetches a users submissions. Only once this is done, can a new cardviewadapter be created with a list of submissions
+     */
     private class UserSubmissionsAsync extends AsyncTask<Void, Void, Void> {
         private String userId;
 

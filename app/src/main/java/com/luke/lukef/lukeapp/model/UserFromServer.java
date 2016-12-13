@@ -1,7 +1,9 @@
 package com.luke.lukef.lukeapp.model;
 
 
-// TODO: 12/12/2016 DANIEL
+/**
+ * Model class for containing data about a user
+ */
 public class UserFromServer {
     private String id;
     private String username;

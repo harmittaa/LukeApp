@@ -24,7 +24,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-// TODO: 12/12/2016 DANIEL kommentoi koko homma
+/**
+ * Custom adapter to be used in user profile fragment. Works with Submission objects
+ */
 public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyViewHolder> {
 
     private List<Submission> submissionList;
@@ -108,6 +110,9 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
         return submissionList.size();
     }
 
+    /**
+     * Inner class representing an individual card
+     */
     static class MyViewHolder extends RecyclerView.ViewHolder {
         TextView mDate;
         TextView mTime;

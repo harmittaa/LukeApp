@@ -315,7 +315,6 @@ public class SubmissionPopup {
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    // TODO: 12/12/2016 hide spinny thing and show content AFTER setting values
                     if (submissionImage != null) {
                         submissionPopup.submissionImage.setImageBitmap(submissionImage);
                     } else {

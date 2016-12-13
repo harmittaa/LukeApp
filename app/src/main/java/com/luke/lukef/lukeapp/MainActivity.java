@@ -64,7 +64,9 @@ import android.location.Location;
 import android.os.Build;
 
 
-// TODO: 12/12/2016 DANIEL
+/**
+ * Main activity of the app. Contains a view where fragments are cycled. The fragments contain all the functional parts. Also contains logic for drawer
+ */
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     final private int REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS = 124;
@@ -189,7 +191,11 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    // TODO: 12/12/2016 DANIEL
+
+    /**
+     * Toggles between hiding and showing a fullscreen image, when its clicked in a popup. Unhides the popup once done
+     * @param isVisible whether the image is shown fullscreen, true = is shown, false = hidden
+     */
     public void setFullScreenImageViewVisibility(final boolean isVisible) {
         runOnUiThread(new Runnable() {
             @Override
@@ -212,7 +218,11 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    // TODO: 12/12/2016 DANIEL
+    /**
+     * Constructs a bundle froma all values stored in a Mapfragment, to be passed to another fragment
+     * @param mf Mapfragment from which the bundle will be constructed.
+     * @return
+     */
     private Bundle constructBundleFromMap(MapViewFragment mf) {
         Bundle bundle = new Bundle();
         Location gettedLoc = mf.getLastLoc();
