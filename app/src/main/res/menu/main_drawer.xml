@@ -2,31 +2,21 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <group android:checkableBehavior="single">
-        <item
-            android:icon="@drawable/luke_profile"
-            android:id="@+id/my_profile"
-            android:title="My profile" />
-        <item
-            android:icon="@drawable/ic_menu_share"
-            android:id="@+id/achievements"
-            android:title="No action" />
-        <item
-            android:icon="@drawable/luke_settings"
-            android:id="@+id/edit_profile"
-            android:title="Edit profile" />
-    </group>
-
     <item android:title="Actions">
         <menu>
             <item
-                android:id="@+id/logout"
-                android:icon="@drawable/ic_menu_share"
-                android:title="No action" />
+                android:icon="@drawable/luke_profile"
+                android:id="@+id/my_profile"
+                android:title="My profile" />
             <item
-                android:id="@+id/quit"
-                android:icon="@drawable/ic_menu_send"
-                android:title="No action" />
+                android:icon="@drawable/luke_settings"
+                android:id="@+id/edit_profile"
+                android:title="Edit profile" />
+            <item
+                android:id="@+id/logout"
+                android:icon="@drawable/luke_exit"
+                android:title="Log Out" />
+
         </menu>
     </item>
 

@@ -328,7 +328,12 @@ public class MainActivity extends AppCompatActivity {
                                     createLoginPrompt();
                                 }
                                 break;
-                            case R.id.achievements:
+                            case R.id.logout:
+                                if (SessionSingleton.getInstance().isUserLogged()) {
+                                    SessionSingleton.getInstance().logOut(MainActivity.this);
+                                } else {
+                                    createLoginPrompt();
+                                }
                                 break;
                             case R.id.edit_profile:
                                 if (SessionSingleton.getInstance().isUserLogged()) {
@@ -355,9 +360,9 @@ public class MainActivity extends AppCompatActivity {
     private void createLoginPrompt() {
         // TODO: 10/12/2016 MOVE TO LUKEUTILS this is also used in MapFragment
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("Please Log in")
+        builder.setMessage(R.string.login_prompt_message)
                 .setCancelable(false)
-                .setPositiveButton("Login", new DialogInterface.OnClickListener() {
+                .setPositiveButton("Log in", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         startActivity(new Intent(getBaseContext(), WelcomeActivity.class));
                     }

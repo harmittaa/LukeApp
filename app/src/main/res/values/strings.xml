@@ -32,6 +32,7 @@
     <string name="category_title">Category title</string>
     <string name="category_description">Category description</string>
     <string name="button_category">Category</string>
-    <string name="show_submissions_newer_than">Show submissions newer than</string>
+    <string name="show_submissions_from">Show submissions from</string>
+    <string name="login_prompt_message">You must be logged in to do this.</string>
 
 </resources>

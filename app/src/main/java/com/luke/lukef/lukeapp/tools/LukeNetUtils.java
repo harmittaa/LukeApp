@@ -720,10 +720,10 @@ public class LukeNetUtils {
                         return false;
                     }
                 } catch (MalformedURLException e) {
-                    e.printStackTrace();
+                    Log.e(TAG, "call: ", e);
                     return false;
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Log.e(TAG, "call: ",e );
                     return false;
                 }
 

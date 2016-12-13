@@ -1,7 +1,11 @@
 package com.luke.lukef.lukeapp.model;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.util.Log;
+
+import com.luke.lukef.lukeapp.WelcomeActivity;
 
 import java.util.ArrayList;
 
@@ -102,5 +106,17 @@ public class SessionSingleton {
 
     public void setAuth0Domain(String auth0Domain) {
         this.auth0Domain = auth0Domain;
+    }
+
+    public void logOut(Activity activity){
+        this.setAuth0Domain(null);
+        this.setIdToken(null);
+        this.setUserLogged(false);
+        this.setAccessToken(null);
+        this.setUserId(null);
+        this.setUsername(null);
+        this.setUserImage(null);
+        activity.startActivity(new Intent(activity, WelcomeActivity.class));
+        activity.finish();
     }
 }
