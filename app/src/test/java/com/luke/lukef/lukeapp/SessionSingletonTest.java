@@ -9,12 +9,14 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
- * Created by Asus on 27/11/2016.
+ * Unit tests for {@link SessionSingleton}.
  */
+
 public class SessionSingletonTest {
 
     /**
-     * Checks that the SessionSingleton is not null
+     * Tests that the {@link SessionSingleton} is not null
+     *
      * @throws Exception
      */
     @Test
@@ -22,134 +24,55 @@ public class SessionSingletonTest {
         Assert.assertTrue(SessionSingleton.getInstance() != null);
     }
 
+    /**
+     * Tests that the {@link SessionSingleton#categories} is not null
+     *
+     * @throws Exception
+     */
     @Test
-    public void setValues() throws Exception {
-
+    public void testSubmissionSingletonCategories() throws Exception {
+        Assert.assertNotNull(SessionSingleton.getInstance().getCategoryList());
     }
 
+
+    /**
+     * Tests the getters and setters of {@link SessionSingleton}:
+     * <li>{@link SessionSingleton#userId}</li>
+     * <li>{@link SessionSingleton#accessToken}</li>
+     * <li>{@link SessionSingleton#username}</li>
+     * <li>{@link SessionSingleton#auth0ClientID}</li>
+     * <li>{@link SessionSingleton#auth0Domain}</li>
+     * <li>{@link SessionSingleton#xp}</li>
+     * <li>{@link SessionSingleton#isUserLogged}</li>
+     *
+     * @throws Exception
+     */
     @Test
-    public void addCategory() throws Exception {
+    public void testGettersAndSetters() throws Exception {
+        SessionSingleton s = SessionSingleton.getInstance();
+        String userId = "id";
+        String accessToken = "token";
+        String username = "username";
+        String auth0ClientID = "auth0clientid";
+        String auth0Domain = "auth0Domain";
+        int xp = 100;
+        boolean isUserLogged = false;
 
-    }
+        s.setUserId(userId);
+        s.setAccessToken(accessToken);
+        s.setUsername(username);
+        s.setAuth0ClientID(auth0ClientID);
+        s.setAuth0Domain(auth0Domain);
+        s.setXp(xp);
+        s.setUserLogged(isUserLogged);
 
-    @Test
-    public void removeCategory() throws Exception {
-
-    }
-
-    @Test
-    public void removeCategoryByIndex() throws Exception {
-
-    }
-
-    @Test
-    public void setCategories() throws Exception {
-
-    }
-
-    @Test
-    public void getCategoryList() throws Exception {
-
-    }
-
-    @Test
-    public void emptyCategories() throws Exception {
-
-    }
-
-    @Test
-    public void increaseXp() throws Exception {
-
-    }
-
-    @Test
-    public void levelUp() throws Exception {
-
-    }
-
-    @Test
-    public void deleteAccount() throws Exception {
-
-    }
-
-    @Test
-    public void getUsername() throws Exception {
-
-    }
-
-    @Test
-    public void getXp() throws Exception {
-
-    }
-
-    @Test
-    public void setXp() throws Exception {
-
-    }
-
-    @Test
-    public void getLevel() throws Exception {
-
-    }
-
-    @Test
-    public void setLevel() throws Exception {
-
-    }
-
-    @Test
-    public void getUserImage() throws Exception {
-
-    }
-
-    @Test
-    public void setUserImage() throws Exception {
-
-    }
-
-    @Test
-    public void getUserId() throws Exception {
-
-    }
-
-    @Test
-    public void setUserId() throws Exception {
-
-    }
-
-    @Test
-    public void getIdToken() throws Exception {
-
-    }
-
-    @Test
-    public void setIdToken() throws Exception {
-
-    }
-
-    @Test
-    public void getAccessToken() throws Exception {
-
-    }
-
-    @Test
-    public void setAccessToken() throws Exception {
-
-    }
-
-    @Test
-    public void setUsername() throws Exception {
-
-    }
-
-    @Test
-    public void isUserLogged() throws Exception {
-
-    }
-
-    @Test
-    public void setUserLogged() throws Exception {
-
+        Assert.assertSame(s.getUserId(), userId);
+        Assert.assertSame(s.getAccessToken(), accessToken);
+        Assert.assertSame(s.getUsername(), username);
+        Assert.assertSame(s.getAuth0ClientID(), auth0ClientID);
+        Assert.assertSame(s.getAuth0Domain(), auth0Domain);
+        Assert.assertNull(s.getIdToken());
+        Assert.assertEquals(s.isUserLogged(), isUserLogged);
     }
 
 }

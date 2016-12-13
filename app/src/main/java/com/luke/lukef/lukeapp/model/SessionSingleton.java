@@ -65,7 +65,7 @@ public class SessionSingleton {
     public void setIdToken(String idToken) {
         this.idToken = idToken;
 
-        Log.e(TAG, "setidToken: idtoken token set to " + this.idToken);
+       // Log.e(TAG, "setidToken: idtoken token set to " + this.idToken);
     }
 
     public String getAccessToken() {

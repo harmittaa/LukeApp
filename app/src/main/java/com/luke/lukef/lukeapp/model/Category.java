@@ -12,9 +12,6 @@ public class Category {
     private Bitmap image;
     private Boolean isPositive;
 
-    public Category() {
-    }
-
     public String getId() {
         return id;
     }
@@ -40,7 +37,7 @@ public class Category {
     }
 
     public Bitmap getImage() {
-        return image;
+        return this.image;
     }
 
     public void setImage(Bitmap image) {
