@@ -19,6 +19,7 @@ import com.auth0.android.lock.Lock;
 import com.auth0.android.lock.LockCallback;
 import com.auth0.android.lock.utils.LockException;
 import com.auth0.android.result.Credentials;
+import com.luke.lukef.lukeapp.model.Link;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.tools.LukeNetUtils;
 import com.luke.lukef.lukeapp.tools.LukeUtils;
@@ -192,7 +193,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
-
     /**
      * Start getCategories from LukeUtils on a new thread
      */
@@ -212,5 +212,23 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         };
         Thread t = new Thread(r);
         t.start();
+    }
+
+    private class ShowLinkTask extends AsyncTask<Void,Void,Void>{
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            Link jeeben = lukeNetUtils.getNewestLink();
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+        }
+    }
+
+    private void creaeLinkPopup(Link l){
+
     }
 }
