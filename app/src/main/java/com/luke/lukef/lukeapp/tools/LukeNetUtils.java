@@ -627,7 +627,7 @@ public class LukeNetUtils {
         return arrayListFutureTask.get();
     }
 
-    public void startFetchUserDataTask(WelcomeActivity welcomeActivity) {
+    private void startFetchUserDataTask(WelcomeActivity welcomeActivity) {
         FetchUserDataTask fetchUserDataTask = new FetchUserDataTask(welcomeActivity);
         fetchUserDataTask.execute();
 
@@ -641,7 +641,7 @@ public class LukeNetUtils {
         private HttpURLConnection httpURLConnection;
         private WelcomeActivity welcomeActivity;
 
-        public FetchUserDataTask(WelcomeActivity welcomeActivity) {
+        FetchUserDataTask(WelcomeActivity welcomeActivity) {
             this.welcomeActivity = welcomeActivity;
         }
 

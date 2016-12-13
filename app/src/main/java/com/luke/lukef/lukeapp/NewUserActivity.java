@@ -135,6 +135,7 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
                             if (this.selectedProfileImage != null) {
                                 this.lukeNetUtils.updateUserImage(this.selectedProfileImage);
                                 SessionSingleton.getInstance().setUserImage(this.selectedProfileImage);
+                                SessionSingleton.getInstance().setUsername(username);
                             }
                             startActivity(new Intent(NewUserActivity.this, MainActivity.class));
                             return true;
@@ -160,6 +161,7 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
                 if (this.selectedProfileImage != null) {
                     this.lukeNetUtils.updateUserImage(this.selectedProfileImage);
                     SessionSingleton.getInstance().setUserImage(this.selectedProfileImage);
+                    SessionSingleton.getInstance().setUsername(username);
                 }
                 startActivity(new Intent(NewUserActivity.this, MainActivity.class));
                 return true;
