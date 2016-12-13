@@ -524,7 +524,7 @@ public class LukeNetUtils {
     public Bitmap getMapThumbnail(final Location center, final int width, final int height) throws ExecutionException, InterruptedException {
         final String urlString1 = "https://maps.googleapis.com/maps/api/staticmap?center=" +
                 center.getLatitude() + ",%20" + center.getLongitude() + "&zoom=18&size=" +
-                width + "x" + height + "&maptype=normal";
+                width + "x" + height + "&maptype=normal&markers=size:mid|color:red|";
         return getBitmapFromURL(urlString1);
     }
 

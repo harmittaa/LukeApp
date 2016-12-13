@@ -11,10 +11,10 @@
     <color name="super_red">#ff0000</color>
     <color name="storm_dust_gray">#535352</color>
     <color name="clairvoyant">#6F0C8A</color>
-    <color name="marker_admin">#bd00bd</color>
-    <color name="marker_positive">#10bd00</color>
-    <color name="marker_neutral">#009dbd</color>
-    <color name="marker_negative">#bd0000</color>
+    <color name="marker_admin">#ff8000</color>
+    <color name="marker_positive">#00ff48</color>
+    <color name="marker_neutral">#003cff</color>
+    <color name="marker_negative">#ff3700</color>
     <color name="congress_blue">#004E89</color>
     <color name="category_popup_background_positivie">#e6ffe6</color>
     <color name="category_popup_background_negative">#ffd6cc</color>

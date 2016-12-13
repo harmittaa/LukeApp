@@ -41,6 +41,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMapOptions;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.GoogleMap.OnCameraIdleListener;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -160,6 +161,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
                 submissionPopup.dismissPopup();
                 break;
             case R.id.submissionImageMain:
+                Log.e(TAG, "onClick: image clickd" );
                 if (submissionPopup.getMainImageBitmap() != null) {
                     getMainActivity().setFullScreenImageViewImage(submissionPopup.getMainImageBitmap());
                     getMainActivity().setFullScreenImageViewVisibility(true);
@@ -736,18 +738,22 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         protected void onBeforeClusterItemRendered(ClusterMarker item, MarkerOptions markerOptions) {
             // change marker color based on the marker values
             if (!item.getAdminMarkerTitle().isEmpty()) {
-                BitmapDescriptor markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA);
+                BitmapDescriptor markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE);
                 markerOptions.icon(markerDescriptor);
             } else if (item.getPositive().equals("true")) {
                 BitmapDescriptor markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN);
                 markerOptions.icon(markerDescriptor);
             } else if (item.getPositive().equals("false")) {
-                BitmapDescriptor markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE);
+                BitmapDescriptor markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED);
                 markerOptions.icon(markerDescriptor);
             } else if (item.getPositive().equals("neutral")) {
-                BitmapDescriptor markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET);
+                BitmapDescriptor markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE);
                 markerOptions.icon(markerDescriptor);
             }
+            Log.e(TAG, "onBeforeClusterItemRendered: MARKER COLORS: ORANGE: " + BitmapDescriptorFactory.HUE_ORANGE );
+            Log.e(TAG, "onBeforeClusterItemRendered: MARKER COLORS: GREEN: " + BitmapDescriptorFactory.HUE_GREEN );
+            Log.e(TAG, "onBeforeClusterItemRendered: MARKER COLORS: RED: " + BitmapDescriptorFactory.HUE_RED );
+            Log.e(TAG, "onBeforeClusterItemRendered: MARKER COLORS: BLUE: " + BitmapDescriptorFactory.HUE_BLUE );
         }
 
         @Override
@@ -778,16 +784,16 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
             // Set cluster color based on what items there's the most
             switch (findElementWithMostOccurrences(cluster)) {
                 case POSITIVE:
-                    clusterColor = ContextCompat.getColor(getContext(), R.color.shamrock);
+                    clusterColor = ContextCompat.getColor(getContext(), R.color.marker_positive);
                     break;
                 case NEUTRAL:
-                    clusterColor = ContextCompat.getColor(getContext(), R.color.quill_gray);
+                    clusterColor = ContextCompat.getColor(getContext(), R.color.marker_neutral);
                     break;
                 case NEGATIVE:
-                    clusterColor = ContextCompat.getColor(getContext(), R.color.bittersweet);
+                    clusterColor = ContextCompat.getColor(getContext(), R.color.marker_negative);
                     break;
                 default:
-                    clusterColor = ContextCompat.getColor(getContext(), R.color.quill_gray);
+                    clusterColor = ContextCompat.getColor(getContext(), R.color.marker_neutral);
                     break;
             }
 

@@ -61,17 +61,17 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
                 LoadImageTask loadImageTask = new LoadImageTask(holder, submission.getImageUrl(), this.activity);
                 loadImageTask.execute();
             } else {
-                holder.rightImg.setImageBitmap(BitmapFactory.decodeResource(activity.getResources(), R.drawable.no_img));
+                holder.mapImage.setImageBitmap(BitmapFactory.decodeResource(activity.getResources(), R.drawable.no_img));
             }
 
         } else {
-            holder.rightImg.setImageBitmap(picsBitmaps.get(position));
+            holder.mapImage.setImageBitmap(picsBitmaps.get(position));
         }
         if (mapsBitmaps == null || mapsBitmaps.size() == 0) {
             LoadMapTask loadMapTask = new LoadMapTask(holder, submission.getLocation(), this.activity);
             loadMapTask.execute();
         } else {
-            holder.leftImg.setImageBitmap(mapsBitmaps.get(position));
+            holder.submissionImage.setImageBitmap(mapsBitmaps.get(position));
         }
 
     }
@@ -80,10 +80,10 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
     public void onViewRecycled(MyViewHolder holder) {
         holder.progressBarMap.setVisibility(View.VISIBLE);
         holder.progressBarPicture.setVisibility(View.VISIBLE);
-        holder.leftImg.setImageBitmap(null);
-        holder.leftImg.setVisibility(View.INVISIBLE);
-        holder.rightImg.setImageBitmap(null);
-        holder.rightImg.setVisibility(View.INVISIBLE);
+        holder.submissionImage.setImageBitmap(null);
+        holder.submissionImage.setVisibility(View.INVISIBLE);
+        holder.mapImage.setImageBitmap(null);
+        holder.mapImage.setVisibility(View.INVISIBLE);
         super.onViewRecycled(holder);
     }
 
@@ -112,8 +112,8 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
         TextView mDate;
         TextView mTime;
         TextView content;
-        ImageView leftImg;
-        ImageView rightImg;
+        ImageView submissionImage;
+        ImageView mapImage;
         ProgressBar progressBarPicture;
         ProgressBar progressBarMap;
 
@@ -122,8 +122,8 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
             mDate = (TextView) itemView.findViewById(R.id.postDate);
             mTime = (TextView) itemView.findViewById(R.id.postTime);
             content = (TextView) itemView.findViewById(R.id.postContent);
-            leftImg = (ImageView) itemView.findViewById(R.id.picture);
-            rightImg = (ImageView) itemView.findViewById(R.id.map);
+            submissionImage = (ImageView) itemView.findViewById(R.id.picture);
+            mapImage = (ImageView) itemView.findViewById(R.id.map);
             progressBarPicture = (ProgressBar) itemView.findViewById(R.id.card_progress_picutre);
             progressBarMap = (ProgressBar) itemView.findViewById(R.id.card_progress_map);
         }
@@ -164,12 +164,12 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
                 @Override
                 public void run() {
                     if (LoadImageTask.this.bitmap == null) {
-                        LoadImageTask.this.holder.rightImg.setImageDrawable(ResourcesCompat.getDrawable(activity.getResources(), R.drawable.no_img, null));
+                        LoadImageTask.this.holder.mapImage.setImageDrawable(ResourcesCompat.getDrawable(activity.getResources(), R.drawable.no_img, null));
                     } else {
-                        LoadImageTask.this.holder.rightImg.setImageBitmap(LoadImageTask.this.bitmap);
+                        LoadImageTask.this.holder.mapImage.setImageBitmap(LoadImageTask.this.bitmap);
                     }
                     LoadImageTask.this.holder.progressBarPicture.setVisibility(View.GONE);
-                    LoadImageTask.this.holder.rightImg.setVisibility(View.VISIBLE);
+                    LoadImageTask.this.holder.mapImage.setVisibility(View.VISIBLE);
                 }
             });
             super.onPostExecute(aVoid);
@@ -210,12 +210,12 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
                 @Override
                 public void run() {
                     if (LoadMapTask.this.bitmap == null) {
-                        LoadMapTask.this.holder.leftImg.setImageDrawable(ResourcesCompat.getDrawable(activity.getResources(), R.drawable.no_img, null));
+                        LoadMapTask.this.holder.submissionImage.setImageDrawable(ResourcesCompat.getDrawable(activity.getResources(), R.drawable.no_img, null));
                     } else {
-                        LoadMapTask.this.holder.leftImg.setImageBitmap(LoadMapTask.this.bitmap);
+                        LoadMapTask.this.holder.submissionImage.setImageBitmap(LoadMapTask.this.bitmap);
                     }
                     LoadMapTask.this.holder.progressBarMap.setVisibility(View.GONE);
-                    LoadMapTask.this.holder.leftImg.setVisibility(View.VISIBLE);
+                    LoadMapTask.this.holder.submissionImage.setVisibility(View.VISIBLE);
                 }
             });
             super.onPostExecute(aVoid);
