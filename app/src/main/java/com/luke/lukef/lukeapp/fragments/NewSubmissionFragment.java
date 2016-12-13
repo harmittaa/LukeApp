@@ -66,6 +66,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
     private Button categorySelectButton;
     private View fragmentView;
     private EditText submissionDescription;
+    private EditText submissionTitle;
     private ImageView photoThumbnail;
     private ImageView mapThumbnail;
     private LinearLayout categoriesLinearLayout;
@@ -117,7 +118,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         this.backButton = (ImageButton) this.fragmentView.findViewById(R.id.button_back);
         this.categoriesLinearLayout = (LinearLayout) this.fragmentView.findViewById(R.id.categoriesLinearLayout);
         this.submissionDescription = (EditText) this.fragmentView.findViewById(R.id.newSubmissionEditTextDescrption);
-        EditText submissionTitle = (EditText) this.fragmentView.findViewById(R.id.newSubmissionEditTextTitle);
+        this.submissionTitle = (EditText) this.fragmentView.findViewById(R.id.newSubmissionEditTextTitle);
         this.submissionDescription.setImeOptions(EditorInfo.IME_ACTION_DONE);
         submissionTitle.setImeOptions(EditorInfo.IME_ACTION_DONE);
         this.categorySelectButton = (Button) fragmentView.findViewById(R.id.categorySelectButtonNewSubmission);
@@ -260,11 +261,12 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
      */
     private void makeSubmission() {
         if (checkFieldsValidity()) {
-            Submission newSub = new Submission(getMainActivity(), this.confirmedCategories, this.submissionDescription.getText().toString(), this.location);
+            Submission newSub = new Submission(getMainActivity(), this.confirmedCategories, this.submissionTitle.getText().toString(), this.submissionDescription.getText().toString(), this.location);
             newSub.setFile(this.photoFile);
             if (this.currentPhoto != null) {
                 newSub.setImage(this.currentPhoto);
             }
+
             if (newSub.submitToServer()) {
                 // fetch the submissions again
                 getMainActivity().startService(new Intent(getMainActivity(), SubmissionFetchService.class));

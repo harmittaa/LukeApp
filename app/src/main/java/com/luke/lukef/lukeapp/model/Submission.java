@@ -56,8 +56,9 @@ public class Submission {
      * @param description  Description of the submission
      * @param location     Location of the submission
      */
-    public Submission(Context context, ArrayList<Category> categoryList, String description, Location location) {
+    public Submission(Context context, ArrayList<Category> categoryList, String title, String description, Location location) {
         this.location = location;
+        this.title = title;
         this.categories = categoryList;
         this.description = description;
         this.context = context;
@@ -172,6 +173,9 @@ public class Submission {
                     Log.e(TAG, "call: RESPONSE CODE:" + conn.getResponseCode());
                     if (conn.getResponseCode() != 200) {
                         bufferedReader = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+                        Log.e(TAG, "call: ERROR  response code " + conn.getResponseCode());
+                        conn.disconnect();
+                        return false;
 
                     } else {
                         // TODO: 25/11/2016 check for authorization error, respons accordingly

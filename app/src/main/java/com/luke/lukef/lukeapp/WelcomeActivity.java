@@ -38,7 +38,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
 /**
- * Handles parsing Auth0 response of login,
+ * Handles login skip or Auth0
  */
 public class WelcomeActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String TAG = "WelcomeActivity";
@@ -62,7 +62,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         requestPermission();
         startService(new Intent(this, SubmissionFetchService.class));
         getCategories();
-
     }
 
     private void requestPermission() {
@@ -91,11 +90,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
-
     /*
     AUTH0 STUFF
      */
-
     private void doLogin(String clientId, String domain) {
         Auth0 auth0 = new Auth0(clientId, domain);
         this.lock = Lock.newBuilder(auth0, this.callBack).build(this);
@@ -110,26 +107,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             SessionSingleton.getInstance().setAccessToken(accessToken);
             SessionSingleton.getInstance().setIdToken(idToken);
             Log.e(TAG, "onAuthentication: idToken " + idToken);
-            // TODO: 15/11/2016 login to luke, check username, change to new user screen if first time login
-            LoginCallable loginTask = new LoginCallable();
-            FutureTask<Boolean> booleanFutureTask = new FutureTask<Boolean>(loginTask);
-            Thread thread = new Thread(booleanFutureTask);
-            thread.start();
-            try {
-                if (booleanFutureTask.get()) {
-                    // TODO: 15/11/2016 check username, if exists -> main screen, if not -> go to username creation
-                    FetchUserDataTask fetchUserDataTask = new FetchUserDataTask();
-                    fetchUserDataTask.execute();
-                    SessionSingleton.getInstance().setUserLogged(true);
-                    finish();
-                } else {
-                    Log.e(TAG, "onAuthentication: booleanFutureTask failed");
-                    finish();
-                }
-            } catch (InterruptedException | ExecutionException e) {
-                Log.e(TAG, "onAuthentication: ", e);
-            }
-            //startActivity(new Intent(getApplicationContext(),MainActivity.class));
+            lukeNetUtils.attemptLogin(WelcomeActivity.this, idToken);
         }
 
         @Override
@@ -214,105 +192,15 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
-    /**
-     * Pushes login to server
-     */
-    private class LoginCallable implements Callable<Boolean> {
-        private HttpURLConnection httpURLConnection;
-
-        @Override
-        public Boolean call() throws Exception {
-            try {
-                URL lukeURL = new URL(getString(R.string.loginUrl));
-                this.httpURLConnection = (HttpURLConnection) lukeURL.openConnection();
-                this.httpURLConnection.setRequestProperty(getString(R.string.authorization), getString(R.string.bearer) + idToken);
-                if (this.httpURLConnection.getResponseCode() == 200) {
-                    return true;
-                } else {
-                    Log.e(TAG, "call: LOGIN DIDN'T WORK" );
-                    // TODO: 12/12/2016 DANIEL
-                    return false;
-                }
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-                return false;
-            } catch (IOException e) {
-                e.printStackTrace();
-                return false;
-            }
-        }
-    }
 
     /**
-     * Fetches user data like ID, image and URL from the server
+     * Start getCategories from LukeUtils on a new thread
      */
-    private class FetchUserDataTask extends AsyncTask<Void, Void, Void> {
-        private String jsonString;
-        private HttpURLConnection httpURLConnection;
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            try {
-                URL lukeURL = new URL("http://www.balticapp.fi/lukeA/user/me");
-                httpURLConnection = (HttpURLConnection) lukeURL.openConnection();
-                httpURLConnection.setRequestProperty(getString(R.string.authorization), getString(R.string.bearer) + idToken);
-                if (httpURLConnection.getResponseCode() == 200) {
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
-                    jsonString = "";
-                    StringBuilder stringBuilder = new StringBuilder();
-                    String line;
-                    while ((line = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(line).append("\n");
-                    }
-                    jsonString = stringBuilder.toString();
-                    bufferedReader.close();
-                    Log.e(TAG, "doInBackground: STRING IS " + jsonString);
-
-                } else {
-                    //TODO: if error do something else, ERROR STREAM
-                    Log.e(TAG, "doInBackground: ERROR  " + httpURLConnection.getResponseCode());
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-
-            JSONObject jsonObject;
-            try {
-                jsonObject = new JSONObject(jsonString);
-                if (jsonObject.has("id")) {
-                    SessionSingleton.getInstance().setUserId(jsonObject.getString("id"));
-                }
-                SessionSingleton.getInstance().setXp(jsonObject.getInt("score"));
-                if (jsonObject.has("image_url")) {
-                    if (!TextUtils.isEmpty(jsonObject.getString("image_url")) && !jsonObject.getString("image_url").equals("null")) {
-                        SessionSingleton.getInstance().setUserImage(lukeNetUtils.getBitmapFromURL(jsonObject.getString("image_url")));
-                    }
-                }
-                if (jsonObject.has("username")) {
-                    SessionSingleton.getInstance().setUsername(jsonObject.getString("username"));
-                    startActivity(new Intent(getApplicationContext(), MainActivity.class));
-                } else {
-                    startActivity(new Intent(getApplicationContext(), NewUserActivity.class));
-                }
-
-            } catch (JSONException | InterruptedException | ExecutionException e) {
-                Log.e(TAG, "onPostExecute: ", e);
-            }
-        }
-    }
-
-
     private void getCategories() {
         Runnable r = new Runnable() {
             @Override
             public void run() {
-                if(SessionSingleton.getInstance().getCategoryList().size() < 1) {
+                if (SessionSingleton.getInstance().getCategoryList().size() < 1) {
                     LukeNetUtils lukeNetUtils = new LukeNetUtils(WelcomeActivity.this);
                     try {
                         SessionSingleton.getInstance().getCategoryList().addAll(lukeNetUtils.getCategories());
