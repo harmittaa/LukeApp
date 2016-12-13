@@ -18,6 +18,7 @@ import android.util.Base64;
 import android.util.Log;
 
 import com.luke.lukef.lukeapp.model.Category;
+import com.luke.lukef.lukeapp.model.Link;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.model.Submission;
 
@@ -271,7 +272,7 @@ public class LukeUtils {
                     } else {
                         c.setTitle("No title");
                     }
-                    if(jsonCategory.has("positive")){
+                    if (jsonCategory.has("positive")) {
                         c.setPositive(jsonCategory.getBoolean("positive"));
                     }
                     Bitmap bitmap = null;
@@ -297,5 +298,46 @@ public class LukeUtils {
             }
         }
         return tempCategoryList;
+    }
+
+    public static List<Link> parseLinksFromJsonArray(JSONArray jsonArr) throws JSONException {
+        ArrayList<Link> tempLinkList = new ArrayList<>();
+        for (int i = 0; i < jsonArr.length(); i++) {
+            JSONObject jsonLink = jsonArr.getJSONObject(i);
+            // check that the object has ID tag
+            if (jsonLink.has("id")) {
+                Link link = new Link();
+                link.setId(jsonLink.getString("id"));
+                if (jsonLink.has("description")) {
+                    link.setDescription(jsonLink.getString("description"));
+                } else {
+                    link.setDescription("");
+                }
+                if (jsonLink.has("title")) {
+                    link.setTitle(jsonLink.getString("title"));
+                } else {
+                    link.setTitle("No title");
+                }
+                if (jsonLink.has("link")) {
+                    link.setLink(jsonLink.getString("link"));
+                } else {
+                    link.setLink("");
+                }
+                if (jsonLink.has("active")) {
+                    link.setActive(jsonLink.getBoolean("active"));
+                } else {
+                    link.setActive(false);
+                }
+                if (jsonLink.has("done")) {
+                    JSONArray doneArray = jsonLink.getJSONArray("done");
+                    link.setDone(parseStringsFromJsonArray(doneArray));
+                } else {
+                    link.setDone(null);
+                }
+                tempLinkList.add(link);
+            } else {
+            }
+        }
+        return tempLinkList;
     }
 }

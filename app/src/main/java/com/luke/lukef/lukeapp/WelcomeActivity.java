@@ -19,7 +19,9 @@ import com.auth0.android.lock.Lock;
 import com.auth0.android.lock.LockCallback;
 import com.auth0.android.lock.utils.LockException;
 import com.auth0.android.result.Credentials;
+import com.luke.lukef.lukeapp.model.Link;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
+import com.luke.lukef.lukeapp.popups.LinkPopup;
 import com.luke.lukef.lukeapp.tools.LukeNetUtils;
 import com.luke.lukef.lukeapp.tools.LukeUtils;
 import com.luke.lukef.lukeapp.tools.SubmissionFetchService;
@@ -62,6 +64,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         requestPermission();
         startService(new Intent(this, SubmissionFetchService.class));
         getCategories();
+        ShowLinkTask showLinkTask = new ShowLinkTask();
+        showLinkTask.execute();
     }
 
     private void requestPermission() {
@@ -90,9 +94,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
-    /*
-    AUTH0 STUFF
-     */
+
+
     private void doLogin(String clientId, String domain) {
         Auth0 auth0 = new Auth0(clientId, domain);
         this.lock = Lock.newBuilder(auth0, this.callBack).build(this);
@@ -192,7 +195,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
-
     /**
      * Start getCategories from LukeUtils on a new thread
      */
@@ -212,5 +214,29 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         };
         Thread t = new Thread(r);
         t.start();
+    }
+
+    private class ShowLinkTask extends AsyncTask<Void,Void,Void>{
+
+        Link link;
+        @Override
+        protected Void doInBackground(Void... params) {
+            link = lukeNetUtils.getNewestLink();
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            if(link != null){
+                if(link.isActive()){
+                    creaeLinkPopup(link);
+                }
+            }
+            super.onPostExecute(aVoid);
+        }
+    }
+
+    private void creaeLinkPopup(Link l){
+        LinkPopup linkPopup = new LinkPopup(this,l);
     }
 }

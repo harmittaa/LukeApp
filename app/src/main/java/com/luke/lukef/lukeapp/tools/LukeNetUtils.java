@@ -22,6 +22,7 @@ import com.luke.lukef.lukeapp.R;
 import com.luke.lukef.lukeapp.WelcomeActivity;
 import com.luke.lukef.lukeapp.interfaces.Auth0Responder;
 import com.luke.lukef.lukeapp.model.Category;
+import com.luke.lukef.lukeapp.model.Link;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.model.Submission;
 import com.luke.lukef.lukeapp.model.UserFromServer;
@@ -743,5 +744,70 @@ public class LukeNetUtils {
             Log.e(TAG, "onAuthentication: ", e);
         }
 
+    }
+
+    public Link getNewestLink(){
+        Callable<Link> linkCallable = new Callable<Link>() {
+            @Override
+            public Link call() throws Exception {
+                URL linkUrl;
+                try {
+                    linkUrl = new URL("http://www.balticapp.fi/lukeA/link");
+
+                    HttpURLConnection connection = (HttpURLConnection) linkUrl.openConnection();
+                    connection.setRequestMethod("GET");
+                    connection.setRequestProperty(context.getString(R.string.authorization), context.getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
+                    connection.setRequestProperty(context.getString(R.string.acstoken), SessionSingleton.getInstance().getAccessToken());
+                    connection.setRequestProperty("Content-Type", "application/json");
+                    connection.setRequestProperty("charset", "utf-8");
+
+                    BufferedReader bufferedReader;
+                    Log.e(TAG, "getLink call: RESPONSE CODE:" + connection.getResponseCode());
+                    if (connection.getResponseCode() != 200) {
+                        bufferedReader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+                    } else {
+                        bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    }
+                    String jsonString;
+                    StringBuilder stringBuilder = new StringBuilder();
+                    String line2;
+                    while ((line2 = bufferedReader.readLine()) != null) {
+                        stringBuilder.append(line2).append("\n");
+                    }
+                    bufferedReader.close();
+                    jsonString = stringBuilder.toString();
+                    if (!TextUtils.isEmpty(jsonString)) {
+                        JSONArray jsonArray = new JSONArray(jsonString);
+                        Log.e(TAG, "getlinks call: jsonArray" + jsonArray.toString());
+                        List<Link> links = LukeUtils.parseLinksFromJsonArray(jsonArray);
+                        return links.get(links.size()-1);
+                    } else {
+                        return null;
+                    }
+
+                } catch (MalformedURLException e) {
+                    Log.e(TAG, "reportSubmission: ", e);
+                    return null;
+                } catch (ProtocolException e) {
+                    Log.e(TAG, "reportSubmission: ", e);
+                    return null;
+                } catch (IOException e) {
+                    Log.e(TAG, "reportSubmission: ", e);
+                    return null;
+                }
+            }
+        };
+        FutureTask<Link> linkFutureTask = new FutureTask<>(linkCallable);
+        Thread t = new Thread(linkFutureTask);
+        t.start();
+        try {
+            return linkFutureTask.get();
+        } catch (InterruptedException e) {
+            Log.e(TAG, "reportSubmission: ", e);
+            return null;
+        } catch (ExecutionException e) {
+            Log.e(TAG, "reportSubmission: ", e);
+            return null;
+        }
     }
 }
