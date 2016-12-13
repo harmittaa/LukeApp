@@ -1,9 +1,11 @@
 package com.luke.lukef.lukeapp.tools;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.Log;
@@ -14,7 +16,10 @@ import com.auth0.android.authentication.AuthenticationAPIClient;
 import com.auth0.android.authentication.AuthenticationException;
 import com.auth0.android.callback.BaseCallback;
 import com.auth0.android.result.UserProfile;
+import com.luke.lukef.lukeapp.MainActivity;
+import com.luke.lukef.lukeapp.NewUserActivity;
 import com.luke.lukef.lukeapp.R;
+import com.luke.lukef.lukeapp.WelcomeActivity;
 import com.luke.lukef.lukeapp.interfaces.Auth0Responder;
 import com.luke.lukef.lukeapp.model.Category;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
@@ -407,7 +412,7 @@ public class LukeNetUtils {
                             return "Submission reported";
                         } else {
                             Log.e(TAG, "call: TOAST UNFALGED");
-                          return "Report removed";
+                            return "Report removed";
                         }
                     }
 
@@ -524,8 +529,8 @@ public class LukeNetUtils {
     public Bitmap getMapThumbnail(final Location center, final int width, final int height) throws ExecutionException, InterruptedException {
         final String urlString1 = "https://maps.googleapis.com/maps/api/staticmap?center=" +
                 center.getLatitude() + ",%20" + center.getLongitude() + "&zoom=16&size=" +
-                width + "x" + height + "&maptype=normal&markers=color:red|"+center.getLatitude()+","+center.getLongitude();
-        Log.e(TAG, "getMapThumbnail: Marker url: \n" + urlString1 );
+                width + "x" + height + "&maptype=normal&markers=color:red|" + center.getLatitude() + "," + center.getLongitude();
+        Log.e(TAG, "getMapThumbnail: Marker url: \n" + urlString1);
         return getBitmapFromURL(urlString1);
     }
 
@@ -622,4 +627,122 @@ public class LukeNetUtils {
         return arrayListFutureTask.get();
     }
 
+    public void startFetchUserDataTask(WelcomeActivity welcomeActivity) {
+        FetchUserDataTask fetchUserDataTask = new FetchUserDataTask(welcomeActivity);
+        fetchUserDataTask.execute();
+
+    }
+
+    /**
+     * Fetches user data like ID, image and URL from the server
+     */
+    private class FetchUserDataTask extends AsyncTask<Void, Void, Void> {
+        private String jsonString;
+        private HttpURLConnection httpURLConnection;
+        private WelcomeActivity welcomeActivity;
+
+        public FetchUserDataTask(WelcomeActivity welcomeActivity) {
+            this.welcomeActivity = welcomeActivity;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            try {
+                URL lukeURL = new URL("http://www.balticapp.fi/lukeA/user/me");
+                httpURLConnection = (HttpURLConnection) lukeURL.openConnection();
+                httpURLConnection.setRequestProperty(this.welcomeActivity.getString(R.string.authorization), this.welcomeActivity.getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
+                if (httpURLConnection.getResponseCode() == 200) {
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
+                    jsonString = "";
+                    StringBuilder stringBuilder = new StringBuilder();
+                    String line;
+                    while ((line = bufferedReader.readLine()) != null) {
+                        stringBuilder.append(line).append("\n");
+                    }
+                    jsonString = stringBuilder.toString();
+                    bufferedReader.close();
+                    Log.e(TAG, "doInBackground: STRING IS " + jsonString);
+
+                } else {
+                    //TODO: if error do something else, ERROR STREAM
+                    Log.e(TAG, "doInBackground: ERROR  " + httpURLConnection.getResponseCode());
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
+            JSONObject jsonObject;
+            try {
+                jsonObject = new JSONObject(jsonString);
+                if (jsonObject.has("id")) {
+                    SessionSingleton.getInstance().setUserId(jsonObject.getString("id"));
+                    SessionSingleton.getInstance().setUserLogged(true);
+                    welcomeActivity.finish();
+                }
+                SessionSingleton.getInstance().setXp(jsonObject.getInt("score"));
+                if (jsonObject.has("image_url")) {
+                    if (!TextUtils.isEmpty(jsonObject.getString("image_url")) && !jsonObject.getString("image_url").equals("null")) {
+                        SessionSingleton.getInstance().setUserImage(getBitmapFromURL(jsonObject.getString("image_url")));
+                    }
+                }
+                if (jsonObject.has("username")) {
+                    SessionSingleton.getInstance().setUsername(jsonObject.getString("username"));
+                    this.welcomeActivity.startActivity(new Intent(this.welcomeActivity, MainActivity.class));
+                } else {
+                    this.welcomeActivity.startActivity(new Intent(this.welcomeActivity, NewUserActivity.class));
+                }
+
+            } catch (JSONException | InterruptedException | ExecutionException e) {
+                Log.e(TAG, "onPostExecute: ", e);
+            }
+        }
+    }
+
+    public void attemptLogin(final WelcomeActivity welcomeActivity, final String idToken) {
+
+        Callable<Boolean> booleanCallable = new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                try {
+                    URL lukeURL = new URL(welcomeActivity.getString(R.string.loginUrl));
+                    HttpURLConnection httpURLConnection = (HttpURLConnection) lukeURL.openConnection();
+                    httpURLConnection.setRequestProperty(welcomeActivity.getString(R.string.authorization), welcomeActivity.getString(R.string.bearer) + idToken);
+                    if (httpURLConnection.getResponseCode() == 200) {
+                        return true;
+                    } else {
+                        Log.e(TAG, "call: LOGIN DIDN'T WORK");
+                        // TODO: 12/12/2016 DANIEL
+                        return false;
+                    }
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                    return false;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return false;
+                }
+
+            }
+        };
+        FutureTask<Boolean> booleanFutureTask = new FutureTask<>(booleanCallable);
+        Thread thread = new Thread(booleanFutureTask);
+        thread.start();
+
+        try {
+            if (booleanFutureTask.get()) {
+                startFetchUserDataTask(welcomeActivity);
+            } else {
+                Log.e(TAG, "onAuthentication: booleanFutureTask failed");
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            Log.e(TAG, "onAuthentication: ", e);
+        }
+
+    }
 }
