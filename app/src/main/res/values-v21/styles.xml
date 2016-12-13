@@ -18,4 +18,13 @@
         <item name="android:padding">8dp</item>
         <item name="android:background">@color/colorPrimaryDark</item>
     </style>
+    <style name="ImageButtonTransparent">
+        <item name="android:background">@null</item>
+    </style>
+    <style name="LukeButtonDefault">
+
+    </style>
+    <style name="LukeLogos">
+        <item name="android:padding">8dp</item>
+    </style>
 </resources>
