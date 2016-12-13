@@ -172,6 +172,9 @@ public class Submission {
                     Log.e(TAG, "call: RESPONSE CODE:" + conn.getResponseCode());
                     if (conn.getResponseCode() != 200) {
                         bufferedReader = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+                        Log.e(TAG, "call: ERROR  response code " + conn.getResponseCode());
+                        conn.disconnect();
+                        return false;
 
                     } else {
                         // TODO: 25/11/2016 check for authorization error, respons accordingly

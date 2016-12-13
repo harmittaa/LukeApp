@@ -265,6 +265,7 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
             if (this.currentPhoto != null) {
                 newSub.setImage(this.currentPhoto);
             }
+
             if (newSub.submitToServer()) {
                 // fetch the submissions again
                 getMainActivity().startService(new Intent(getMainActivity(), SubmissionFetchService.class));
