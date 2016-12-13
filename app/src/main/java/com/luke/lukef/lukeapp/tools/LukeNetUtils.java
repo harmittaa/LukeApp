@@ -266,6 +266,7 @@ public class LukeNetUtils {
             @Override
             public Bitmap call() throws Exception {
                 try {
+                    Log.e(TAG, "call: URL " + imageUrl );
                     URL url = new URL(imageUrl);
                     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                     connection.setDoInput(true);

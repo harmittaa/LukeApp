@@ -97,7 +97,11 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void checkBundle() {
-        this.isEditing = getIntent().getExtras().getBoolean("isEditing");
+        if (getIntent().getExtras() != null) {
+            this.isEditing = getIntent().getExtras().getBoolean("isEditing");
+        } else {
+            this.isEditing = false;
+        }
     }
 
     @Override
