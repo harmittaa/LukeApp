@@ -202,11 +202,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     private void reportSubmission() {
         if (SessionSingleton.getInstance().isUserLogged()) {
             LukeNetUtils lukeNetUtils = new LukeNetUtils(getMainActivity());
-            if (lukeNetUtils.reportSubmission(submissionPopup.getSubmissionID())) {
-                getMainActivity().makeToast("Submission reported");
-            } else {
-                getMainActivity().makeToast("Error when reporting this submission");
-            }
+                getMainActivity().makeToast(lukeNetUtils.reportSubmission(submissionPopup.getSubmissionID()));
         } else {
             // TODO: 08/12/2016 make a popup promt to log in
             getMainActivity().makeToast("You need to log in to do this");

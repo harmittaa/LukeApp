@@ -121,21 +121,17 @@ public class SubmissionPopup {
         this.submissionImage.setOnClickListener(clickListener);
         this.submissionReportButton.setOnClickListener(clickListener);
         this.submissionImage.setOnClickListener(clickListener);
-        if (!isAdminMarker) {
-            getExternalSubmissionData();
-        }
         getLocalSubmissionData();
 
         this.dialog.show();
-        GetSubmissionData getSubmissionData = new GetSubmissionData(mainActivity, this);
-        getSubmissionData.execute();
-    }
+        if (!this.isAdminMarker) {
+            GetSubmissionData getSubmissionData = new GetSubmissionData(mainActivity, this);
+            getSubmissionData.execute();
+        } else {
+            this.loadingSpinny.setVisibility(View.GONE);
+            this.mainView.setVisibility(View.VISIBLE);
 
-    /**
-     * Creates a new AsyncTask to fetch the required submission data from the server
-     */
-    private void getExternalSubmissionData() {
-        String[] taskParams = {this.markerId};
+        }
     }
 
     /**
@@ -171,6 +167,11 @@ public class SubmissionPopup {
             this.submissionTitle.setText(this.queryCursor.getString(this.queryCursor.getColumnIndexOrThrow("admin_marker_title")));
         }
 
+        if (this.queryCursor.getColumnIndex("admin_marker_owner") != -1) {
+            this.submissionSubmitterName.setText(this.queryCursor.getString(this.queryCursor.getColumnIndexOrThrow("admin_marker_owner")));
+            this.submissionSubmitterRank.setText("");
+        }
+
         this.submissionDatabase.closeDbConnection();
     }
 
@@ -179,7 +180,7 @@ public class SubmissionPopup {
      */
     private void getLocalSubmissionData() {
         this.submissionDatabase = new SubmissionDatabase(this.mainActivity);
-        if (isAdminMarker) {
+        if (this.isAdminMarker) {
             this.queryCursor = this.submissionDatabase.queryAdminMarkerById(this.markerId);
         } else {
             this.queryCursor = this.submissionDatabase.querySubmissionById(this.markerId);
@@ -249,6 +250,10 @@ public class SubmissionPopup {
         this.userId = userId;
     }
 
+    /**
+     * Inner AsyncTask class to fetch submission data from the server, includes user and submission images
+     * as well as categories.
+     */
     private class GetSubmissionData extends AsyncTask<Void, Void, Void> {
 
         Activity activity;
@@ -258,7 +263,7 @@ public class SubmissionPopup {
         String submitterName;
         List<Category> categories;
 
-        public GetSubmissionData(Activity activity, SubmissionPopup submissionPopup) {
+        GetSubmissionData(Activity activity, SubmissionPopup submissionPopup) {
             this.activity = activity;
             this.submissionPopup = submissionPopup;
             this.categories = new ArrayList<>();
@@ -320,7 +325,9 @@ public class SubmissionPopup {
                     if (categories.size() > 0) {
                         setCategories(categories);
                     }
-                    submissionPopup.submissionSubmitterName.setText(submitterName);
+                    if (!isAdminMarker) {
+                        submissionPopup.submissionSubmitterName.setText(submitterName);
+                    }
                     submissionPopup.loadingSpinny.setVisibility(View.GONE);
                     submissionPopup.mainView.setVisibility(View.VISIBLE);
                 }

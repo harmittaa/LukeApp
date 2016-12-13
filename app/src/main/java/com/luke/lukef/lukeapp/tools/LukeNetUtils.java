@@ -266,7 +266,7 @@ public class LukeNetUtils {
             @Override
             public Bitmap call() throws Exception {
                 try {
-                    Log.e(TAG, "call: URL " + imageUrl );
+                    Log.e(TAG, "call: URL " + imageUrl);
                     URL url = new URL(imageUrl);
                     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                     connection.setDoInput(true);
@@ -368,12 +368,11 @@ public class LukeNetUtils {
      * @param submissionId The ID of the given submission.
      * @return <b>true</b> if the request passes, <b>false</b> if it doesn't.
      */
-    public boolean reportSubmission(final String submissionId) {
-        Callable<Boolean> booleanCallable = new Callable<Boolean>() {
+    public String reportSubmission(final String submissionId) {
+        Callable<String> booleanCallable = new Callable<String>() {
             @Override
-            public Boolean call() throws Exception {
+            public String call() throws Exception {
                 URL reportUrl;
-                boolean returnValue;
                 try {
                     reportUrl = new URL("http://www.balticapp.fi/lukeA/report/flag?id=" + submissionId);
 
@@ -387,11 +386,10 @@ public class LukeNetUtils {
                     Log.e(TAG, "updateUserImage call: RESPONSE CODE:" + connection.getResponseCode());
                     if (connection.getResponseCode() != 200) {
                         bufferedReader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
-                        returnValue = false;
+                        return "Error reporting";
                     } else {
                         // TODO: 25/11/2016 check for authorization error, respons accordingly
                         bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                        returnValue = true;
                     }
                     String jsonString;
                     StringBuilder stringBuilder = new StringBuilder();
@@ -403,41 +401,41 @@ public class LukeNetUtils {
                     jsonString = stringBuilder.toString();
                     JSONObject josn = new JSONObject(jsonString);
                     Log.e(TAG, "call: josn boii" + josn.toString());
-                    if (josn.has("flagged")) {
-                        if (josn.getBoolean("flagged")) {
+                    if (josn.has("action")) {
+                        if (josn.getBoolean("action")) {
                             Log.e(TAG, "call: TOAST FLAGED");
-                            Toast.makeText(context, "You have flagged this submission", Toast.LENGTH_SHORT).show();
+                            return "Submission reported";
                         } else {
                             Log.e(TAG, "call: TOAST UNFALGED");
-                            Toast.makeText(context, "You have unflagged this submission", Toast.LENGTH_SHORT).show();
+                          return "Report removed";
                         }
                     }
 
                     Log.e(TAG, "updateUserImage run: Result : " + jsonString);
-                    return returnValue;
+                    return "Error reporting";
                 } catch (MalformedURLException e) {
                     Log.e(TAG, "reportSubmission: ", e);
-                    return false;
+                    return "Error reporting";
                 } catch (ProtocolException e) {
                     Log.e(TAG, "reportSubmission: ", e);
-                    return false;
+                    return "Error reporting";
                 } catch (IOException e) {
                     Log.e(TAG, "reportSubmission: ", e);
-                    return false;
+                    return "Error reporting";
                 }
             }
         };
-        FutureTask<Boolean> booleanFutureTask = new FutureTask<>(booleanCallable);
+        FutureTask<String> booleanFutureTask = new FutureTask<>(booleanCallable);
         Thread t = new Thread(booleanFutureTask);
         t.start();
         try {
             return booleanFutureTask.get();
         } catch (InterruptedException e) {
             Log.e(TAG, "reportSubmission: ", e);
-            return false;
+            return "Error reporting";
         } catch (ExecutionException e) {
             Log.e(TAG, "reportSubmission: ", e);
-            return false;
+            return "Error reporting";
         }
 
     }
@@ -530,6 +528,12 @@ public class LukeNetUtils {
         return getBitmapFromURL(urlString1);
     }
 
+    /**
+     * Fetches the Submission by ID from the server
+     *
+     * @param id The ID of the submission which data needs to be fetched
+     * @return Submission object
+     */
     public Submission getSubmissionFromId(String id) {
         try {
             URL lukeURL = new URL(this.context.getString(R.string.report_id_url) + id);

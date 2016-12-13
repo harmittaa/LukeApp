@@ -316,10 +316,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     LukeNetUtils lukeNetUtils = new LukeNetUtils(WelcomeActivity.this);
                     try {
                         SessionSingleton.getInstance().getCategoryList().addAll(lukeNetUtils.getCategories());
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                    } catch (ExecutionException | InterruptedException e) {
+                        Log.e(TAG, "run: ERROR ", e);
                     }
                 }
             }
