@@ -9,7 +9,6 @@
 
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowTranslucentStatus">true</item>
-        <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/shamrock</item>
@@ -17,5 +16,11 @@
     <style name="BottomActionBar">
         <item name="android:padding">8dp</item>
         <item name="android:background">@color/colorPrimaryDark</item>
+    </style>
+    <style name="RoundButton">
+        <item name="android:padding">16dp</item>
+        <item name="android:background">@drawable/round_button</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/congress_blue</item>
     </style>
 </resources>
