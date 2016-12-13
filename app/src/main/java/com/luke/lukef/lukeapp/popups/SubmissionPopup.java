@@ -166,7 +166,10 @@ public class SubmissionPopup {
         }
 
         if (this.queryCursor.getColumnIndex("submission_title") != -1) {
-            this.submissionTitle.setText(this.queryCursor.getString(this.queryCursor.getColumnIndexOrThrow("submission_title")));
+            String title = this.queryCursor.getString(this.queryCursor.getColumnIndexOrThrow("submission_title"));
+            if (!TextUtils.isEmpty(title)) {
+                this.submissionTitle.setText(title);
+            }
         } else if (this.queryCursor.getColumnIndex("admin_marker_title") != -1) {
             this.submissionTitle.setText(this.queryCursor.getString(this.queryCursor.getColumnIndexOrThrow("admin_marker_title")));
         }
@@ -272,6 +275,7 @@ public class SubmissionPopup {
                 if (!TextUtils.isEmpty(s.getImageUrl()) && !s.getImageUrl().equals("null")) {
                     try {
                         this.submissionImage = lukeNetUtils.getBitmapFromURL(s.getImageUrl());
+                        setMainImageBitmap(this.submissionImage);
                     } catch (ExecutionException | InterruptedException e) {
                         Log.e(TAG, "doInBackground: ", e);
                     }

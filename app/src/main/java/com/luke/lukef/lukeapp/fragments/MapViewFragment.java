@@ -41,6 +41,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMapOptions;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.GoogleMap.OnCameraIdleListener;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -160,6 +161,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
                 submissionPopup.dismissPopup();
                 break;
             case R.id.submissionImageMain:
+                Log.e(TAG, "onClick: image clickd" );
                 if (submissionPopup.getMainImageBitmap() != null) {
                     getMainActivity().setFullScreenImageViewImage(submissionPopup.getMainImageBitmap());
                     getMainActivity().setFullScreenImageViewVisibility(true);
