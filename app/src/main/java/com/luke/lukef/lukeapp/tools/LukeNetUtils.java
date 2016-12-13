@@ -231,7 +231,10 @@ public class LukeNetUtils {
         }
     }
 
-    // TODO: 12/12/2016 DANIEL
+    /**
+     * Sends a request to auth0 to receive a user profile image
+     * @param auth0Responder the receiver of the bitmap that auth0 provides
+     */
     public void getUserImageFromAuth0(final Auth0Responder auth0Responder) {
         AuthenticationAPIClient client = new AuthenticationAPIClient(
                 new Auth0(SessionSingleton.getInstance().getAuth0ClientID(), SessionSingleton.getInstance().getAuth0Domain()));

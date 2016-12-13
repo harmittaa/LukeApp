@@ -28,10 +28,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-// TODO: 12/12/2016 DANIEL
 
 /**
- * Handles the profile fragment, setting up the tab layout
+ * Handles the profile fragment, setting up the tab layout for achievements and submissions
  */
 public class ProfileFragment extends Fragment implements View.OnClickListener {
     private View fragmentView;
@@ -72,7 +71,11 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         backButton.setOnClickListener(this);
     }
 
-    // TODO: 12/12/2016 DANIEL
+
+    /**
+     * Creates a new pageAdapter for the tab layout
+     * Use setupWithViewPager to allow the viewpager to handle all events regarding moving between tabs
+     */
     private void setupTabLayout() {
         PageAdapter pageAdapter = new PageAdapter(getMainActivity().getSupportFragmentManager(), this.extras);
         this.viewPager.setAdapter(pageAdapter);
@@ -136,7 +139,11 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         return (MainActivity) getActivity();
     }
 
-    // TODO: 12/12/2016 DANIEL
+
+    /**
+     * Custom class that extends FramentStatePageAdapter
+     * Creates the tabs and inits the fragments with arguments, to be displayed in the tabs
+     */
     private class PageAdapter extends FragmentStatePagerAdapter {
 
         private String[] tabTitles = new String[]{"Submissions", "Achievements"};

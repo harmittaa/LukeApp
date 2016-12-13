@@ -21,7 +21,6 @@ import com.auth0.android.lock.Lock;
 import com.auth0.android.lock.LockCallback;
 import com.auth0.android.lock.utils.LockException;
 import com.auth0.android.result.Credentials;
-import com.luke.lukef.lukeapp.customviews.InconsolataTextView;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.tools.LukeNetUtils;
 import com.luke.lukef.lukeapp.tools.LukeUtils;
@@ -52,7 +51,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     private String idToken = "";
     private String accessToken = "";
     private LukeNetUtils lukeNetUtils;
-    InconsolataTextView title;
+    TextView title;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +60,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         this.lukeNetUtils = new LukeNetUtils(getApplicationContext());
         this.loginButton = (Button) findViewById(R.id.loginButton);
         this.skipLoginButton = (Button) findViewById(R.id.skipLoginButton);
-        this.title = (InconsolataTextView)findViewById(R.id.inconsolataTextView);
+        this.title = (TextView) findViewById(R.id.inconsolataTextView);
         this.loginButton.setOnClickListener(this);
         this.skipLoginButton.setOnClickListener(this);
         requestPermission();
@@ -231,7 +230,6 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                     return true;
                 } else {
                     Log.e(TAG, "call: LOGIN DIDN'T WORK" );
-                    // TODO: 12/12/2016 DANIEL
                     return false;
                 }
             } catch (MalformedURLException e) {
