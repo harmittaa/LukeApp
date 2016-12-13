@@ -56,8 +56,9 @@ public class Submission {
      * @param description  Description of the submission
      * @param location     Location of the submission
      */
-    public Submission(Context context, ArrayList<Category> categoryList, String description, Location location) {
+    public Submission(Context context, ArrayList<Category> categoryList, String title, String description, Location location) {
         this.location = location;
+        this.title = title;
         this.categories = categoryList;
         this.description = description;
         this.context = context;
