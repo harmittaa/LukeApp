@@ -208,11 +208,11 @@
         <RelativeLayout
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:background="@color/colorPrimaryDark"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/guideline17">
+            app:layout_constraintTop_toTopOf="@+id/guideline17"
+            style="@style/BottomActionBar">
 
             <ImageButton
                 android:id="@+id/newUserConfirmButton"
@@ -226,8 +226,7 @@
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintVertical_bias="0.0"
-                app:srcCompat="@drawable/luke_tick"
-                android:padding="8dp"/>
+                app:srcCompat="@drawable/luke_tick"/>
         </RelativeLayout>
     </android.support.constraint.ConstraintLayout>
 </android.support.design.widget.CoordinatorLayout>

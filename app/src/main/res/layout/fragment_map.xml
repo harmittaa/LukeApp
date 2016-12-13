@@ -37,19 +37,15 @@
         app:layout_constraintHorizontal_bias="0.33"
         app:layout_constraintTop_toTopOf="@+id/guideline14"
         app:layout_constraintBottom_toBottomOf="parent"
-        android:background="@color/colorPrimaryDark">
+        style="@style/BottomActionBar">
 
             <ImageButton
                 android:id="@+id/button_back"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_alignParentLeft="true"
-                android:elevation="4dp"
-                android:text="Button"
                 app:srcCompat="@drawable/luke_menu"
                 android:background="@null"
                 android:scaleType="fitStart"
-                android:padding="8dp"
                 tools:layout_editor_absoluteY="8dp"
                 tools:layout_editor_absoluteX="0dp"
                 android:layout_weight="1"
@@ -59,17 +55,13 @@
                 android:id="@+id/button_new_submission"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_centerInParent="true"
-                android:text="Button"
                 app:srcCompat="@drawable/luke_camera"
                 android:background="@null"
                 android:adjustViewBounds="true"
                 android:scaleType="fitCenter"
-                android:padding="8dp"
                 tools:layout_editor_absoluteY="8dp"
                 tools:layout_editor_absoluteX="0dp"
-                android:layout_weight="1"
-                android:layout_gravity="center">
+                android:layout_weight="1">
 
             </ImageButton>
 
@@ -77,16 +69,12 @@
                 android:id="@+id/button_filters"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_alignParentRight="true"
-                android:text="Button"
                 app:srcCompat="@drawable/luke_filters"
                 android:background="@null"
                 android:scaleType="fitEnd"
-                android:padding="8dp"
                 tools:layout_editor_absoluteY="8dp"
                 tools:layout_editor_absoluteX="0dp"
-                android:layout_weight="1"
-                android:layout_gravity="right"/>
+                android:layout_weight="1"/>
     </LinearLayout>
 
 

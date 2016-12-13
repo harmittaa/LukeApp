@@ -750,10 +750,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
                 BitmapDescriptor markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE);
                 markerOptions.icon(markerDescriptor);
             }
-            Log.e(TAG, "onBeforeClusterItemRendered: MARKER COLORS: ORANGE: " + BitmapDescriptorFactory.HUE_ORANGE );
-            Log.e(TAG, "onBeforeClusterItemRendered: MARKER COLORS: GREEN: " + BitmapDescriptorFactory.HUE_GREEN );
-            Log.e(TAG, "onBeforeClusterItemRendered: MARKER COLORS: RED: " + BitmapDescriptorFactory.HUE_RED );
-            Log.e(TAG, "onBeforeClusterItemRendered: MARKER COLORS: BLUE: " + BitmapDescriptorFactory.HUE_BLUE );
         }
 
         @Override
