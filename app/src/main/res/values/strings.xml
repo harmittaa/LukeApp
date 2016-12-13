@@ -32,5 +32,6 @@
     <string name="category_title">Category title</string>
     <string name="category_description">Category description</string>
     <string name="button_category">Category</string>
+    <string name="show_submissions_newer_than">Show submissions newer than</string>
 
 </resources>
