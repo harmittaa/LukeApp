@@ -31,7 +31,7 @@ public class UserFromServerUnitTest {
     public void testGettersAndSetters() {
         String id = "id";
         String username = "username";
-        double score = 10;
+        int score = 10;
         String rankId = "rankId";
         String imageUrl = "url";
         UserFromServer c = new UserFromServer();

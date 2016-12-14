@@ -13,7 +13,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
@@ -28,26 +27,12 @@ import com.luke.lukef.lukeapp.fragments.MapViewFragment;
 import com.luke.lukef.lukeapp.fragments.NewSubmissionFragment;
 import com.luke.lukef.lukeapp.fragments.ProfileFragment;
 
-import com.luke.lukef.lukeapp.model.Category;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
-import com.luke.lukef.lukeapp.tools.LukeNetUtils;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 import android.Manifest;
 import android.animation.ObjectAnimator;
@@ -77,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageView fullScreenImageView;
     private ImageView drawerUserProfileImage;
     private TextView drawerUsername;
+    private TextView drawerScore;
     private boolean fullsScreenIsActive = false;
 
 
@@ -93,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
 
         View hView = navigationView.getHeaderView(0);
         this.drawerUsername = (TextView) hView.findViewById(R.id.drawerUsername);
+        this.drawerScore = (TextView)hView.findViewById(R.id.drawer_progressbar_score);
         this.drawerUserProfileImage = (ImageView) hView.findViewById(R.id.drawerUserProfileImage);
 
 
@@ -114,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
         animation.start();
 
 
-        setupDrawerContent(this.navigationView);
+        setupDrawerActions(this.navigationView);
         //activate map fragment as default
         fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP, null);
     }
@@ -318,7 +305,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //Navigating between Menu Items
-    private void setupDrawerContent(NavigationView navigationView) {
+    private void setupDrawerActions(NavigationView navigationView) {
         setDrawerUserData();
 
         navigationView.setNavigationItemSelectedListener(
@@ -395,6 +382,7 @@ public class MainActivity extends AppCompatActivity {
         Bitmap b;
         if (!TextUtils.isEmpty(SessionSingleton.getInstance().getIdToken())) {
             this.drawerUsername.setText(SessionSingleton.getInstance().getUsername());
+            this.drawerScore.setText(SessionSingleton.getInstance().getScore()+" points");
             if (SessionSingleton.getInstance().getUserImage() != null) {
                 b = SessionSingleton.getInstance().getUserImage();
             } else {

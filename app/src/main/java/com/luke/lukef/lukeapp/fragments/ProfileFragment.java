@@ -3,6 +3,7 @@ package com.luke.lukef.lukeapp.fragments;
 import android.app.Fragment;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
@@ -49,13 +50,14 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         this.fragmentView = inflater.inflate(R.layout.fragment_profile, container, false);
         this.lukeNetUtils = new LukeNetUtils(getMainActivity());
-        setupViews();
         this.extras = getArguments();
         this.userID = extras.getString("userId");
+        setupViews();
         setupTabLayout();
-        setUserProfile();
         return this.fragmentView;
     }
+
+
 
     /**
      * Finds the view elements and sets the necessary onClick listeners
@@ -69,6 +71,27 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         this.profileImage = (ImageView) this.fragmentView.findViewById(R.id.profieImage);
         ImageButton backButton = (ImageButton) this.fragmentView.findViewById(R.id.button_back);
         backButton.setOnClickListener(this);
+        AsyncTask<Void, Void, Void> voidVoidVoidAsyncTask = new AsyncTask<Void, Void, Void>() {
+            UserFromServer tempUse;
+
+            @Override
+            protected Void doInBackground(Void... params) {
+                try {
+                    tempUse = lukeNetUtils.getUserFromUserId(userID);
+                } catch (ExecutionException e) {
+                    Log.e("Asyncatsk", "doInBackground: ", e);
+                } catch (InterruptedException e) {
+                    Log.e("Asyncatsk", "doInBackground: ", e);
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                setUserProfile(tempUse);
+            }
+        };
+        voidVoidVoidAsyncTask.execute();
     }
 
 
@@ -79,7 +102,6 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     private void setupTabLayout() {
         PageAdapter pageAdapter = new PageAdapter(getMainActivity().getSupportFragmentManager(), this.extras);
         this.viewPager.setAdapter(pageAdapter);
-
         this.tabLayout.setupWithViewPager(this.viewPager);
         this.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -97,11 +119,11 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     }
 
     /**
+     * Sets username and score
      * Sets the user profile image from URL or if there's no URL then sets the default profile image
      */
-    private void setUserProfile() {
+    private void setUserProfile(UserFromServer userFromServer) {
         try {
-            UserFromServer userFromServer = this.lukeNetUtils.getUserFromUserId(this.userID);
             if (userFromServer != null) {
                 if (!TextUtils.isEmpty(userFromServer.getImageUrl())) {
                     Bitmap b = this.lukeNetUtils.getBitmapFromURL(userFromServer.getImageUrl());
@@ -114,10 +136,11 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                     this.profileImage.setImageBitmap(BitmapFactory.decodeResource(getMainActivity().getResources(), R.drawable.luke_default_profile_pic));
                 }
                 this.username.setText(userFromServer.getUsername());
+                this.score.setText("Score: " + userFromServer.getScore());
             }
-            }catch(ExecutionException | InterruptedException e){
-            Log.e("AAAAAAAAAAAA", "setUserProfile: ",e );
-            }
+        } catch (ExecutionException | InterruptedException e) {
+            Log.e("AAAAAAAAAAAA", "setUserProfile: ", e);
+        }
 
     }
 

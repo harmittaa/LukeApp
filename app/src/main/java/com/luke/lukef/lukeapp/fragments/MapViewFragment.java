@@ -41,7 +41,6 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.GoogleMapOptions;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.GoogleMap.OnCameraIdleListener;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -120,9 +119,10 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         }
         try {
             fragmentView = inflater.inflate(R.layout.fragment_map, container, false);
-            mapFragment = (MapFragment) getChildFragmentManager().findFragmentById(R.id.googleMapFragment);
+            mapFragment = ((MapFragment) getChildFragmentManager().findFragmentById(R.id.googleMapFragment));
             mapFragment.getMapAsync(this);
         } catch (InflateException e) {
+            Log.e(TAG, "onCreateView: ", e);
             mapFragment.getMapAsync(this);
         }
         setupButtons();
@@ -161,7 +161,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
                 submissionPopup.dismissPopup();
                 break;
             case R.id.submissionImageMain:
-                Log.e(TAG, "onClick: image clickd" );
+                Log.e(TAG, "onClick: image clickd");
                 if (submissionPopup.getMainImageBitmap() != null) {
                     getMainActivity().setFullScreenImageViewImage(submissionPopup.getMainImageBitmap());
                     getMainActivity().setFullScreenImageViewVisibility(true);
@@ -204,7 +204,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     private void reportSubmission() {
         if (SessionSingleton.getInstance().isUserLogged()) {
             LukeNetUtils lukeNetUtils = new LukeNetUtils(getMainActivity());
-                getMainActivity().makeToast(lukeNetUtils.reportSubmission(submissionPopup.getSubmissionID()));
+            getMainActivity().makeToast(lukeNetUtils.reportSubmission(submissionPopup.getSubmissionID()));
         } else {
             getMainActivity().makeToast("You need to log in to do this");
         }
@@ -409,7 +409,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         // Some offset to align the popup a bit to the right, and a bit down, relative to button's position.
         //or if popup is on edge display it to the left of the circle
         Display display = getMainActivity().getWindowManager().getDefaultDisplay();
-        Point size = new Point(0,0);
+        Point size = new Point(0, 0);
         display.getSize(size);
 
         int OFFSET_X = 25;

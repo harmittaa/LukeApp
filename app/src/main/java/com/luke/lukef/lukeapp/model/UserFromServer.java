@@ -7,7 +7,7 @@ package com.luke.lukef.lukeapp.model;
 public class UserFromServer {
     private String id;
     private String username;
-    private Double score;
+    private int score;
     private String rankId;
     private String imageUrl;
 
@@ -19,11 +19,11 @@ public class UserFromServer {
         this.rankId = rankId;
     }
 
-    public Double getScore() {
+    public int getScore() {
         return score;
     }
 
-    public void setScore(Double score) {
+    public void setScore(int score) {
         this.score = score;
     }
 

@@ -6,10 +6,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.os.AsyncTask;
-import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.auth0.android.Auth0;
 import com.auth0.android.authentication.AuthenticationAPIClient;
@@ -239,6 +237,7 @@ public class LukeNetUtils {
 
     /**
      * Sends a request to auth0 to receive a user profile image
+     *
      * @param auth0Responder the receiver of the bitmap that auth0 provides
      */
     public void getUserImageFromAuth0(final Auth0Responder auth0Responder) {
@@ -325,42 +324,33 @@ public class LukeNetUtils {
                         Log.e(TAG, "getSubmitterData: jsonString " + jsonString);
 
                         if (!TextUtils.isEmpty(jsonString)) {
-                            try {
-                                final JSONObject jsonObject = new JSONObject(jsonString);
-                                if (jsonObject.has("image_url")) {
-                                    userFromServer.setImageUrl(jsonObject.getString("image_url"));
-                                }
-                                if (jsonObject.has("id")) {
-                                    userFromServer.setId(jsonObject.getString("id"));
-                                }
-                                if (jsonObject.has("username")) {
-                                    userFromServer.setUsername(jsonObject.getString("username"));
-                                }
-                                if (jsonObject.has("score")) {
-                                    userFromServer.setScore(jsonObject.getDouble("score"));
-                                }
-                                if (jsonObject.has("rankingId")) {
-                                    userFromServer.setRankId(jsonObject.getString("rankingId"));
-                                }
-                                return userFromServer;
-                            } catch (JSONException e) {
-                                Log.e(TAG, "getBitmapFromUserId: ", e);
-                                return null;
-                            }
+                            final JSONObject jsonObject = new JSONObject(jsonString);
+                            return LukeUtils.parseUserFromJsonObject(jsonObject);
+                        } else {
+                            return null;
                         }
+
                     } else {
                         //TODO: if error do something else, ERROR STR
                         Log.e(TAG, "response code something else");
                         return null;
                     }
-                } catch (MalformedURLException e) {
+                } catch (
+                        MalformedURLException e
+                        )
+
+                {
                     Log.e(TAG, "getBitmapFromUserId: ", e);
                     return null;
-                } catch (IOException e) {
+                } catch (
+                        IOException e
+                        )
+
+                {
                     Log.e(TAG, "getBitmapFromUserId: ", e);
                     return null;
                 }
-                return null;
+
             }
         };
         FutureTask<UserFromServer> bitmapFutureTask = new FutureTask<>(bitmapCallable);
@@ -636,27 +626,16 @@ public class LukeNetUtils {
 
     }
 
-    /**
-     * Fetches user data like ID, image and URL from the server
-     */
-    private class FetchUserDataTask extends AsyncTask<Void, Void, Void> {
-        private String jsonString;
-        private HttpURLConnection httpURLConnection;
-        private WelcomeActivity welcomeActivity;
-
-        FetchUserDataTask(WelcomeActivity welcomeActivity) {
-            this.welcomeActivity = welcomeActivity;
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            try {
+    public UserFromServer getOwnUser() throws IOException, ExecutionException, InterruptedException {
+        Callable<UserFromServer> userFromServerCallable = new Callable<UserFromServer>() {
+            @Override
+            public UserFromServer call() throws Exception {
                 URL lukeURL = new URL("http://www.balticapp.fi/lukeA/user/me");
-                httpURLConnection = (HttpURLConnection) lukeURL.openConnection();
-                httpURLConnection.setRequestProperty(this.welcomeActivity.getString(R.string.authorization), this.welcomeActivity.getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
+                HttpURLConnection httpURLConnection = (HttpURLConnection) lukeURL.openConnection();
+                httpURLConnection.setRequestProperty(context.getString(R.string.authorization), context.getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
                 if (httpURLConnection.getResponseCode() == 200) {
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
-                    jsonString = "";
+                    String jsonString = "";
                     StringBuilder stringBuilder = new StringBuilder();
                     String line;
                     while ((line = bufferedReader.readLine()) != null) {
@@ -665,13 +644,43 @@ public class LukeNetUtils {
                     jsonString = stringBuilder.toString();
                     bufferedReader.close();
                     Log.e(TAG, "doInBackground: STRING IS " + jsonString);
+                    if (!TextUtils.isEmpty(jsonString)) {
+                        return LukeUtils.parseUserFromJsonObject(new JSONObject(jsonString));
+                    } else {
+                        return null;
+                    }
 
                 } else {
                     //TODO: if error do something else, ERROR STREAM
                     Log.e(TAG, "doInBackground: ERROR  " + httpURLConnection.getResponseCode());
+                    return null;
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
+            }
+        };
+        FutureTask<UserFromServer> userFromServerFutureTask = new FutureTask<UserFromServer>(userFromServerCallable);
+        Thread t = new Thread(userFromServerFutureTask);
+        t.start();
+        return userFromServerFutureTask.get();
+
+    }
+
+    /**
+     * Fetches user data like ID, image and URL from the server
+     */
+    private class FetchUserDataTask extends AsyncTask<Void, Void, Void> {
+        private WelcomeActivity welcomeActivity;
+        UserFromServer userFromServer;
+
+        FetchUserDataTask(WelcomeActivity welcomeActivity) {
+            this.welcomeActivity = welcomeActivity;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            try {
+                userFromServer = getOwnUser();
+            } catch (IOException | ExecutionException | InterruptedException e) {
+                Log.e(TAG, "doInBackground: ", e);
             }
             return null;
         }
@@ -680,31 +689,26 @@ public class LukeNetUtils {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
 
-            JSONObject jsonObject;
-            try {
-                jsonObject = new JSONObject(jsonString);
-                if (jsonObject.has("id")) {
-                    SessionSingleton.getInstance().setUserId(jsonObject.getString("id"));
-                    SessionSingleton.getInstance().setUserLogged(true);
-                    welcomeActivity.finish();
-                }
-                SessionSingleton.getInstance().setXp(jsonObject.getInt("score"));
-                if (jsonObject.has("image_url")) {
-                    if (!TextUtils.isEmpty(jsonObject.getString("image_url")) && !jsonObject.getString("image_url").equals("null")) {
-                        SessionSingleton.getInstance().setUserImage(getBitmapFromURL(jsonObject.getString("image_url")));
-                    }
-                }
-                if (jsonObject.has("username")) {
-                    SessionSingleton.getInstance().setUsername(jsonObject.getString("username"));
-                    this.welcomeActivity.startActivity(new Intent(this.welcomeActivity, MainActivity.class));
-                } else {
-                    this.welcomeActivity.startActivity(new Intent(this.welcomeActivity, NewUserActivity.class));
-                }
+            SessionSingleton.getInstance().setUserId(userFromServer.getId());
+            SessionSingleton.getInstance().setUserLogged(true);
+            SessionSingleton.getInstance().setScore(userFromServer.getScore());
+            String usrnm = userFromServer.getUsername();
 
-            } catch (JSONException | InterruptedException | ExecutionException e) {
-                Log.e(TAG, "onPostExecute: ", e);
+            try {
+                SessionSingleton.getInstance().setUserImage(getBitmapFromURL(userFromServer.getImageUrl()));
+            } catch (ExecutionException | InterruptedException e1) {
+                Log.e(TAG, "onPostExecute: ", e1);
             }
+            if (!TextUtils.isEmpty(usrnm)) {
+                SessionSingleton.getInstance().setUsername(userFromServer.getUsername());
+                this.welcomeActivity.startActivity(new Intent(this.welcomeActivity, MainActivity.class));
+            } else {
+                this.welcomeActivity.startActivity(new Intent(this.welcomeActivity, NewUserActivity.class));
+            }
+
+
         }
+
     }
 
     public void attemptLogin(final WelcomeActivity welcomeActivity, final String idToken) {
@@ -727,7 +731,7 @@ public class LukeNetUtils {
                     Log.e(TAG, "call: ", e);
                     return false;
                 } catch (IOException e) {
-                    Log.e(TAG, "call: ",e );
+                    Log.e(TAG, "call: ", e);
                     return false;
                 }
 
@@ -749,7 +753,7 @@ public class LukeNetUtils {
 
     }
 
-    public Link getNewestLink(){
+    public Link getNewestLink() {
         Callable<Link> linkCallable = new Callable<Link>() {
             @Override
             public Link call() throws Exception {
@@ -783,7 +787,7 @@ public class LukeNetUtils {
                         JSONArray jsonArray = new JSONArray(jsonString);
                         Log.e(TAG, "getlinks call: jsonArray" + jsonArray.toString());
                         List<Link> links = LukeUtils.parseLinksFromJsonArray(jsonArray);
-                        return links.get(links.size()-1);
+                        return links.get(links.size() - 1);
                     } else {
                         return null;
                     }

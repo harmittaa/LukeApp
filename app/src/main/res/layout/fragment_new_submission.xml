@@ -9,24 +9,28 @@
         android:id="@+id/photoThumbnail"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_margin="4dp"
         app:layout_constraintBottom_toTopOf="@+id/guideline5"
         app:layout_constraintLeft_toRightOf="@+id/newSubmissionMapThumbnail"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@mipmap/take_photo" />
+        app:srcCompat="@mipmap/take_photo"
+        android:scaleType="fitCenter"/>
 
     <ImageView
         android:id="@+id/newSubmissionMapThumbnail"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_margin="4dp"
         app:layout_constraintBottom_toTopOf="@+id/guideline5"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toLeftOf="@+id/guideline15"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:scaleType="centerCrop"/>
 
     <android.support.constraint.Guideline
         android:id="@+id/guideline4"
-        android:layout_width="384dp"
+        android:layout_width="360dp"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         app:layout_constraintGuide_percent="0.9"
@@ -35,7 +39,7 @@
 
     <android.support.constraint.Guideline
         android:id="@+id/guideline5"
-        android:layout_width="384dp"
+        android:layout_width="360dp"
         android:layout_height="0dp"
         android:orientation="horizontal"
         app:layout_constraintGuide_percent="0.4"
@@ -48,7 +52,7 @@
         android:layout_height="640dp"
         android:orientation="vertical"
         app:layout_constraintGuide_percent="0.5"
-        tools:layout_editor_absoluteX="192dp"
+        tools:layout_editor_absoluteX="180dp"
         tools:layout_editor_absoluteY="0dp" />
 
     <LinearLayout
@@ -87,6 +91,7 @@
 
     <EditText
         android:id="@+id/newSubmissionEditTextTitle"
+        style="@style/TextViewTitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
@@ -94,29 +99,33 @@
         android:layout_marginTop="16dp"
         android:ems="10"
         android:hint="Write a title here! (Optional)"
-        android:inputType="textPersonName"
+        android:inputType="text"
+        app:layout_constraintHorizontal_bias="0.81"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/guideline5" />
+        app:layout_constraintTop_toBottomOf="@+id/categorySelectButtonNewSubmission" />
 
     <EditText
         android:id="@+id/newSubmissionEditTextDescrption"
+        style="@style/TextViewDescription"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginBottom="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         android:ems="10"
-        android:gravity="bottom"
+        android:gravity="top"
         android:hint="Write a description here!"
         android:inputType="textMultiLine"
-        app:layout_constraintBottom_toTopOf="@+id/guideline16"
-        app:layout_constraintLeft_toLeftOf="@+id/newSubmissionEditTextTitle"
-        app:layout_constraintRight_toRightOf="@+id/newSubmissionEditTextTitle"
+        app:layout_constraintBottom_toTopOf="@+id/relativeLayout"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/newSubmissionEditTextTitle" />
 
     <android.support.constraint.Guideline
         android:id="@+id/guideline16"
-        android:layout_width="384dp"
+        android:layout_width="360dp"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         app:layout_constraintGuide_percent="0.8"
@@ -127,16 +136,13 @@
         android:id="@+id/scrollView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginBottom="8dp"
         android:layout_marginEnd="16dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/guideline4"
+        app:layout_constraintBottom_toBottomOf="@+id/categorySelectButtonNewSubmission"
         app:layout_constraintHorizontal_bias="0.44"
         app:layout_constraintLeft_toRightOf="@+id/categorySelectButtonNewSubmission"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/newSubmissionEditTextDescrption"
-        app:layout_constraintVertical_bias="0.56">
+        app:layout_constraintTop_toTopOf="@+id/categorySelectButtonNewSubmission">
 
         <LinearLayout
             android:id="@+id/categoriesLinearLayout"
@@ -152,9 +158,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
         android:text="@string/button_category"
-        app:layout_constraintBottom_toBottomOf="@+id/scrollView"
+        android:textSize="12sp"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/scrollView" />
+        app:layout_constraintTop_toTopOf="@+id/guideline5" />
 
 </android.support.constraint.ConstraintLayout>

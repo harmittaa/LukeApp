@@ -189,7 +189,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
                 auth0ClienID = jsonObject.getString("AUTH0_CLIENT_ID");
                 auth0Domain = jsonObject.getString("AUTH0_DOMAIN");
             } catch (JSONException e) {
-                e.printStackTrace();
+                Log.e(TAG, "onPostExecute: ",e );
             }
             if (parseCheck(auth0Domain, auth0ClienID)) {
                 doLogin(auth0ClienID, auth0Domain);
