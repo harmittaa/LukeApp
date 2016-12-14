@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
@@ -22,23 +21,12 @@ import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
 import com.luke.lukef.lukeapp.tools.SubmissionDatabase;
 import com.luke.lukef.lukeapp.model.Category;
-import com.luke.lukef.lukeapp.model.SessionSingleton;
 
 import com.luke.lukef.lukeapp.model.Submission;
 import com.luke.lukef.lukeapp.model.UserFromServer;
 import com.luke.lukef.lukeapp.tools.LukeNetUtils;
 import com.luke.lukef.lukeapp.tools.LukeUtils;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -125,9 +113,11 @@ public class SubmissionPopup {
 
         this.dialog.show();
         if (!this.isAdminMarker) {
-            GetSubmissionData getSubmissionData = new GetSubmissionData(mainActivity, this);
+            GetSubmissionData getSubmissionData = new GetSubmissionData(this.mainActivity, this);
             getSubmissionData.execute();
         } else {
+            this.submitterProfileImage.setImageDrawable(ContextCompat.getDrawable(this.mainActivity, R.drawable.admin_marker));
+            this.submitterProfileImage.setEnabled(false);
             this.loadingSpinny.setVisibility(View.GONE);
             this.mainView.setVisibility(View.VISIBLE);
 
@@ -185,6 +175,11 @@ public class SubmissionPopup {
         this.submissionDatabase = new SubmissionDatabase(this.mainActivity);
         if (this.isAdminMarker) {
             this.queryCursor = this.submissionDatabase.queryAdminMarkerById(this.markerId);
+            this.submissionReportButton.setVisibility(View.GONE);
+            //this.submitterProfileImage.setVisibility(View.GONE);
+            //this.submissionTitle.setVisibility(View.GONE);
+            //this.submissionSubmitterName.setVisibility(View.GONE);
+            //this.submissionDate.setVisibility(View.GONE);
         } else {
             this.queryCursor = this.submissionDatabase.querySubmissionById(this.markerId);
         }
@@ -219,21 +214,11 @@ public class SubmissionPopup {
         }
     }
 
-
-    /**
-     * Sets the provided bitmap into the ImageView view.
-     *
-     * @param bitmap The bitmap for the submission.
-     */
-    private void setSubmissionImage(Bitmap bitmap) {
-        this.submissionImage.setImageBitmap(bitmap);
-    }
-
     public Bitmap getMainImageBitmap() {
         return mainImageBitmap;
     }
 
-    public void setMainImageBitmap(Bitmap mainImageBitmap) {
+    private void setMainImageBitmap(Bitmap mainImageBitmap) {
         this.mainImageBitmap = mainImageBitmap;
     }
 
@@ -241,15 +226,11 @@ public class SubmissionPopup {
         return this.markerId;
     }
 
-    public void setSubmissionID(String submissionID) {
-        this.markerId = submissionID;
-    }
-
     public String getUserId() {
         return userId;
     }
 
-    public void setUserId(String userId) {
+    private void setUserId(String userId) {
         this.userId = userId;
     }
 

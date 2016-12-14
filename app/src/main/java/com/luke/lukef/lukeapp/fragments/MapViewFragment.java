@@ -344,18 +344,23 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
      * Setup method for Marker clustering
      */
     private void setupClustering() {
-        this.clusterManager = new ClusterManager<>(getActivity(), this.googleMap);
-        CompositeOnCameraIdleListener compositeOnCameraIdleListener = new CompositeOnCameraIdleListener();
-        CompositeOnMarkerClickListener compositeOnMarkerClickListener = new CompositeOnMarkerClickListener();
-        this.googleMap.setOnCameraIdleListener(compositeOnCameraIdleListener);
-        this.googleMap.setOnMarkerClickListener(compositeOnMarkerClickListener);
-        compositeOnCameraIdleListener.registerListener(this.clusterManager);
-        compositeOnCameraIdleListener.registerListener(this);
-        compositeOnMarkerClickListener.registerMarkerOnClickListener(this.clusterManager);
-        compositeOnMarkerClickListener.registerMarkerOnClickListener(this);
-        this.clusterManager.setOnClusterClickListener(this);
-        this.clusterManager.setOnClusterItemClickListener(this);
-        this.clusterManager.setRenderer(new MarkerRenderer(getActivity(), this.googleMap, this.clusterManager));
+        if (this.clusterManager == null) {
+            this.clusterManager = new ClusterManager<>(getActivity(), this.googleMap);
+            CompositeOnCameraIdleListener compositeOnCameraIdleListener = new CompositeOnCameraIdleListener();
+            CompositeOnMarkerClickListener compositeOnMarkerClickListener = new CompositeOnMarkerClickListener();
+            this.googleMap.setOnCameraIdleListener(compositeOnCameraIdleListener);
+            this.googleMap.setOnMarkerClickListener(compositeOnMarkerClickListener);
+            compositeOnCameraIdleListener.registerListener(this.clusterManager);
+            compositeOnCameraIdleListener.registerListener(this);
+            compositeOnMarkerClickListener.registerMarkerOnClickListener(this.clusterManager);
+            compositeOnMarkerClickListener.registerMarkerOnClickListener(this);
+            this.clusterManager.setOnClusterClickListener(this);
+            this.clusterManager.setOnClusterItemClickListener(this);
+            this.clusterManager.setRenderer(new MarkerRenderer(getActivity(), this.googleMap, this.clusterManager));
+        } else {
+            this.clusterManager.clearItems();
+            this.submissionMarkerIdList.clear();
+        }
     }
 
     /**
@@ -470,9 +475,9 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         popup.showAtLocation(layout, Gravity.NO_GRAVITY, 200 + OFFSET_X, 300 + OFFSET_Y);
         Calendar minDate;
         minDate = Calendar.getInstance();
-        tempY = minDate.get(Calendar.YEAR);
-        tempM = minDate.get(Calendar.MONTH);
-        tempD = minDate.get(Calendar.DAY_OF_MONTH);
+        this.tempY = minDate.get(Calendar.YEAR);
+        this.tempM = minDate.get(Calendar.MONTH);
+        this.tempD = minDate.get(Calendar.DAY_OF_MONTH);
         dP.init(minDate.get(Calendar.YEAR), minDate.get(Calendar.MONTH), minDate.get(Calendar.DAY_OF_MONTH), new DatePicker.OnDateChangedListener() {
             @Override
             // Months start from 0, so January is month 0
