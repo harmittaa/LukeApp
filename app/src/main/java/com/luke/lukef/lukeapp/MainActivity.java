@@ -764,7 +764,6 @@ public class MainActivity extends AppCompatActivity {
         this.drawerScore = (TextView)hView.findViewById(R.id.drawer_progressbar_score);
         this.drawerUserProfileImage = (ImageView) hView.findViewById(R.id.drawerUserProfileImage);
 
-
         //Custom header in Navigation Drawer
         View header = this.navigationView.getHeaderView(0);
         this.progressStatus = 25;
@@ -781,7 +780,6 @@ public class MainActivity extends AppCompatActivity {
         animation.setDuration(990);
         animation.setInterpolator(new DecelerateInterpolator());
         animation.start();
-
 
         setupDrawerActions(this.navigationView);
         //activate map fragment as default
@@ -890,7 +888,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Constructs a bundle froma all values stored in a Mapfragment, to be passed to another fragment
      * @param mf Mapfragment from which the bundle will be constructed.
-     * @return
+     * @return Bundle with last known location's values
      */
     private Bundle constructBundleFromMap(MapViewFragment mf) {
         Bundle bundle = new Bundle();
@@ -986,7 +984,10 @@ public class MainActivity extends AppCompatActivity {
         this.drawerLayout.openDrawer(GravityCompat.START);
     }
 
-    //Navigating between Menu Items
+    /**
+     * Navigating between menu items
+     * @param navigationView The navigation view that holds the drawer buttons
+     */
     private void setupDrawerActions(NavigationView navigationView) {
         setDrawerUserData();
 

@@ -294,13 +294,32 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
      * Zooms the map on the last known location
      */
     private void zoomMap() {
-        // TODO: 27/11/2016 Check permission, so no crash
-        if (getLastLoc() != null) {
+
+        Location location = fetchArgsFromBundle();
+
+        if (location != null) {
             CameraPosition cameraPosition = new CameraPosition.Builder()
-                    .target(new LatLng(getLastLoc().getLatitude(), getLastLoc().getLongitude()))      // Sets the center of the map to Mountain View
+                    .target(new LatLng(location.getLatitude(), location.getLongitude()))      // Sets the center of the map to Mountain View
                     .zoom(17)                  // Sets the tilt of the luke_camera to 30 degrees
                     .build();                   // Creates a CameraPosition from the builder
             googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        }
+    }
+
+    private Location fetchArgsFromBundle() {
+        Bundle b = getArguments();  // getMainActivity().getIntent().getExtras();
+        if (b != null) {
+            Location location = new Location("jes");
+            location.setLatitude(b.getDouble("latitude"));
+            location.setLongitude(b.getDouble("longitude"));
+            return location;
+        } else if (getLastLoc() != null) {
+            Location location = new Location("jes");
+            location.setLatitude(getLastLoc().getLatitude());
+            location.setLongitude(getLastLoc().getLongitude());
+            return location;
+        } else {
+            return null;
         }
     }
 
