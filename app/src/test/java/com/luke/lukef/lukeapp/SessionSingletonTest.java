@@ -42,7 +42,7 @@ public class SessionSingletonTest {
      * <li>{@link SessionSingleton#username}</li>
      * <li>{@link SessionSingleton#auth0ClientID}</li>
      * <li>{@link SessionSingleton#auth0Domain}</li>
-     * <li>{@link SessionSingleton#xp}</li>
+     * <li>{@link SessionSingleton#score}</li>
      * <li>{@link SessionSingleton#isUserLogged}</li>
      *
      * @throws Exception
@@ -63,7 +63,7 @@ public class SessionSingletonTest {
         s.setUsername(username);
         s.setAuth0ClientID(auth0ClientID);
         s.setAuth0Domain(auth0Domain);
-        s.setXp(xp);
+        s.setScore(xp);
         s.setUserLogged(isUserLogged);
 
         Assert.assertSame(s.getUserId(), userId);
