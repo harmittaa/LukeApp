@@ -804,45 +804,41 @@ public class MainActivity extends AppCompatActivity {
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         Fragment fragment = null;
-        boolean addToBackStack = false;
+        String tag = "default";
         // cases are enumerations
         switch (fragmentToChange) {
             case FRAGMENT_CONFIRMATION:
                 // create the fragment object
                 fragment = new ConfirmationFragment();
-                addToBackStack = true;
                 break;
             case FRAGMENT_LEADERBOARD:
                 fragment = new LeaderboardFragment();
-                addToBackStack = true;
+                tag = "leader";
                 break;
             case FRAGMENT_NEW_SUBMISSION:
                 /*if (getCurrentFragment(fragmentManager) instanceof MapViewFragment) {
                     bundleToSend = constructBundleFromMap((MapViewFragment) getCurrentFragment(fragmentManager));
                 }*/
                 fragment = new NewSubmissionFragment();
-                addToBackStack = true;
+                tag = "newSub";
                 break;
             case FRAGMENT_PROFILE:
                 fragment = new ProfileFragment();
-                addToBackStack = true;
+                tag = "profile";
                 break;
             case FRAGMENT_MAP:
                 fragment = new MapViewFragment();
-                addToBackStack = false;
+                tag = "map";
                 break;
         }
         //replace the fragment
         if (bundleToSend != null) {
             fragment.setArguments(bundleToSend);
         }
-        if (addToBackStack) {
-            fragmentTransaction.replace(R.id.fragment_container, fragment).addToBackStack("BackStack").commit();
+        fragmentTransaction.replace(R.id.fragment_container, fragment, tag).addToBackStack(tag).commit();
 
-        } else {
-            fragmentTransaction.replace(R.id.fragment_container, fragment).commit();
-        }
     }
+
 
     /**
      * Shows the given image as full screen
@@ -939,11 +935,17 @@ public class MainActivity extends AppCompatActivity {
         } else {
             if (f instanceof MapViewFragment) {
                 makeExitConfirmationPopup();
-            } else if (f instanceof ProfileFragment) {
-                //this is to avoid map lag
-                fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP, null);
             } else {
-                super.onBackPressed();
+                //super.onBackPressed();
+                int index = getFragmentManager().getBackStackEntryCount() - 2;
+                FragmentManager.BackStackEntry backEntry = getFragmentManager().getBackStackEntryAt(index);
+                String tag = backEntry.getName();
+                Fragment fragment = getFragmentManager().findFragmentByTag(tag);
+                if (fragment instanceof MapViewFragment) {
+                    fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP, null);
+                } else {
+                    super.onBackPressed();
+                }
             }
         }
     }
@@ -996,7 +998,7 @@ public class MainActivity extends AppCompatActivity {
                                 }
                                 break;
                             case R.id.drawer_leaderboard:
-                                fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_LEADERBOARD,null);
+                                fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_LEADERBOARD, null);
                                 break;
                             default:
                         }

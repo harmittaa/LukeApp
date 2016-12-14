@@ -76,6 +76,10 @@
             android:background="@null"
             android:scaleType="fitStart"
             app:srcCompat="@drawable/luke_back" />
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.7"></View>
 
         <ImageButton
             android:id="@+id/button_tick_submit"
@@ -91,7 +95,7 @@
 
     <EditText
         android:id="@+id/newSubmissionEditTextTitle"
-        style="@style/TextViewTitle"
+        style="@style/TextViewTitleMedium"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"

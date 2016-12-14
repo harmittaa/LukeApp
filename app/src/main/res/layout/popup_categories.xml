@@ -30,7 +30,7 @@
         android:layout_width="384dp"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.9078125"
+        app:layout_constraintGuide_percent="0.9"
         tools:layout_editor_absoluteX="0dp"
         tools:layout_editor_absoluteY="581dp" />
 

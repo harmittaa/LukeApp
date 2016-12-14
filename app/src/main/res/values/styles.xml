@@ -8,25 +8,44 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/shamrock</item>
     </style>
+
     <style name="BottomActionBar">
         <item name="android:padding">8dp</item>
         <item name="android:background">@color/colorPrimaryDark</item>
     </style>
+
     <style name="RoundButton">
         <item name="android:padding">16dp</item>
         <item name="android:background">@drawable/round_button</item>
         <item name="android:textSize">16sp</item>
         <item name="android:textColor">@color/congress_blue</item>
     </style>
-    <style name="TextViewTitle">
-        <item name="android:textSize">20sp</item>
+
+    <style name="TextViewBase">
         <item name="android:textColor">@color/storm_dust_gray</item>
     </style>
-    <style name="TextViewDescription">
+
+
+    <style name="TextViewTitleMedium" parent="TextViewTitleBase">
+        <item name="android:textSize">20sp</item>
+    </style>
+
+    <style name="TextViewTitleBase" parent="TextViewBase">
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextViewDescription" parent="TextViewBase">
         <item name="android:textSize">18sp</item>
-        <item name="android:textColor">@color/storm_dust_gray</item>
         <item name="android:background">@null</item>
         <item name="android:paddingLeft">4dp</item>
         <item name="android:paddingRight">4dp</item>
+    </style>
+
+    <style name="TextViewTitleSmall" parent="TextViewTitleBase">
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="TextViewTitleLarge" parent="TextViewTitleBase">
+        <item name="android:textSize">24sp</item>
     </style>
 </resources>

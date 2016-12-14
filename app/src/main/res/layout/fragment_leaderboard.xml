@@ -12,7 +12,7 @@
         android:layout_height="0dp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         app:layout_constraintTop_toBottomOf="@+id/textView2"
         app:layout_constraintBottom_toTopOf="@+id/guideline30"></ListView>
 
@@ -28,7 +28,7 @@
         app:layout_constraintRight_toRightOf="parent"
         android:layout_marginStart="16dp"
         app:layout_constraintHorizontal_bias="1.0"
-        style="@style/TextViewTitle"
+        style="@style/TextViewTitleLarge"
         android:gravity="center"/>
 
     <android.support.constraint.Guideline
@@ -36,7 +36,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/guideline30"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.90625"
+        app:layout_constraintGuide_percent="0.9"
         tools:layout_editor_absoluteY="580dp"
         tools:layout_editor_absoluteX="0dp" />
     <LinearLayout
