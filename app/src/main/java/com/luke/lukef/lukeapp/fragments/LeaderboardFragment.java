@@ -15,12 +15,14 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
 import com.luke.lukef.lukeapp.model.UserFromServer;
@@ -39,6 +41,7 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
     private ListView leaderboardListView;
     private ImageButton backButton;
     LukeNetUtils lukeNetUtils;
+    final private String TAG = "LeaderBoarDFragment";
 
 
     @Nullable
@@ -90,6 +93,20 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
             }
         });
         t.start();
+        leaderboardListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                try {
+                    UserFromServer userFromServer = (UserFromServer) parent.getItemAtPosition(position);
+                    Bundle b = new Bundle();
+                    b.putString("userId",userFromServer.getId());
+                    getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_PROFILE,b);
+                } catch (ClassCastException e) {
+                    Log.e(TAG, "onItemClick: ", e);
+                }
+
+            }
+        });
     }
 
     private MainActivity getMainActivity() {
@@ -132,10 +149,11 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
             TextView rankTitle = (TextView) v.findViewById(R.id.leaderboard_list_item_rank);
             ImageView rankImage = (ImageView) v.findViewById(R.id.leaderboard_list_item_rank_image);
             TextView score = (TextView) v.findViewById(R.id.leaderboard_list_item_score);
+            TextView positionTextView = (TextView) v.findViewById(R.id.leaderboard_list_item_position);
 
             final UserFromServer userFromServer = getItem(position);
 
-            loadImageTask loadImageTask = new loadImageTask(userImage,userFromServer.getImageUrl(),getMainActivity());
+            loadImageTask loadImageTask = new loadImageTask(userImage, userFromServer.getImageUrl(), getMainActivity());
             loadImageTask.execute();
             //loadImageTask loadImageTask1 = new loadImageTask()
 
@@ -143,6 +161,7 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
             // TODO: 14/12/2016 parse ranks, save to singleton, then get them from here and set to the rank image
             rankImage.setImageDrawable(ContextCompat.getDrawable(getMainActivity(), R.drawable.luke_exit));
             rankTitle.setText("Jeeben Rank");
+            positionTextView.setText("" + (position + 1));
 
             username.setText(userFromServer.getUsername());
             score.setText("" + userFromServer.getScore());
@@ -150,6 +169,8 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
             return v;
 
         }
+
+
     }
 
     private class loadImageTask extends AsyncTask<Void, Void, Void> {

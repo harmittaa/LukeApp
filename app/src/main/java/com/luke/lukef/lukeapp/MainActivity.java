@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
 
         View hView = navigationView.getHeaderView(0);
         this.drawerUsername = (TextView) hView.findViewById(R.id.drawerUsername);
-        this.drawerScore = (TextView)hView.findViewById(R.id.drawer_progressbar_score);
+        this.drawerScore = (TextView) hView.findViewById(R.id.drawer_progressbar_score);
         this.drawerUserProfileImage = (ImageView) hView.findViewById(R.id.drawerUserProfileImage);
 
 
@@ -124,43 +124,34 @@ public class MainActivity extends AppCompatActivity {
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         Fragment fragment = null;
-        boolean addToBackStack = false;
         // cases are enumerations
         switch (fragmentToChange) {
             case FRAGMENT_CONFIRMATION:
                 // create the fragment object
                 fragment = new ConfirmationFragment();
-                addToBackStack = true;
                 break;
             case FRAGMENT_LEADERBOARD:
                 fragment = new LeaderboardFragment();
-                addToBackStack = true;
                 break;
             case FRAGMENT_NEW_SUBMISSION:
                 if (getCurrentFragment(fragmentManager) instanceof MapViewFragment) {
                     bundleToSend = constructBundleFromMap((MapViewFragment) getCurrentFragment(fragmentManager));
                 }
                 fragment = new NewSubmissionFragment();
-                addToBackStack = true;
                 break;
             case FRAGMENT_PROFILE:
                 fragment = new ProfileFragment();
-                addToBackStack = true;
                 break;
             case FRAGMENT_MAP:
                 fragment = new MapViewFragment();
-                addToBackStack = false;
                 break;
         }
         //replace the fragment
         if (bundleToSend != null) {
             fragment.setArguments(bundleToSend);
         }
-        if (addToBackStack) {
             fragmentTransaction.replace(R.id.fragment_container, fragment).addToBackStack("BackStack").commit();
 
-        } else {
-            fragmentTransaction.replace(R.id.fragment_container, fragment).commit();
         }
     }
 
@@ -181,6 +172,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Toggles between hiding and showing a fullscreen image, when its clicked in a popup. Unhides the popup once done
+     *
      * @param isVisible whether the image is shown fullscreen, true = is shown, false = hidden
      */
     public void setFullScreenImageViewVisibility(final boolean isVisible) {
@@ -207,6 +199,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Constructs a bundle froma all values stored in a Mapfragment, to be passed to another fragment
+     *
      * @param mf Mapfragment from which the bundle will be constructed.
      * @return
      */
@@ -291,10 +284,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             if (f instanceof MapViewFragment) {
                 makeExitConfirmationPopup();
-            } else if (f instanceof ProfileFragment) {
-                //this is to avoid map lag
-                fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP, null);
-            } else {
+            }  else {
                 super.onBackPressed();
             }
         }
@@ -344,7 +334,7 @@ public class MainActivity extends AppCompatActivity {
                                 }
                                 break;
                             case R.id.drawer_leaderboard:
-                                fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_LEADERBOARD,null);
+                                fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_LEADERBOARD, null);
                                 break;
                             default:
                         }
@@ -385,7 +375,7 @@ public class MainActivity extends AppCompatActivity {
         Bitmap b;
         if (!TextUtils.isEmpty(SessionSingleton.getInstance().getIdToken())) {
             this.drawerUsername.setText(SessionSingleton.getInstance().getUsername());
-            this.drawerScore.setText(SessionSingleton.getInstance().getScore()+" points");
+            this.drawerScore.setText(SessionSingleton.getInstance().getScore() + " points");
             if (SessionSingleton.getInstance().getUserImage() != null) {
                 b = SessionSingleton.getInstance().getUserImage();
             } else {
