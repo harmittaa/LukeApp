@@ -1,30 +1,35 @@
 package com.luke.lukef.lukeapp.fragments;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
+import android.database.DatabaseUtils;
 import android.graphics.Bitmap;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
 import com.luke.lukef.lukeapp.model.UserFromServer;
 import com.luke.lukef.lukeapp.tools.LukeNetUtils;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -63,7 +68,14 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
             public void run() {
                 try {
                     ArrayList<UserFromServer> userFromServers = lukeNetUtils.getAllUsers();
-                    final UserListViewAdapter userListViewAdapter = new UserListViewAdapter(getMainActivity(),R.layout.leaderboard_list_item,userFromServers);
+                    //sort by whose score is bigger
+                    Collections.sort(userFromServers, new Comparator<UserFromServer>() {
+                        @Override
+                        public int compare(UserFromServer o1, UserFromServer o2) {
+                            return Integer.valueOf(o2.getScore()).compareTo(o1.getScore());
+                        }
+                    });
+                    final UserListViewAdapter userListViewAdapter = new UserListViewAdapter(getMainActivity(), R.layout.leaderboard_list_item, userFromServers);
                     getMainActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -71,9 +83,9 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
                         }
                     });
                 } catch (ExecutionException e) {
-                    Log.e("", "run: ",e );
+                    Log.e("", "run: ", e);
                 } catch (InterruptedException e) {
-                    Log.e("", "run: ",e );
+                    Log.e("", "run: ", e);
                 }
             }
         });
@@ -123,30 +135,64 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
 
             final UserFromServer userFromServer = getItem(position);
 
-            Thread t = new Thread(new Runnable() {
-                @Override
-                public void run() {
+            loadImageTask loadImageTask = new loadImageTask(userImage,userFromServer.getImageUrl(),getMainActivity());
+            loadImageTask.execute();
+            //loadImageTask loadImageTask1 = new loadImageTask()
 
-                    try {
-                        Bitmap b = lukeNetUtils.getBitmapFromURL(userFromServer.getImageUrl());
-                        userImage.setImageBitmap(b);
-                    } catch (ExecutionException | InterruptedException e) {
-                        Log.e("", "run: ", e);
-                        userImage.setImageDrawable(ContextCompat.getDrawable(getMainActivity(), R.drawable.luke_default_profile_pic));
-                    }
-                }
-            });
-            t.start();
 
             // TODO: 14/12/2016 parse ranks, save to singleton, then get them from here and set to the rank image
             rankImage.setImageDrawable(ContextCompat.getDrawable(getMainActivity(), R.drawable.luke_exit));
             rankTitle.setText("Jeeben Rank");
 
             username.setText(userFromServer.getUsername());
-            score.setText(userFromServer.getScore());
-    
+            score.setText("" + userFromServer.getScore());
+
             return v;
 
+        }
+    }
+
+    private class loadImageTask extends AsyncTask<Void, Void, Void> {
+
+        private ImageView imageView;
+        private String urlString;
+        private Activity activity;
+        private Bitmap bitmap = null;
+
+        loadImageTask(ImageView imageView, String urlString, Activity activity) {
+            this.activity = activity;
+            this.urlString = urlString;
+            this.imageView = imageView;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            if (this.urlString != null) {
+                LukeNetUtils lukeNetUtils = new LukeNetUtils(this.activity);
+                try {
+                    this.bitmap = lukeNetUtils.getBitmapFromURL(urlString);
+                } catch (ExecutionException | InterruptedException e) {
+                    Log.e("PERKELE", "doInBackground: ", e);
+                }
+            } else {
+                this.bitmap = null;
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            this.activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (loadImageTask.this.bitmap == null) {
+                        loadImageTask.this.imageView.setImageDrawable(ResourcesCompat.getDrawable(activity.getResources(), R.drawable.luke_default_profile_pic, null));
+                    } else {
+                        loadImageTask.this.imageView.setImageBitmap(loadImageTask.this.bitmap);
+                    }
+                }
+            });
+            super.onPostExecute(aVoid);
         }
     }
 

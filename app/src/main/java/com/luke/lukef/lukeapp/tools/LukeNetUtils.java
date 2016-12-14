@@ -285,7 +285,6 @@ public class LukeNetUtils {
                     return BitmapFactory.decodeStream(input);
                 } catch (IOException e) {
                     Log.e(TAG, "call: ", e);
-                    // Log exception
                     return null;
                 }
             }
