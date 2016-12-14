@@ -112,21 +112,21 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         connectToGoogleApi();
         createLocationRequest();
 
-        if (fragmentView != null) {
-            ViewGroup parent = (ViewGroup) fragmentView.getParent();
+        if (this.fragmentView != null) {
+            ViewGroup parent = (ViewGroup) this.fragmentView.getParent();
             if (parent != null)
-                parent.removeView(fragmentView);
+                parent.removeView(this.fragmentView);
         }
         try {
-            fragmentView = inflater.inflate(R.layout.fragment_map, container, false);
-            mapFragment = ((MapFragment) getChildFragmentManager().findFragmentById(R.id.googleMapFragment));
-            mapFragment.getMapAsync(this);
+            this.fragmentView = inflater.inflate(R.layout.fragment_map, container, false);
+            this.mapFragment = ((MapFragment) getChildFragmentManager().findFragmentById(R.id.googleMapFragment));
+            this.mapFragment.getMapAsync(this);
         } catch (InflateException e) {
             Log.e(TAG, "onCreateView: ", e);
-            mapFragment.getMapAsync(this);
+            this.mapFragment.getMapAsync(this);
         }
         setupButtons();
-        return fragmentView;
+        return this.fragmentView;
     }
 
     @Override
@@ -141,7 +141,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
                 getMainActivity().openDrawer();
                 break;
             case R.id.button_filters:
-                Log.e(TAG, "onClick: CLICKED CALENDAR!");
                 showCalendarPicker();
                 break;
             case R.id.button_new_submission:
@@ -155,46 +154,39 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
                 break;
             case R.id.submissionSubmitterProfileImage:
                 Bundle extras = new Bundle();
-                String jea = submissionPopup.getUserId();
-                extras.putString("userId", submissionPopup.getUserId());
+                extras.putString("userId", this.submissionPopup.getUserId());
                 getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_PROFILE, extras);
-                submissionPopup.dismissPopup();
+                this.submissionPopup.dismissPopup();
                 break;
             case R.id.submissionImageMain:
-                Log.e(TAG, "onClick: image clickd");
-                if (submissionPopup.getMainImageBitmap() != null) {
-                    getMainActivity().setFullScreenImageViewImage(submissionPopup.getMainImageBitmap());
+                if (this.submissionPopup.getMainImageBitmap() != null) {
+                    getMainActivity().setFullScreenImageViewImage(this.submissionPopup.getMainImageBitmap());
                     getMainActivity().setFullScreenImageViewVisibility(true);
-                    submissionPopup.hidePopup();
+                    this.submissionPopup.hidePopup();
                 }
                 break;
         }
     }
 
     /**
-     * Returns a location, if user has long pressed the map, then returns the location that was pressed,
-     * otherwise sets users last known location and returns it.
+     * Returns the previously known user location, either the last location or last known location
      *
      * @return Location object, either long press location, last known location or null if no location is available.
      */
-    public Location getLastLoc() {
-        if (this.longPressLoc == null) {
-            Location location = new Location("");
-            if (this.lastLoc != null) {
-                location.setAltitude(this.lastLoc.getAltitude());
-                location.setLatitude(this.lastLoc.getLatitude());
-                location.setLongitude(this.lastLoc.getLongitude());
-                return location;
-            } else if (this.lastKnownLoc != null) {
-                location.setAltitude(this.lastKnownLoc.getAltitude());
-                location.setLatitude(this.lastKnownLoc.getLatitude());
-                location.setLongitude(this.lastKnownLoc.getLongitude());
-                return location;
-            } else {
-                return null;
-            }
+    private Location getLastLoc() {
+        Location location = new Location("");
+        if (this.lastLoc != null) {
+            location.setAltitude(this.lastLoc.getAltitude());
+            location.setLatitude(this.lastLoc.getLatitude());
+            location.setLongitude(this.lastLoc.getLongitude());
+            return location;
+        } else if (this.lastKnownLoc != null) {
+            location.setAltitude(this.lastKnownLoc.getAltitude());
+            location.setLatitude(this.lastKnownLoc.getLatitude());
+            location.setLongitude(this.lastKnownLoc.getLongitude());
+            return location;
         } else {
-            return this.longPressLoc;
+            return null;
         }
     }
 
@@ -218,13 +210,35 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         if (SessionSingleton.getInstance().isUserLogged()) {
             if (LukeUtils.checkGpsStatus(getMainActivity())) {
                 if (LukeUtils.checkInternetStatus(getMainActivity())) {
-                    getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_NEW_SUBMISSION, null);
+                    switchFragment(constructBundle(getLastLoc()));
+                } else {
+                    getMainActivity().makeToast("No internet connection");
                 }
+            } else {
+                getMainActivity().makeToast("Activate GPS");
             }
-
         } else {
             createLoginPrompt();
         }
+    }
+
+    private void switchFragment(Bundle bundle) {
+        getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_NEW_SUBMISSION, bundle);
+    }
+
+    /**
+     * Creates a {@link Bundle} object with doubles longitude, latitude and altitude.
+     *
+     * @param location Location object from which longitude, latitude and altitude are fetched
+     *                 to be placed in the Bundle.
+     * @return Bundle with double type values longitude, latitude and altitude.
+     */
+    private Bundle constructBundle(Location location) {
+        Bundle bundle = new Bundle();
+        bundle.putDouble("latitude", location.getLatitude());
+        bundle.putDouble("longitude", location.getLongitude());
+        bundle.putDouble("altitude", location.getAltitude());
+        return bundle;
     }
 
     /**
@@ -281,26 +295,48 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         //init map
         //get current phone position and zoom to location
         LocationManager lm = (LocationManager) getMainActivity().getSystemService(Context.LOCATION_SERVICE);
-
         if (ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: 21/11/2016 ask for permission
+            Log.e(TAG, "setupGoogleMap: ASK FOR PERMISSION");
         }
-
         this.lastKnownLoc = lm.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
-
     }
 
     /**
      * Zooms the map on the last known location
      */
     private void zoomMap() {
-        // TODO: 27/11/2016 Check permission, so no crash
-        if (getLastLoc() != null) {
+        Location location = fetchArgsFromBundle();
+        if (location != null) {
             CameraPosition cameraPosition = new CameraPosition.Builder()
-                    .target(new LatLng(getLastLoc().getLatitude(), getLastLoc().getLongitude()))      // Sets the center of the map to Mountain View
+                    .target(new LatLng(location.getLatitude(), location.getLongitude()))      // Sets the center of the map to Mountain View
                     .zoom(17)                  // Sets the tilt of the luke_camera to 30 degrees
                     .build();                   // Creates a CameraPosition from the builder
             googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        }
+    }
+
+    /**
+     * Fetches arguments from given bundle or calls {@link MapViewFragment#getLastLoc()} for
+     * previously known location.
+     *
+     * @return {@link Location} object
+     */
+    private Location fetchArgsFromBundle() {
+        Bundle b = getArguments();  // getMainActivity().getIntent().getExtras();
+        if (b != null && b.containsKey("latitude")) {
+            Location location = new Location("jes");
+            location.setLatitude(b.getDouble("latitude"));
+            location.setLongitude(b.getDouble("longitude"));
+            getArguments().clear();
+            return location;
+        } else if (getLastLoc() != null) {
+            Location location = new Location("jes");
+            location.setLatitude(getLastLoc().getLatitude());
+            location.setLongitude(getLastLoc().getLongitude());
+            return location;
+        } else {
+            return null;
         }
     }
 
@@ -480,7 +516,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
      *
      * @param minDateInMs The minimum date of which submissions are shown, in MS
      */
-    public void setMinDateInMs(long minDateInMs) {
+    private void setMinDateInMs(long minDateInMs) {
         this.minDateInMs = minDateInMs;
         if (this.minDateInMs > 0) {
             addSubmissionsToMap(this.googleMap.getProjection().getVisibleRegion());
@@ -565,11 +601,14 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
             @Override
             public void onMapLongClick(LatLng latLng) {
                 if (SessionSingleton.getInstance().isUserLogged()) {
-                    longPressLoc = new Location("jippii");
-                    longPressLoc.setLatitude(latLng.latitude);
-                    longPressLoc.setLongitude(latLng.longitude);
-                    longPressLoc.setAltitude(0);
-                    getMainActivity().makeSubmission();
+                    if (LukeUtils.checkInternetStatus(getMainActivity())) {
+                        Location location = new Location("");
+                        location.setLatitude(latLng.latitude);
+                        location.setLongitude(latLng.longitude);
+                        switchFragment(constructBundle(location));
+                    } else {
+                        getMainActivity().makeToast("You need to log in to do this");
+                    }
                 } else {
                     createLoginPrompt();
                 }
