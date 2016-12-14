@@ -69,7 +69,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            app:layout_constraintGuide_percent="0.92"
+            app:layout_constraintGuide_percent="0.9"
             tools:layout_editor_absoluteX="0dp"
             tools:layout_editor_absoluteY="414dp" />
 

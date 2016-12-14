@@ -164,7 +164,7 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
             positionTextView.setText("" + (position + 1));
 
             username.setText(userFromServer.getUsername());
-            score.setText("" + userFromServer.getScore());
+            score.setText("Score: " + userFromServer.getScore());
 
             return v;
 
