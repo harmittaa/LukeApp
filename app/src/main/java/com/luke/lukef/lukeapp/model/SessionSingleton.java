@@ -3,7 +3,6 @@ package com.luke.lukef.lukeapp.model;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.util.Log;
 
 import com.luke.lukef.lukeapp.WelcomeActivity;
 
@@ -21,7 +20,7 @@ public class SessionSingleton {
     private String username;
     private String auth0ClientID;
     private String auth0Domain;
-    private int xp;
+    private int score;
     private boolean isUserLogged = false;
     private ArrayList<Category> categories;
     private Bitmap userImage;
@@ -40,10 +39,6 @@ public class SessionSingleton {
 
     public String getUsername() {
         return username;
-    }
-
-    public void setXp(int xp) {
-        this.xp = xp;
     }
 
     public Bitmap getUserImage() {
@@ -118,5 +113,13 @@ public class SessionSingleton {
         this.setUserImage(null);
         activity.startActivity(new Intent(activity, WelcomeActivity.class));
         activity.finish();
+    }
+
+    public int getScore() {
+        return score;
+    }
+
+    public void setScore(int score) {
+        this.score = score;
     }
 }

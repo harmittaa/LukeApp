@@ -128,7 +128,7 @@ public class Submission {
             Log.e(TAG, "convertToJson: Created json object that looks like: " + jsonObject.toString());
 
         } catch (JSONException e) {
-            e.printStackTrace();
+            Log.e(TAG, "convertToJson: ",e );
         }
         return jsonObject;
     }

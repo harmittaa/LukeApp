@@ -54,7 +54,7 @@
         app:layout_constraintVertical_bias="0.32999998" />
 
     <TextView
-        android:id="@+id/textView1"
+        android:id="@+id/drawer_progressbar_score"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:layout_alignLeft="@+id/progressbar1"

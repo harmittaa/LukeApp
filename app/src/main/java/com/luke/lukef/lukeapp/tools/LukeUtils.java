@@ -21,6 +21,7 @@ import com.luke.lukef.lukeapp.model.Category;
 import com.luke.lukef.lukeapp.model.Link;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.model.Submission;
+import com.luke.lukef.lukeapp.model.UserFromServer;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -339,5 +340,28 @@ public class LukeUtils {
             }
         }
         return tempLinkList;
+    }
+
+    public static UserFromServer parseUserFromJsonObject(JSONObject jsonObject) throws JSONException {
+        UserFromServer userFromServer = new UserFromServer();
+        if (jsonObject.has("image_url")) {
+            userFromServer.setImageUrl(jsonObject.getString("image_url"));
+        }
+        if (jsonObject.has("id")) {
+            userFromServer.setId(jsonObject.getString("id"));
+        }
+        if (jsonObject.has("username")) {
+            userFromServer.setUsername(jsonObject.getString("username"));
+        }
+        if (jsonObject.has("score")) {
+            userFromServer.setScore(jsonObject.getInt("score"));
+        }
+        if (jsonObject.has("rankingId")) {
+            userFromServer.setRankId(jsonObject.getString("rankingId"));
+        }
+        if (jsonObject.has("score")){
+            userFromServer.setScore(jsonObject.getInt("score"));
+        }
+        return userFromServer;
     }
 }

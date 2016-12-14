@@ -8,5 +8,25 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/shamrock</item>
     </style>
-
+    <style name="BottomActionBar">
+        <item name="android:padding">8dp</item>
+        <item name="android:background">@color/colorPrimaryDark</item>
+    </style>
+    <style name="RoundButton">
+        <item name="android:padding">16dp</item>
+        <item name="android:background">@drawable/round_button</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/congress_blue</item>
+    </style>
+    <style name="TextViewTitle">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">@color/storm_dust_gray</item>
+    </style>
+    <style name="TextViewDescription">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@color/storm_dust_gray</item>
+        <item name="android:background">@null</item>
+        <item name="android:paddingLeft">4dp</item>
+        <item name="android:paddingRight">4dp</item>
+    </style>
 </resources>
