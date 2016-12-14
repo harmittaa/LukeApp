@@ -227,7 +227,6 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         this.photoFile = image;
     }
 
-
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
@@ -271,7 +270,12 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
                 // fetch the submissions again
                 getMainActivity().startService(new Intent(getMainActivity(), SubmissionFetchService.class));
                 Log.e(TAG, "makeSubmission: Submission sent succesfully");
-                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP, null);
+
+                Bundle bundle = new Bundle();
+                bundle.putDouble("latitude", this.location.getLatitude());
+                bundle.putDouble("longitude", this.location.getLongitude());
+
+                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP, bundle);
                 getMainActivity().makeToast("Success!");
             } else {
                 getMainActivity().makeToast("Error Submitting");
@@ -318,6 +322,21 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         this.popMaker.setupCategoriesPopup();
     }
 
+    /**
+     * Handles updating the categories on the submission screen, based on user selection
+     */
+    private void updateCategoryThumbnails() {
+        this.categoriesLinearLayout.removeAllViews();
+
+        for (Category c : this.confirmedCategories) {
+            ImageView categoryImg = new ImageView(this.getMainActivity());
+            categoryImg.setImageBitmap(c.getImage());
+            LinearLayout.LayoutParams make = new LinearLayout.LayoutParams(new LinearLayout.LayoutParams(this.categoriesLinearLayout.getHeight(), this.categoriesLinearLayout.getHeight()));
+            categoryImg.setLayoutParams(make);
+            this.categoriesLinearLayout.addView(categoryImg);
+        }
+    }
+
     // listens to the checkbox being clicked and adds/removes the selected categories
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -342,18 +361,4 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         this.confirmedCategories = new ArrayList<>(this.tempCategories);
     }
 
-    /**
-     * Handles updating the categories on the submission screen, based on user selection
-     */
-    private void updateCategoryThumbnails() {
-        this.categoriesLinearLayout.removeAllViews();
-
-        for (Category c : this.confirmedCategories) {
-            ImageView categoryImg = new ImageView(this.getMainActivity());
-            categoryImg.setImageBitmap(c.getImage());
-            LinearLayout.LayoutParams make = new LinearLayout.LayoutParams(new LinearLayout.LayoutParams(this.categoriesLinearLayout.getHeight(), this.categoriesLinearLayout.getHeight()));
-            categoryImg.setLayoutParams(make);
-            this.categoriesLinearLayout.addView(categoryImg);
-        }
-    }
 }
