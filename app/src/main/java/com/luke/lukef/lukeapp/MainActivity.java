@@ -150,10 +150,10 @@ public class MainActivity extends AppCompatActivity {
         if (bundleToSend != null) {
             fragment.setArguments(bundleToSend);
         }
-            fragmentTransaction.replace(R.id.fragment_container, fragment).addToBackStack("BackStack").commit();
+        fragmentTransaction.replace(R.id.fragment_container, fragment).addToBackStack("BackStack").commit();
 
-        }
     }
+
 
     /**
      * Shows the given image as full screen
@@ -284,7 +284,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             if (f instanceof MapViewFragment) {
                 makeExitConfirmationPopup();
-            }  else {
+            } else {
                 super.onBackPressed();
             }
         }
