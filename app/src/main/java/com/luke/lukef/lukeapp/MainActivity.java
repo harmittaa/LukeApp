@@ -124,6 +124,7 @@ public class MainActivity extends AppCompatActivity {
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         Fragment fragment = null;
+        String tag = "default";
         // cases are enumerations
         switch (fragmentToChange) {
             case FRAGMENT_CONFIRMATION:
@@ -132,25 +133,29 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case FRAGMENT_LEADERBOARD:
                 fragment = new LeaderboardFragment();
+                tag = "leader";
                 break;
             case FRAGMENT_NEW_SUBMISSION:
                 if (getCurrentFragment(fragmentManager) instanceof MapViewFragment) {
                     bundleToSend = constructBundleFromMap((MapViewFragment) getCurrentFragment(fragmentManager));
                 }
                 fragment = new NewSubmissionFragment();
+                tag = "newSub";
                 break;
             case FRAGMENT_PROFILE:
                 fragment = new ProfileFragment();
+                tag = "profile";
                 break;
             case FRAGMENT_MAP:
                 fragment = new MapViewFragment();
+                tag = "map";
                 break;
         }
         //replace the fragment
         if (bundleToSend != null) {
             fragment.setArguments(bundleToSend);
         }
-        fragmentTransaction.replace(R.id.fragment_container, fragment).addToBackStack("BackStack").commit();
+        fragmentTransaction.replace(R.id.fragment_container, fragment, tag).addToBackStack(tag).commit();
 
     }
 
@@ -285,7 +290,16 @@ public class MainActivity extends AppCompatActivity {
             if (f instanceof MapViewFragment) {
                 makeExitConfirmationPopup();
             } else {
-                super.onBackPressed();
+                //super.onBackPressed();
+                int index = getFragmentManager().getBackStackEntryCount() - 2;
+                FragmentManager.BackStackEntry backEntry = getFragmentManager().getBackStackEntryAt(index);
+                String tag = backEntry.getName();
+                Fragment fragment = getFragmentManager().findFragmentByTag(tag);
+                if (fragment instanceof MapViewFragment) {
+                    fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_MAP, null);
+                } else {
+                    super.onBackPressed();
+                }
             }
         }
     }
