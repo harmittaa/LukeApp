@@ -761,7 +761,7 @@ public class MainActivity extends AppCompatActivity {
 
         View hView = navigationView.getHeaderView(0);
         this.drawerUsername = (TextView) hView.findViewById(R.id.drawerUsername);
-        this.drawerScore = (TextView)hView.findViewById(R.id.drawer_progressbar_score);
+        this.drawerScore = (TextView) hView.findViewById(R.id.drawer_progressbar_score);
         this.drawerUserProfileImage = (ImageView) hView.findViewById(R.id.drawerUserProfileImage);
 
         //Custom header in Navigation Drawer
@@ -817,9 +817,9 @@ public class MainActivity extends AppCompatActivity {
                 addToBackStack = true;
                 break;
             case FRAGMENT_NEW_SUBMISSION:
-                if (getCurrentFragment(fragmentManager) instanceof MapViewFragment) {
+                /*if (getCurrentFragment(fragmentManager) instanceof MapViewFragment) {
                     bundleToSend = constructBundleFromMap((MapViewFragment) getCurrentFragment(fragmentManager));
-                }
+                }*/
                 fragment = new NewSubmissionFragment();
                 addToBackStack = true;
                 break;
@@ -858,9 +858,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-
     /**
      * Toggles between hiding and showing a fullscreen image, when its clicked in a popup. Unhides the popup once done
+     *
      * @param isVisible whether the image is shown fullscreen, true = is shown, false = hidden
      */
     public void setFullScreenImageViewVisibility(final boolean isVisible) {
@@ -883,38 +883,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-    }
-
-    /**
-     * Constructs a bundle froma all values stored in a Mapfragment, to be passed to another fragment
-     * @param mf Mapfragment from which the bundle will be constructed.
-     * @return Bundle with last known location's values
-     */
-    private Bundle constructBundleFromMap(MapViewFragment mf) {
-        Bundle bundle = new Bundle();
-        Location gettedLoc = mf.getLastLoc();
-        bundle.putDouble("latitude", gettedLoc.getLatitude());
-        bundle.putDouble("longitude", gettedLoc.getLongitude());
-        bundle.putDouble("altitude", gettedLoc.getAltitude());
-        return bundle;
-    }
-
-    /**
-     * Handles making submission when user has long pressed on the map.
-     */
-    public void makeSubmission() {
-        FragmentManager fragmentManager = getFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        Fragment fragment;
-        Bundle bundleToSend = null;
-        if (getCurrentFragment(fragmentManager) instanceof MapViewFragment) {
-            bundleToSend = constructBundleFromMap((MapViewFragment) getCurrentFragment(fragmentManager));
-        }
-        fragment = new NewSubmissionFragment();
-        if (bundleToSend != null) {
-            fragment.setArguments(bundleToSend);
-        }
-        fragmentTransaction.replace(R.id.fragment_container, fragment).addToBackStack("BackStack").commit();
     }
 
     private Fragment getCurrentFragment(FragmentManager fm) {
@@ -986,6 +954,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Navigating between menu items
+     *
      * @param navigationView The navigation view that holds the drawer buttons
      */
     private void setupDrawerActions(NavigationView navigationView) {
@@ -1065,7 +1034,7 @@ public class MainActivity extends AppCompatActivity {
         Bitmap b;
         if (!TextUtils.isEmpty(SessionSingleton.getInstance().getIdToken())) {
             this.drawerUsername.setText(SessionSingleton.getInstance().getUsername());
-            this.drawerScore.setText(SessionSingleton.getInstance().getScore()+" points");
+            this.drawerScore.setText(SessionSingleton.getInstance().getScore() + " points");
             if (SessionSingleton.getInstance().getUserImage() != null) {
                 b = SessionSingleton.getInstance().getUserImage();
             } else {
