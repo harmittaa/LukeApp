@@ -820,4 +820,48 @@ public class LukeNetUtils {
             return null;
         }
     }
+
+    public ArrayList<UserFromServer> getAllUsers() throws ExecutionException, InterruptedException {
+
+        Callable<ArrayList<UserFromServer>> userFromServerCallable = new Callable<ArrayList<UserFromServer>>() {
+            @Override
+            public ArrayList<UserFromServer> call() throws Exception {
+                URL lukeURL = new URL("http://www.balticapp.fi/lukeA/user/get-all");
+                HttpURLConnection httpURLConnection = (HttpURLConnection) lukeURL.openConnection();
+                httpURLConnection.setRequestProperty(context.getString(R.string.authorization), context.getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
+                if (httpURLConnection.getResponseCode() == 200) {
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
+                    String jsonString = "";
+                    StringBuilder stringBuilder = new StringBuilder();
+                    String line;
+                    while ((line = bufferedReader.readLine()) != null) {
+                        stringBuilder.append(line).append("\n");
+                    }
+                    jsonString = stringBuilder.toString();
+                    bufferedReader.close();
+                    Log.e(TAG, "doInBackground: STRING IS " + jsonString);
+                    if (!TextUtils.isEmpty(jsonString)) {
+                        ArrayList<UserFromServer> returnjeeben = new ArrayList<>();
+                        JSONArray jsonArray = new JSONArray(jsonString);
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            returnjeeben.add(LukeUtils.parseUserFromJsonObject(jsonArray.getJSONObject(i)));
+                        }
+                        return returnjeeben;
+                    } else {
+                        return null;
+                    }
+
+                } else {
+                    //TODO: if error do something else, ERROR STREAM
+                    Log.e(TAG, "doInBackground: ERROR  " + httpURLConnection.getResponseCode());
+                    return null;
+                }
+            }
+        };
+        FutureTask<ArrayList<UserFromServer>> userFromServerFutureTask = new FutureTask<>(userFromServerCallable);
+        Thread t = new Thread(userFromServerFutureTask);
+        t.start();
+        return userFromServerFutureTask.get();
+
+    }
 }

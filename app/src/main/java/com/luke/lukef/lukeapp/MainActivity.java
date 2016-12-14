@@ -343,6 +343,9 @@ public class MainActivity extends AppCompatActivity {
                                     createLoginPrompt();
                                 }
                                 break;
+                            case R.id.drawer_leaderboard:
+                                fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_LEADERBOARD,null);
+                                break;
                             default:
                         }
                         drawerLayout.closeDrawer(GravityCompat.START);
