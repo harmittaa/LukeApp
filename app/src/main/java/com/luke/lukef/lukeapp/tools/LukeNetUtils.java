@@ -130,6 +130,9 @@ public class LukeNetUtils {
                 httpURLConnection = (HttpURLConnection) setUsernameUrl.openConnection();
                 httpURLConnection.setRequestProperty(context.getString(R.string.authorization), context.getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
                 httpURLConnection.setRequestProperty(context.getString(R.string.acstoken), SessionSingleton.getInstance().getAccessToken());
+                int responseCode = httpURLConnection.getResponseCode();
+                String responseMessage = httpURLConnection.getResponseMessage();
+
                 return httpURLConnection.getResponseCode() == 200;
             }
         };

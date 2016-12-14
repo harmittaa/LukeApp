@@ -54,9 +54,10 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        checkBundle();
-        this.lukeNetUtils = new LukeNetUtils(this);
         setContentView(R.layout.activity_new_user);
+        this.lukeNetUtils = new LukeNetUtils(this);
+        this.userNameEditText = (EditText) findViewById(R.id.newUserName);
+        checkBundle();
         this.userImageViewCamera = (ImageView) findViewById(R.id.newUserCameraImageView);
         this.userImageViewAuth0 = (ImageView) findViewById(R.id.newUserSocialMediaImageView);
         this.userImageViewDefault = (ImageView) findViewById(R.id.newUserDefaultImageView);
@@ -65,7 +66,6 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
         }
         ImageButton confirmButton = (ImageButton) findViewById(R.id.newUserConfirmButton);
         confirmButton.setOnClickListener(this);
-        this.userNameEditText = (EditText) findViewById(R.id.newUserName);
         if (this.isEditing) {
             this.userNameEditText.setHint("Optional");
         } else {
@@ -99,6 +99,7 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
     private void checkBundle() {
         if (getIntent().getExtras() != null) {
             this.isEditing = getIntent().getExtras().getBoolean("isEditing");
+            this.userNameEditText.setVisibility(View.GONE);
         } else {
             this.isEditing = false;
         }
