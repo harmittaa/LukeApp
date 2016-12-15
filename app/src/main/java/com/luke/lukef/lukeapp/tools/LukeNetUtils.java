@@ -66,37 +66,25 @@ public class LukeNetUtils {
      * @throws InterruptedException
      */
     public boolean checkUsernameAvailable(final String usernameToCheck) throws ExecutionException, InterruptedException {
-        Log.e(TAG, "confirmUsername: checking if username available");
         Callable<Boolean> booleanCallable = new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
-                String jsonString;
                 try {
-                    URL checkUsernameUrl = new URL("http://www.balticapp.fi/lukeA/user/available?username=" + usernameToCheck);
-                    HttpURLConnection httpURLConnection = (HttpURLConnection) checkUsernameUrl.openConnection();
-                    httpURLConnection.setRequestProperty(context.getString(R.string.authorization), context.getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
-                    if (httpURLConnection.getResponseCode() == 200) {
-                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
-                        StringBuilder stringBuilder = new StringBuilder();
-                        String line;
-                        while ((line = bufferedReader.readLine()) != null) {
-                            stringBuilder.append(line).append("\n");
-                        }
-                        bufferedReader.close();
-                        jsonString = stringBuilder.toString();
-                        Log.e(TAG, "CHECK USERNAME STRING " + jsonString);
-                        JSONObject jsonObject;
-                        try {
-                            jsonObject = new JSONObject(jsonString);
-                            // TODO: 17/11/2016 make alert that username is taken
+                    String response = getMethod("http://www.balticapp.fi/lukeA/user/available?username=" + usernameToCheck);
+                    JSONObject jsonObject;
+                    try {
+                        jsonObject = new JSONObject(response);
+                        // TODO: 17/11/2016 make alert that username is taken
+                        if (jsonObject.has("exists")) {
                             return !jsonObject.getBoolean("exists");
-                        } catch (JSONException e) {
-                            Log.e(TAG, "onPostExecute: ", e);
+                        } else {
                             return false;
                         }
-                    } else {
+                    } catch (JSONException e) {
+                        Log.e(TAG, "onPostExecute: ", e);
                         return false;
                     }
+
                 } catch (MalformedURLException e) {
                     Log.e(TAG, "doInBackground: ", e);
                     return false;
@@ -131,8 +119,6 @@ public class LukeNetUtils {
                 httpURLConnection = (HttpURLConnection) setUsernameUrl.openConnection();
                 httpURLConnection.setRequestProperty(context.getString(R.string.authorization), context.getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
                 httpURLConnection.setRequestProperty(context.getString(R.string.acstoken), SessionSingleton.getInstance().getAccessToken());
-                int responseCode = httpURLConnection.getResponseCode();
-                String responseMessage = httpURLConnection.getResponseMessage();
 
                 return httpURLConnection.getResponseCode() == 200;
             }
@@ -156,72 +142,13 @@ public class LukeNetUtils {
             public Boolean call() throws Exception {
 
                 HttpURLConnection conn;
-                try {
-                    //create a json object from this submission to be sent to the server and convert it to string
-                    JSONObject jsonObject = new JSONObject();
-                    jsonObject.put("image", LukeUtils.bitmapToBase64String(bitmap));
-                    String urlParameters = jsonObject.toString();
+                //create a json object from this submission to be sent to the server and convert it to string
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("image", LukeUtils.bitmapToBase64String(bitmap));
+                String urlParameters = jsonObject.toString();
 
-                    URL url = new URL("http://www.balticapp.fi/lukeA/user/update");
-                    conn = (HttpURLConnection) url.openConnection();
-                    conn.setRequestMethod("POST");
-                    conn.setRequestProperty(context.getString(R.string.authorization), context.getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
-                    conn.setRequestProperty("Content-Type", "application/json");
-                    conn.setRequestProperty("charset", "utf-8");
-                    conn.setDoOutput(true);
-
-                    //get the output stream of the connection
-                    OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
-
-                    //write the JSONobject to the connections output
-                    writer.write(urlParameters);
-
-                    //flush and close the writer
-                    writer.flush();
-                    writer.close();
-
-                    //get the response, if successfull, get inputstream, if unsuccessful get errorStream
-                    BufferedReader bufferedReader;
-                    Log.e(TAG, "updateUserImage call: RESPONSE CODE:" + conn.getResponseCode());
-                    if (conn.getResponseCode() != 200) {
-                        bufferedReader = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
-
-                    } else {
-                        // TODO: 25/11/2016 check for authorization error, respond accordingly
-                        bufferedReader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                    }
-                    String jsonString;
-                    StringBuilder stringBuilder = new StringBuilder();
-                    String line2;
-                    while ((line2 = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(line2).append("\n");
-                    }
-                    bufferedReader.close();
-                    jsonString = stringBuilder.toString();
-
-                    Log.e(TAG, "updateUserImage run: Result : " + jsonString);
-
-
-                } catch (UnsupportedEncodingException e) {
-                    Log.e(TAG, "updateUserImage: ", e);
-                    return false;
-                } catch (ProtocolException e) {
-                    Log.e(TAG, "updateUserImage: ", e);
-                    return false;
-                } catch (MalformedURLException e) {
-                    Log.e(TAG, "updateUserImage: ", e);
-                    return false;
-                } catch (IOException e) {
-                    Log.e(TAG, "updateUserImage: ", e);
-                    return false;
-                }
-
-                //disconnect from the urlConnection
-                conn.disconnect();
-                return true;
+                return postMethod("http://www.balticapp.fi/lukeA/user/update", urlParameters);
             }
-
-
         };
 
         FutureTask<Boolean> futureTask = new FutureTask<>(booleanCallable);
@@ -230,10 +157,7 @@ public class LukeNetUtils {
 
         try {
             return futureTask.get();
-        } catch (InterruptedException e) {
-            Log.e(TAG, "submitToServer: ", e);
-            return false;
-        } catch (ExecutionException e) {
+        } catch (InterruptedException | ExecutionException e) {
             Log.e(TAG, "submitToServer: ", e);
             return false;
         }
@@ -305,61 +229,25 @@ public class LukeNetUtils {
      * @throws InterruptedException
      */
     public UserFromServer getUserFromUserId(final String userId) throws ExecutionException, InterruptedException {
-        Callable<UserFromServer> bitmapCallable = new Callable<UserFromServer>() {
+        Callable<UserFromServer> userFromServerCallable = new Callable<UserFromServer>() {
             @Override
             public UserFromServer call() throws Exception {
                 String jsonString;
-                UserFromServer userFromServer = new UserFromServer();
-                URL lukeURL;
-                try {
-                    lukeURL = new URL("http://www.balticapp.fi/lukeA/user?id=" + userId);
+                jsonString = getMethod("http://www.balticapp.fi/lukeA/user?id=" + userId);
 
-                    HttpURLConnection httpURLConnection = (HttpURLConnection) lukeURL.openConnection();
-                    if (httpURLConnection.getResponseCode() == 200) {
-                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
-                        StringBuilder stringBuilder = new StringBuilder();
-                        String line;
-                        while ((line = bufferedReader.readLine()) != null) {
-                            stringBuilder.append(line).append("\n");
-                        }
-                        jsonString = stringBuilder.toString();
-                        bufferedReader.close();
-                        Log.e(TAG, "getSubmitterData: jsonString " + jsonString);
 
-                        if (!TextUtils.isEmpty(jsonString)) {
-                            final JSONObject jsonObject = new JSONObject(jsonString);
-                            return LukeUtils.parseUserFromJsonObject(jsonObject);
-                        } else {
-                            return null;
-                        }
-
-                    } else {
-                        //TODO: if error do something else, ERROR STR
-                        Log.e(TAG, "response code something else");
-                        return null;
-                    }
-                } catch (
-                        MalformedURLException e
-                        )
-
-                {
-                    Log.e(TAG, "getBitmapFromUserId: ", e);
-                    return null;
-                } catch (
-                        IOException e
-                        )
-
-                {
-                    Log.e(TAG, "getBitmapFromUserId: ", e);
+                if (!TextUtils.isEmpty(jsonString)) {
+                    final JSONObject jsonObject = new JSONObject(jsonString);
+                    return LukeUtils.parseUserFromJsonObject(jsonObject);
+                } else {
                     return null;
                 }
-
             }
         };
-        FutureTask<UserFromServer> bitmapFutureTask = new FutureTask<>(bitmapCallable);
-        Thread t = new Thread(bitmapFutureTask);
+        FutureTask<UserFromServer> userFromServerFutureTask = new FutureTask<>(userFromServerCallable);
+        Thread t = new Thread(userFromServerFutureTask);
         t.start();
-        return bitmapFutureTask.get();
+        return userFromServerFutureTask.get();
 
     }
 
@@ -373,57 +261,10 @@ public class LukeNetUtils {
         Callable<String> booleanCallable = new Callable<String>() {
             @Override
             public String call() throws Exception {
-                URL reportUrl;
-                try {
-                    reportUrl = new URL("http://www.balticapp.fi/lukeA/report/flag?id=" + submissionId);
+                String jsonString = getMethod("http://www.balticapp.fi/lukeA/report/flag?id=" + submissionId);
+                Log.e(TAG, "updateUserImage run: Result : " + jsonString);
+                return "Error reporting";
 
-                    HttpURLConnection connection = (HttpURLConnection) reportUrl.openConnection();
-                    connection.setRequestMethod("GET");
-                    connection.setRequestProperty(context.getString(R.string.authorization), context.getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
-                    connection.setRequestProperty("Content-Type", "application/json");
-                    connection.setRequestProperty("charset", "utf-8");
-
-                    BufferedReader bufferedReader;
-                    Log.e(TAG, "updateUserImage call: RESPONSE CODE:" + connection.getResponseCode());
-                    if (connection.getResponseCode() != 200) {
-                        bufferedReader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
-                        return "Error reporting";
-                    } else {
-                        // TODO: 25/11/2016 check for authorization error, respons accordingly
-                        bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                    }
-                    String jsonString;
-                    StringBuilder stringBuilder = new StringBuilder();
-                    String line2;
-                    while ((line2 = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(line2).append("\n");
-                    }
-                    bufferedReader.close();
-                    jsonString = stringBuilder.toString();
-                    JSONObject josn = new JSONObject(jsonString);
-                    Log.e(TAG, "call: josn boii" + josn.toString());
-                    if (josn.has("action")) {
-                        if (josn.getBoolean("action")) {
-                            Log.e(TAG, "call: TOAST FLAGED");
-                            return "Submission reported";
-                        } else {
-                            Log.e(TAG, "call: TOAST UNFALGED");
-                            return "Report removed";
-                        }
-                    }
-
-                    Log.e(TAG, "updateUserImage run: Result : " + jsonString);
-                    return "Error reporting";
-                } catch (MalformedURLException e) {
-                    Log.e(TAG, "reportSubmission: ", e);
-                    return "Error reporting";
-                } catch (ProtocolException e) {
-                    Log.e(TAG, "reportSubmission: ", e);
-                    return "Error reporting";
-                } catch (IOException e) {
-                    Log.e(TAG, "reportSubmission: ", e);
-                    return "Error reporting";
-                }
             }
         };
         FutureTask<String> booleanFutureTask = new FutureTask<>(booleanCallable);
@@ -431,12 +272,9 @@ public class LukeNetUtils {
         t.start();
         try {
             return booleanFutureTask.get();
-        } catch (InterruptedException e) {
+        } catch (InterruptedException | ExecutionException e) {
             Log.e(TAG, "reportSubmission: ", e);
-            return "Error reporting";
-        } catch (ExecutionException e) {
-            Log.e(TAG, "reportSubmission: ", e);
-            return "Error reporting";
+            return null;
         }
 
     }
@@ -451,53 +289,18 @@ public class LukeNetUtils {
         Callable<ArrayList<Submission>> booleanCallable = new Callable<ArrayList<Submission>>() {
             @Override
             public ArrayList<Submission> call() throws Exception {
-                URL reportUrl;
-                try {
-                    reportUrl = new URL("http://www.balticapp.fi/lukeA/report?submitterId=" + userID);
-
-                    HttpURLConnection connection = (HttpURLConnection) reportUrl.openConnection();
-                    connection.setRequestMethod("GET");
-                    connection.setRequestProperty(context.getString(R.string.authorization), context.getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
-                    connection.setRequestProperty(context.getString(R.string.acstoken), SessionSingleton.getInstance().getAccessToken());
-                    connection.setRequestProperty("Content-Type", "application/json");
-                    connection.setRequestProperty("charset", "utf-8");
-
-                    BufferedReader bufferedReader;
-                    Log.e(TAG, "updateUserImage call: RESPONSE CODE:" + connection.getResponseCode());
-                    if (connection.getResponseCode() != 200) {
-                        bufferedReader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
-                    } else {
-                        // TODO: 25/11/2016 check for authorization error, respons accordingly
-                        bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                    }
-                    String jsonString;
-                    StringBuilder stringBuilder = new StringBuilder();
-                    String line2;
-                    while ((line2 = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(line2).append("\n");
-                    }
-                    bufferedReader.close();
-                    jsonString = stringBuilder.toString();
-                    if (!TextUtils.isEmpty(jsonString)) {
-                        JSONArray jsonArray = new JSONArray(jsonString);
-                        Log.e(TAG, "call: jsonArray" + jsonArray.toString());
-                        return LukeUtils.parseSubmissionsFromJsonArray(jsonArray);
-                    } else {
-                        return null;
-                    }
-
-                } catch (MalformedURLException e) {
-                    Log.e(TAG, "reportSubmission: ", e);
-                    return null;
-                } catch (ProtocolException e) {
-                    Log.e(TAG, "reportSubmission: ", e);
-                    return null;
-                } catch (IOException e) {
-                    Log.e(TAG, "reportSubmission: ", e);
+                String jsonString = getMethod("http://www.balticapp.fi/lukeA/report?submitterId=" + userID);
+                if (!TextUtils.isEmpty(jsonString)) {
+                    JSONArray jsonArray = new JSONArray(jsonString);
+                    Log.e(TAG, "call: jsonArray" + jsonArray.toString());
+                    return LukeUtils.parseSubmissionsFromJsonArray(jsonArray);
+                } else {
                     return null;
                 }
+
             }
         };
+
         FutureTask<ArrayList<Submission>> booleanFutureTask = new FutureTask<>(booleanCallable);
         Thread t = new Thread(booleanFutureTask);
         t.start();
@@ -538,28 +341,10 @@ public class LukeNetUtils {
      */
     public Submission getSubmissionFromId(String id) {
         try {
-            URL lukeURL = new URL(this.context.getString(R.string.report_id_url) + id);
-            HttpURLConnection httpURLConnection = (HttpURLConnection) lukeURL.openConnection();
-            if (httpURLConnection.getResponseCode() == 200) {
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
-                String jsonString = "";
-                StringBuilder stringBuilder = new StringBuilder();
-                String line;
-                while ((line = bufferedReader.readLine()) != null) {
-                    stringBuilder.append(line).append("\n");
-                }
-                jsonString = stringBuilder.toString();
-                bufferedReader.close();
-
-                JSONArray jsonArray = new JSONArray(jsonString);
-                Submission submission = LukeUtils.parseSubmissionFromJsonObject(jsonArray.getJSONObject(0));
-                return submission;
-
-            } else {
-                //TODO: if error do something else, ERROR STREAM
-                Log.e(TAG, "response code something else");
-                return null;
-            }
+            String jsonString = getMethod(this.context.getString(R.string.report_id_url) + id);
+            JSONArray jsonArray = new JSONArray(jsonString);
+            Submission submission = LukeUtils.parseSubmissionFromJsonObject(jsonArray.getJSONObject(0));
+            return submission;
         } catch (IOException e) {
             Log.e(TAG, "Exception with fetching data: " + e.toString());
             return null;
@@ -577,44 +362,11 @@ public class LukeNetUtils {
         Callable<ArrayList<Category>> categoriesCallable = new Callable<ArrayList<Category>>() {
             @Override
             public ArrayList<Category> call() throws Exception {
-                String jsonString;
 
-                try {
-                    URL categoriesUrl = new URL("http://www.balticapp.fi/lukeA/category");
-                    HttpURLConnection httpURLConnection = (HttpURLConnection) categoriesUrl.openConnection();
-                    if (httpURLConnection.getResponseCode() == 200) {
-                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
-                        jsonString = "";
-                        StringBuilder stringBuilder = new StringBuilder();
-                        String line;
-                        while ((line = bufferedReader.readLine()) != null) {
-                            stringBuilder.append(line).append("\n");
-                        }
-                        bufferedReader.close();
-                        jsonString = stringBuilder.toString();
-                        JSONArray jsonArr;
-                        jsonArr = new JSONArray(jsonString);
-                        return LukeUtils.getCategoryObjectsFromJsonArray(jsonArr);
-                    } else {
-                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getErrorStream()));
-                        jsonString = "";
-                        StringBuilder stringBuilder = new StringBuilder();
-                        String line;
-                        while ((line = bufferedReader.readLine()) != null) {
-                            stringBuilder.append(line).append("\n");
-                        }
-                        bufferedReader.close();
-                        jsonString = stringBuilder.toString();
-                        Log.e(TAG, "run: ERROR WITH CATEGORIES : " + jsonString);
-                        return null;
-                    }
-                } catch (IOException e) {
-                    Log.e(TAG, "doInBackground: ", e);
-                    return null;
-                } catch (JSONException e) {
-                    Log.e(TAG, "JSON parsing exception");
-                    return null;
-                }
+                String jsonString = getMethod("http://www.balticapp.fi/lukeA/category");
+                JSONArray jsonArr = new JSONArray(jsonString);
+                return LukeUtils.getCategoryObjectsFromJsonArray(jsonArr);
+
             }
         };
         FutureTask<ArrayList<Category>> arrayListFutureTask = new FutureTask<ArrayList<Category>>(categoriesCallable);
@@ -633,31 +385,10 @@ public class LukeNetUtils {
         Callable<UserFromServer> userFromServerCallable = new Callable<UserFromServer>() {
             @Override
             public UserFromServer call() throws Exception {
-                URL lukeURL = new URL("http://www.balticapp.fi/lukeA/user/me");
-                HttpURLConnection httpURLConnection = (HttpURLConnection) lukeURL.openConnection();
-                httpURLConnection.setRequestProperty(context.getString(R.string.authorization), context.getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
-                if (httpURLConnection.getResponseCode() == 200) {
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
-                    String jsonString = "";
-                    StringBuilder stringBuilder = new StringBuilder();
-                    String line;
-                    while ((line = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(line).append("\n");
-                    }
-                    jsonString = stringBuilder.toString();
-                    bufferedReader.close();
-                    Log.e(TAG, "doInBackground: STRING IS " + jsonString);
-                    if (!TextUtils.isEmpty(jsonString)) {
-                        return LukeUtils.parseUserFromJsonObject(new JSONObject(jsonString));
-                    } else {
-                        return null;
-                    }
+                String jsonString = getMethod("http://www.balticapp.fi/lukeA/user/me");
+                JSONObject jsonObject = new JSONObject(jsonString);
+                return LukeUtils.parseUserFromJsonObject(jsonObject);
 
-                } else {
-                    //TODO: if error do something else, ERROR STREAM
-                    Log.e(TAG, "doInBackground: ERROR  " + httpURLConnection.getResponseCode());
-                    return null;
-                }
             }
         };
         FutureTask<UserFromServer> userFromServerFutureTask = new FutureTask<UserFromServer>(userFromServerCallable);
@@ -760,51 +491,12 @@ public class LukeNetUtils {
         Callable<Link> linkCallable = new Callable<Link>() {
             @Override
             public Link call() throws Exception {
-                URL linkUrl;
-                try {
-                    linkUrl = new URL("http://www.balticapp.fi/lukeA/link");
+                String jsonString = getMethod("http://www.balticapp.fi/lukeA/link");
+                JSONArray jsonArray = new JSONArray(jsonString);
+                Log.e(TAG, "getlinks call: jsonArray" + jsonArray.toString());
+                List<Link> links = LukeUtils.parseLinksFromJsonArray(jsonArray);
+                return links.get(links.size() - 1);
 
-                    HttpURLConnection connection = (HttpURLConnection) linkUrl.openConnection();
-                    connection.setRequestMethod("GET");
-                    connection.setRequestProperty(context.getString(R.string.authorization), context.getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
-                    connection.setRequestProperty(context.getString(R.string.acstoken), SessionSingleton.getInstance().getAccessToken());
-                    connection.setRequestProperty("Content-Type", "application/json");
-                    connection.setRequestProperty("charset", "utf-8");
-
-                    BufferedReader bufferedReader;
-                    Log.e(TAG, "getLink call: RESPONSE CODE:" + connection.getResponseCode());
-                    if (connection.getResponseCode() != 200) {
-                        bufferedReader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
-                    } else {
-                        bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                    }
-                    String jsonString;
-                    StringBuilder stringBuilder = new StringBuilder();
-                    String line2;
-                    while ((line2 = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(line2).append("\n");
-                    }
-                    bufferedReader.close();
-                    jsonString = stringBuilder.toString();
-                    if (!TextUtils.isEmpty(jsonString)) {
-                        JSONArray jsonArray = new JSONArray(jsonString);
-                        Log.e(TAG, "getlinks call: jsonArray" + jsonArray.toString());
-                        List<Link> links = LukeUtils.parseLinksFromJsonArray(jsonArray);
-                        return links.get(links.size() - 1);
-                    } else {
-                        return null;
-                    }
-
-                } catch (MalformedURLException e) {
-                    Log.e(TAG, "reportSubmission: ", e);
-                    return null;
-                } catch (ProtocolException e) {
-                    Log.e(TAG, "reportSubmission: ", e);
-                    return null;
-                } catch (IOException e) {
-                    Log.e(TAG, "reportSubmission: ", e);
-                    return null;
-                }
             }
         };
         FutureTask<Link> linkFutureTask = new FutureTask<>(linkCallable);
@@ -812,10 +504,7 @@ public class LukeNetUtils {
         t.start();
         try {
             return linkFutureTask.get();
-        } catch (InterruptedException e) {
-            Log.e(TAG, "reportSubmission: ", e);
-            return null;
-        } catch (ExecutionException e) {
+        } catch (InterruptedException | ExecutionException e) {
             Log.e(TAG, "reportSubmission: ", e);
             return null;
         }
@@ -826,34 +515,16 @@ public class LukeNetUtils {
         Callable<ArrayList<UserFromServer>> userFromServerCallable = new Callable<ArrayList<UserFromServer>>() {
             @Override
             public ArrayList<UserFromServer> call() throws Exception {
-                URL lukeURL = new URL("http://www.balticapp.fi/lukeA/user/get-all");
-                HttpURLConnection httpURLConnection = (HttpURLConnection) lukeURL.openConnection();
-                httpURLConnection.setRequestProperty(context.getString(R.string.authorization), context.getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
-                if (httpURLConnection.getResponseCode() == 200) {
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
-                    String jsonString = "";
-                    StringBuilder stringBuilder = new StringBuilder();
-                    String line;
-                    while ((line = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(line).append("\n");
+                String jsonString = getMethod("http://www.balticapp.fi/lukeA/user/get-all");
+                Log.e(TAG, "doInBackground: STRING IS " + jsonString);
+                if (!TextUtils.isEmpty(jsonString)) {
+                    ArrayList<UserFromServer> returnjeeben = new ArrayList<>();
+                    JSONArray jsonArray = new JSONArray(jsonString);
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        returnjeeben.add(LukeUtils.parseUserFromJsonObject(jsonArray.getJSONObject(i)));
                     }
-                    jsonString = stringBuilder.toString();
-                    bufferedReader.close();
-                    Log.e(TAG, "doInBackground: STRING IS " + jsonString);
-                    if (!TextUtils.isEmpty(jsonString)) {
-                        ArrayList<UserFromServer> returnjeeben = new ArrayList<>();
-                        JSONArray jsonArray = new JSONArray(jsonString);
-                        for (int i = 0; i < jsonArray.length(); i++) {
-                            returnjeeben.add(LukeUtils.parseUserFromJsonObject(jsonArray.getJSONObject(i)));
-                        }
-                        return returnjeeben;
-                    } else {
-                        return null;
-                    }
-
+                    return returnjeeben;
                 } else {
-                    //TODO: if error do something else, ERROR STREAM
-                    Log.e(TAG, "doInBackground: ERROR  " + httpURLConnection.getResponseCode());
                     return null;
                 }
             }
@@ -904,44 +575,51 @@ public class LukeNetUtils {
         }
     }
 
-    private void postMethod(String urlString, String params) throws IOException {
-        HttpURLConnection conn;
-        URL url = new URL(urlString);
-        conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("POST");
-        conn.setRequestProperty(context.getString(R.string.authorization), context.getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
-        conn.setRequestProperty("Content-Type", "application/json");
-        conn.setRequestProperty("charset", "utf-8");
-        conn.setDoOutput(true);
+    private boolean postMethod(String urlString, String params) {
+        try {
+            HttpURLConnection conn;
+            URL url = new URL(urlString);
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty(context.getString(R.string.authorization), context.getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("charset", "utf-8");
+            conn.setDoOutput(true);
 
-        //get the output stream of the connection
-        OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
+            //get the output stream of the connection
+            OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
 
-        //write the JSONobject to the connections output
-        writer.write(params);
+            //write the JSONobject to the connections output
+            writer.write(params);
 
-        //flush and close the writer
-        writer.flush();
-        writer.close();
+            //flush and close the writer
+            writer.flush();
+            writer.close();
 
-        //get the response, if successfull, get inputstream, if unsuccessful get errorStream
-        BufferedReader bufferedReader;
-        Log.e(TAG, "updateUserImage call: RESPONSE CODE:" + conn.getResponseCode());
-        if (conn.getResponseCode() != 200) {
-            bufferedReader = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+            //get the response, if successfull, get inputstream, if unsuccessful get errorStream
+            BufferedReader bufferedReader;
+            Log.e(TAG, "updateUserImage call: RESPONSE CODE:" + conn.getResponseCode());
+            if (conn.getResponseCode() != 200) {
+                bufferedReader = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
 
-        } else {
-            // TODO: 25/11/2016 check for authorization error, respond accordingly
-            bufferedReader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            } else {
+                // TODO: 25/11/2016 check for authorization error, respond accordingly
+                bufferedReader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            }
+            String jsonString;
+            StringBuilder stringBuilder = new StringBuilder();
+            String line2;
+            while ((line2 = bufferedReader.readLine()) != null) {
+                stringBuilder.append(line2).append("\n");
+            }
+            bufferedReader.close();
+            jsonString = stringBuilder.toString();
+            Log.e(TAG, "updateUserImage run: Result : " + jsonString);
+            conn.disconnect();
+            return true;
+        } catch (IOException e) {
+            Log.e(TAG, "postMethod: ", e);
+            return false;
         }
-        String jsonString;
-        StringBuilder stringBuilder = new StringBuilder();
-        String line2;
-        while ((line2 = bufferedReader.readLine()) != null) {
-            stringBuilder.append(line2).append("\n");
-        }
-        bufferedReader.close();
-        jsonString = stringBuilder.toString();
-        Log.e(TAG, "updateUserImage run: Result : " + jsonString);
     }
 }
