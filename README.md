@@ -33,7 +33,7 @@ The Baltic App is a collaboration between LUKE, Metropolia and Bonus. The object
   - [Custom Server](http://www.balticapp.fi/lukeA/) for serverside operations
   
 ### Screenshots
-<img src="https://lh3.googleusercontent.com/8Vylxrq9iJIfrdwgFGR01TBfsv44NGcOicKnA-HO7tskb_tJ0AARRROCnMUSIp8ekSTHzZiPaXFHuUM=w1918-h968-rw" width="250" height ="500"> <img src="https://lh5.googleusercontent.com/BTqEXNj9bB5n3yW7hVlLpTkzyenWSOpuPVYUoLyXFxoGwK3Fb-SWDVdnsUkKvZmH83ciWGBNSkWZLv4=w1918-h968-rw" width="250" height ="500"><img src="https://lh6.googleusercontent.com/yRsVLtdOrhGhD7Lb_qfZVbjo1Z-3YOZxYx9xEFa3Q8mcRJEr1K3GvzXyZ3sLoiFObrivyBjeiAKqUyQ=w1918-h968-rw" width="250" height ="500"> 
+<img src="https://lh5.googleusercontent.com/BTqEXNj9bB5n3yW7hVlLpTkzyenWSOpuPVYUoLyXFxoGwK3Fb-SWDVdnsUkKvZmH83ciWGBNSkWZLv4=w1918-h968-rw" width="250" height ="500"><img src="https://lh3.googleusercontent.com/8Vylxrq9iJIfrdwgFGR01TBfsv44NGcOicKnA-HO7tskb_tJ0AARRROCnMUSIp8ekSTHzZiPaXFHuUM=w1918-h968-rw" width="250" height ="500"> <img src="https://lh6.googleusercontent.com/yRsVLtdOrhGhD7Lb_qfZVbjo1Z-3YOZxYx9xEFa3Q8mcRJEr1K3GvzXyZ3sLoiFObrivyBjeiAKqUyQ=w1918-h968-rw" width="250" height ="500"> 
   
 ### Build Status
 [![Build Status](https://travis-ci.org/harmittaa/LukeApp.svg?branch=master)](https://travis-ci.org/harmittaa/LukeApp)
