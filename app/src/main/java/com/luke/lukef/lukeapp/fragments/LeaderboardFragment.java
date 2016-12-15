@@ -164,7 +164,7 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
             final ImageView userImage = (ImageView) v.findViewById(R.id.leaderboard_list_item_user_image);
             TextView username = (TextView) v.findViewById(R.id.leaderboard_list_item_username);
             TextView rankTitle = (TextView) v.findViewById(R.id.leaderboard_list_item_rank);
-            ImageView rankImage = (ImageView) v.findViewById(R.id.leaderboard_list_item_rank_image);
+            final ImageView rankImage = (ImageView) v.findViewById(R.id.leaderboard_list_item_rank_image);
             TextView score = (TextView) v.findViewById(R.id.leaderboard_list_item_score);
             TextView positionTextView = (TextView) v.findViewById(R.id.leaderboard_list_item_position);
 
@@ -176,10 +176,17 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
 
             //setup rank, title and image
             Rank r = SessionSingleton.getInstance().getRankById(userFromServer.getRankId());
-            if(r != null) {
+            if (r != null) {
                 rankTitle.setText(r.getTitle());
                 loadImageTask loadImageTask2 = new loadImageTask(rankImage, r.getImageUrl(), getMainActivity());
                 loadImageTask2.execute();
+            } else {
+                getMainActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        rankImage.setImageDrawable(ContextCompat.getDrawable(getMainActivity(),R.drawable.luke_rank_default));
+                    }
+                });
             }
 
             positionTextView.setText("" + (position + 1));
