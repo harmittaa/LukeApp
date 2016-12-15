@@ -16,12 +16,14 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.auth0.android.Auth0;
+import com.auth0.android.lock.AuthButtonSize;
 import com.auth0.android.lock.AuthenticationCallback;
 import com.auth0.android.lock.Lock;
 import com.auth0.android.lock.LockCallback;
 import com.auth0.android.lock.utils.LockException;
 import com.auth0.android.result.Credentials;
 import com.luke.lukef.lukeapp.model.Link;
+import com.luke.lukef.lukeapp.model.Rank;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.popups.LinkPopup;
 import com.luke.lukef.lukeapp.tools.LukeNetUtils;
@@ -37,6 +39,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -68,6 +71,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         requestPermission();
         startService(new Intent(this, SubmissionFetchService.class));
         getCategories();
+        getRanks();
         ShowLinkTask showLinkTask = new ShowLinkTask();
         showLinkTask.execute();
 
@@ -102,7 +106,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
     private void doLogin(String clientId, String domain) {
         Auth0 auth0 = new Auth0(clientId, domain);
-        this.lock = Lock.newBuilder(auth0, this.callBack).build(this);
+        this.lock = Lock.newBuilder(auth0, this.callBack)
+                .closable(true)
+                .loginAfterSignUp(true)
+                .withAuthButtonSize(AuthButtonSize.BIG)
+                .build(this);
         startActivity(this.lock.newIntent(this));
     }
 
@@ -218,6 +226,28 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             }
         };
         Thread t = new Thread(r);
+        t.start();
+    }
+
+    /**
+     * Start getAllRanks from LukeUtils on a new thread
+     */
+    private void getRanks() {
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                LukeNetUtils lukeNetUtils = new LukeNetUtils(WelcomeActivity.this);
+                try {
+                    ArrayList<Rank> ranks = lukeNetUtils.getAllRanks();
+                    SessionSingleton.getInstance().setRanks(ranks);
+                } catch (ExecutionException e) {
+                    Log.e(TAG, "run: ",e );
+                } catch (InterruptedException e) {
+                    Log.e(TAG, "run: ",e );
+                }
+
+            }
+        });
         t.start();
     }
 

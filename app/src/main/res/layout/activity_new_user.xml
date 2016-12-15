@@ -37,7 +37,7 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="@+id/guideline20"
             app:layout_constraintVertical_bias="0.56"
-            app:srcCompat="@drawable/admin_marker"
+            app:srcCompat="@drawable/luke_default_profile_pic"
             app:layout_constraintRight_toLeftOf="@+id/textView4"
             android:layout_marginEnd="8dp" />
 
@@ -48,9 +48,8 @@
             app:layout_constraintBottom_toTopOf="@+id/guideline18"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/newUserDefaultImageView"
-            app:srcCompat="@mipmap/take_photo"
-            app:layout_constraintRight_toLeftOf="@+id/guideline21"
-            android:layout_marginEnd="8dp" />
+            app:srcCompat="@drawable/luke_take_photo"
+            app:layout_constraintRight_toLeftOf="@+id/guideline21" />
 
         <ImageView
             android:id="@+id/newUserSocialMediaImageView"
@@ -60,8 +59,7 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="@+id/guideline22"
             app:srcCompat="@drawable/admin_marker"
-            app:layout_constraintRight_toLeftOf="@+id/guideline21"
-            android:layout_marginEnd="8dp" />
+            app:layout_constraintRight_toLeftOf="@+id/guideline21" />
 
         <android.support.constraint.Guideline
             android:id="@+id/guideline17"

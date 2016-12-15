@@ -60,11 +60,12 @@ import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
 
+import com.luke.lukef.lukeapp.model.ClusterMarkerAdmin;
+import com.luke.lukef.lukeapp.popups.AdminMarkerPopup;
 import com.luke.lukef.lukeapp.tools.SubmissionDatabase;
 import com.luke.lukef.lukeapp.WelcomeActivity;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.model.ClusterMarker;
-import com.luke.lukef.lukeapp.tools.LukeNetUtils;
 import com.luke.lukef.lukeapp.popups.SubmissionPopup;
 import com.luke.lukef.lukeapp.tools.LukeUtils;
 
@@ -146,25 +147,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
             case R.id.button_new_submission:
                 activateNewSubmission();
                 break;
-            case R.id.popup_button_positive:
-                submissionPopup.dismissPopup();
-                break;
-            case R.id.submissionReportButton:
-                reportSubmission();
-                break;
-            case R.id.submissionSubmitterProfileImage:
-                Bundle extras = new Bundle();
-                extras.putString("userId", this.submissionPopup.getUserId());
-                getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_PROFILE, extras);
-                this.submissionPopup.dismissPopup();
-                break;
-            case R.id.submissionImageMain:
-                if (this.submissionPopup.getMainImageBitmap() != null) {
-                    getMainActivity().setFullScreenImageViewImage(this.submissionPopup.getMainImageBitmap());
-                    getMainActivity().setFullScreenImageViewVisibility(true);
-                    this.submissionPopup.hidePopup();
-                }
-                break;
         }
     }
 
@@ -190,17 +172,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         }
     }
 
-    /**
-     * Handles reporting the selected submission
-     */
-    private void reportSubmission() {
-        if (SessionSingleton.getInstance().isUserLogged()) {
-            LukeNetUtils lukeNetUtils = new LukeNetUtils(getMainActivity());
-            getMainActivity().makeToast(lukeNetUtils.reportSubmission(submissionPopup.getSubmissionID()));
-        } else {
-            getMainActivity().makeToast("You need to log in to do this");
-        }
-    }
 
     /**
      * Opens up {{@link com.luke.lukef.lukeapp.fragments.NewSubmissionFragment} if user is logged in,
@@ -389,7 +360,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         if (queryCursor.getCount() > 0) {
             do {
                 if (!this.submissionMarkerIdList.contains(queryCursor.getString(queryCursor.getColumnIndexOrThrow("admin_marker_id")))) {
-                    ClusterMarker adminMarker = new ClusterMarker(
+                    ClusterMarkerAdmin adminMarker = new ClusterMarkerAdmin(
                             queryCursor.getString(queryCursor.getColumnIndexOrThrow("admin_marker_id")),
                             queryCursor.getDouble(queryCursor.getColumnIndexOrThrow("admin_marker_latitude")),
                             queryCursor.getDouble(queryCursor.getColumnIndexOrThrow("admin_marker_longitude")),
@@ -576,11 +547,14 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     @Override
     public boolean onClusterItemClick(ClusterMarker clusterMarker) {
         boolean isAdminMarker = true;
-        if (clusterMarker.getAdminMarkerTitle().isEmpty()) {
+        if (clusterMarker instanceof ClusterMarkerAdmin) {
+            AdminMarkerPopup adminMarkerPopup = new AdminMarkerPopup(clusterMarker.getSubmissionId(),getMainActivity());
+            adminMarkerPopup.createPopupTest();
+        } else {
             isAdminMarker = false;
+            submissionPopup = new SubmissionPopup(getMainActivity());
+            submissionPopup.createPopup(clusterMarker.getSubmissionId(), isAdminMarker);
         }
-        submissionPopup = new SubmissionPopup(getMainActivity(), this);
-        submissionPopup.createPopupTest(clusterMarker.getSubmissionId(), isAdminMarker);
         return false;
     }
 

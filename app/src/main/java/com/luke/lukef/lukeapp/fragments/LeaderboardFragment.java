@@ -25,6 +25,8 @@ import android.widget.TextView;
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
+import com.luke.lukef.lukeapp.model.Rank;
+import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.model.UserFromServer;
 import com.luke.lukef.lukeapp.tools.LukeNetUtils;
 
@@ -70,15 +72,16 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
             @Override
             public void run() {
                 try {
-                    ArrayList<UserFromServer> userFromServers = lukeNetUtils.getAllUsers();
+                    ArrayList<UserFromServer> userFromServersAll = lukeNetUtils.getAllUsers();
+                    userFromServersAll = sortOutNoScoreUsers(userFromServersAll);
                     //sort by whose score is bigger
-                    Collections.sort(userFromServers, new Comparator<UserFromServer>() {
+                    Collections.sort(userFromServersAll, new Comparator<UserFromServer>() {
                         @Override
                         public int compare(UserFromServer o1, UserFromServer o2) {
                             return Integer.valueOf(o2.getScore()).compareTo(o1.getScore());
                         }
                     });
-                    final UserListViewAdapter userListViewAdapter = new UserListViewAdapter(getMainActivity(), R.layout.leaderboard_list_item, userFromServers);
+                    final UserListViewAdapter userListViewAdapter = new UserListViewAdapter(getMainActivity(), R.layout.leaderboard_list_item, userFromServersAll);
                     getMainActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -107,6 +110,20 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
 
             }
         });
+    }
+
+    private ArrayList<UserFromServer> sortOutNoScoreUsers(ArrayList<UserFromServer> allUsers){
+        ArrayList<UserFromServer> tempList = new ArrayList<>();
+        for (UserFromServer u : allUsers){
+            if(u.getId().equals(SessionSingleton.getInstance().getUserId())){
+                tempList.add(u);
+                continue;
+            }
+            else if(u.getScore() > 0){
+                tempList.add(u);
+            }
+        }
+        return tempList;
     }
 
     private MainActivity getMainActivity() {
@@ -147,24 +164,38 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
             final ImageView userImage = (ImageView) v.findViewById(R.id.leaderboard_list_item_user_image);
             TextView username = (TextView) v.findViewById(R.id.leaderboard_list_item_username);
             TextView rankTitle = (TextView) v.findViewById(R.id.leaderboard_list_item_rank);
-            ImageView rankImage = (ImageView) v.findViewById(R.id.leaderboard_list_item_rank_image);
+            final ImageView rankImage = (ImageView) v.findViewById(R.id.leaderboard_list_item_rank_image);
             TextView score = (TextView) v.findViewById(R.id.leaderboard_list_item_score);
             TextView positionTextView = (TextView) v.findViewById(R.id.leaderboard_list_item_position);
 
             final UserFromServer userFromServer = getItem(position);
 
-            loadImageTask loadImageTask = new loadImageTask(userImage, userFromServer.getImageUrl(), getMainActivity());
-            loadImageTask.execute();
-            //loadImageTask loadImageTask1 = new loadImageTask()
+            //load user profile image
+            LukeNetUtils.imageSetupTask(userImage, userFromServer.getImageUrl(), R.drawable.luke_default_profile_pic,getMainActivity());
 
+            //setup rank, title and image
+            Rank r = SessionSingleton.getInstance().getRankById(userFromServer.getRankId());
+            if (r != null) {
+                rankTitle.setText(r.getTitle());
+                LukeNetUtils.imageSetupTask(rankImage, r.getImageUrl(), R.drawable.luke_rank_default,getMainActivity());
+            } else {
+                getMainActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        rankImage.setImageDrawable(ContextCompat.getDrawable(getMainActivity(),R.drawable.luke_rank_default));
+                    }
+                });
+            }
 
-            // TODO: 14/12/2016 parse ranks, save to singleton, then get them from here and set to the rank image
-            rankImage.setImageDrawable(ContextCompat.getDrawable(getMainActivity(), R.drawable.luke_exit));
-            rankTitle.setText("Jeeben Rank");
             positionTextView.setText("" + (position + 1));
-
             username.setText(userFromServer.getUsername());
             score.setText("Score: " + userFromServer.getScore());
+
+            if (userFromServer.getId().equals(SessionSingleton.getInstance().getUserId())) {
+                v.setBackgroundColor(ContextCompat.getColor(getMainActivity(), R.color.shamrock));
+            } else {
+                v.setBackgroundColor(ContextCompat.getColor(getMainActivity(), android.R.color.transparent));
+            }
 
             return v;
 
@@ -173,48 +204,6 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
 
     }
 
-    private class loadImageTask extends AsyncTask<Void, Void, Void> {
 
-        private ImageView imageView;
-        private String urlString;
-        private Activity activity;
-        private Bitmap bitmap = null;
-
-        loadImageTask(ImageView imageView, String urlString, Activity activity) {
-            this.activity = activity;
-            this.urlString = urlString;
-            this.imageView = imageView;
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            if (this.urlString != null) {
-                LukeNetUtils lukeNetUtils = new LukeNetUtils(this.activity);
-                try {
-                    this.bitmap = lukeNetUtils.getBitmapFromURL(urlString);
-                } catch (ExecutionException | InterruptedException e) {
-                    Log.e("PERKELE", "doInBackground: ", e);
-                }
-            } else {
-                this.bitmap = null;
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            this.activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    if (loadImageTask.this.bitmap == null) {
-                        loadImageTask.this.imageView.setImageDrawable(ResourcesCompat.getDrawable(activity.getResources(), R.drawable.luke_default_profile_pic, null));
-                    } else {
-                        loadImageTask.this.imageView.setImageBitmap(loadImageTask.this.bitmap);
-                    }
-                }
-            });
-            super.onPostExecute(aVoid);
-        }
-    }
 
 }

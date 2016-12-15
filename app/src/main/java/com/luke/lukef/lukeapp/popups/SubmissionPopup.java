@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.Log;
@@ -17,8 +18,11 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
+import com.luke.lukef.lukeapp.model.Rank;
+import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.tools.SubmissionDatabase;
 import com.luke.lukef.lukeapp.model.Category;
 
@@ -35,16 +39,14 @@ import java.util.concurrent.ExecutionException;
 /**
  * Handles showing submission data when submission is clicked on the map
  */
-public class SubmissionPopup {
+public class SubmissionPopup implements View.OnClickListener {
     private static final String TAG = "SubmissionPopup";
     private MainActivity mainActivity;
     private SubmissionDatabase submissionDatabase;
     private final Dialog dialog;
     private Cursor queryCursor;
     private String markerId;
-    private String imageUrl;
     private boolean isAdminMarker;
-    private List<String> arrayIds;
     private LinearLayout submissionCategoriesLinear;
     private ImageView submissionImage;
     private ImageView submitterProfileImage;
@@ -55,16 +57,14 @@ public class SubmissionPopup {
     private TextView submissionSubmitterRank;
     private TextView submissionDate;
     private TextView submissionTitle;
-    private View.OnClickListener clickListener;
     private Bitmap mainImageBitmap;
     private String userId;
     private ProgressBar loadingSpinny;
     private View mainView;
 
-    public SubmissionPopup(MainActivity mainActivity, View.OnClickListener clickListener) {
+    public SubmissionPopup(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
         this.dialog = new Dialog(mainActivity);
-        this.clickListener = clickListener;
     }
 
 
@@ -82,7 +82,7 @@ public class SubmissionPopup {
         }
     }
 
-    public void createPopupTest(String markerId, boolean isAdminMarker) {
+    public void createPopup(String markerId, boolean isAdminMarker) {
         this.markerId = markerId;
         this.isAdminMarker = isAdminMarker;
 
@@ -104,11 +104,11 @@ public class SubmissionPopup {
         this.mainView = this.dialog.findViewById(R.id.popupMainContent);
 
         // set click listeners
-        this.popupButtonPositive.setOnClickListener(clickListener);
-        this.submitterProfileImage.setOnClickListener(clickListener);
-        this.submissionImage.setOnClickListener(clickListener);
-        this.submissionReportButton.setOnClickListener(clickListener);
-        this.submissionImage.setOnClickListener(clickListener);
+        this.popupButtonPositive.setOnClickListener(this);
+        this.submitterProfileImage.setOnClickListener(this);
+        this.submissionImage.setOnClickListener(this);
+        this.submissionReportButton.setOnClickListener(this);
+        this.submissionImage.setOnClickListener(this);
         getLocalSubmissionData();
 
         this.dialog.show();
@@ -141,29 +141,29 @@ public class SubmissionPopup {
 
         if (this.queryCursor.getColumnIndex("submission_description") != -1) {
             this.submissionDescription.setText(this.queryCursor.getString(this.queryCursor.getColumnIndexOrThrow("submission_description")));
-        } else if (this.queryCursor.getColumnIndex("admin_marker_description") != -1) {
+        } /*else if (this.queryCursor.getColumnIndex("admin_marker_description") != -1) {
             this.submissionDescription.setText(this.queryCursor.getString(this.queryCursor.getColumnIndexOrThrow("admin_marker_description")));
-        }
+        }*/
 
         if (this.queryCursor.getColumnIndex("submission_date") != -1) {
             this.submissionDate.setText(LukeUtils.parseDateFromMillis(this.queryCursor.getLong(this.queryCursor.getColumnIndexOrThrow("submission_date"))));
-        } else if (this.queryCursor.getColumnIndex("admin_marker_date") != -1) {
+        } /*else if (this.queryCursor.getColumnIndex("admin_marker_date") != -1) {
             this.submissionDate.setText(LukeUtils.parseDateFromMillis(this.queryCursor.getLong(this.queryCursor.getColumnIndexOrThrow("admin_marker_date"))));
-        }
+        }*/
 
         if (this.queryCursor.getColumnIndex("submission_title") != -1) {
             String title = this.queryCursor.getString(this.queryCursor.getColumnIndexOrThrow("submission_title"));
             if (!TextUtils.isEmpty(title)) {
                 this.submissionTitle.setText(title);
             }
-        } else if (this.queryCursor.getColumnIndex("admin_marker_title") != -1) {
+        } /*else if (this.queryCursor.getColumnIndex("admin_marker_title") != -1) {
             this.submissionTitle.setText(this.queryCursor.getString(this.queryCursor.getColumnIndexOrThrow("admin_marker_title")));
-        }
+        }*/
 
-        if (this.queryCursor.getColumnIndex("admin_marker_owner") != -1) {
+        /*if (this.queryCursor.getColumnIndex("admin_marker_owner") != -1) {
             this.submissionSubmitterName.setText(this.queryCursor.getString(this.queryCursor.getColumnIndexOrThrow("admin_marker_owner")));
             this.submissionSubmitterRank.setText("");
-        }
+        }*/
 
         this.submissionDatabase.closeDbConnection();
     }
@@ -235,6 +235,44 @@ public class SubmissionPopup {
     }
 
     /**
+     * Handles reporting the selected submission
+     */
+    private void reportSubmission() {
+        if (SessionSingleton.getInstance().isUserLogged()) {
+            LukeNetUtils lukeNetUtils = new LukeNetUtils(mainActivity);
+            mainActivity.makeToast(lukeNetUtils.reportSubmission(getSubmissionID()));
+        } else {
+            mainActivity.makeToast("You need to log in to do this");
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+
+            case R.id.popup_button_positive:
+                dismissPopup();
+                break;
+            case R.id.submissionReportButton:
+                reportSubmission();
+                break;
+            case R.id.submissionSubmitterProfileImage:
+                Bundle extras = new Bundle();
+                extras.putString("userId", getUserId());
+                mainActivity.fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_PROFILE, extras);
+                dismissPopup();
+                break;
+            case R.id.submissionImageMain:
+                if (getMainImageBitmap() != null) {
+                    mainActivity.setFullScreenImageViewImage(getMainImageBitmap());
+                    mainActivity.setFullScreenImageViewVisibility(true);
+                    hidePopup();
+                }
+                break;
+        }
+    }
+
+    /**
      * Inner AsyncTask class to fetch submission data from the server, includes user and submission images
      * as well as categories.
      */
@@ -246,6 +284,7 @@ public class SubmissionPopup {
         Bitmap submitterImage;
         String submitterName;
         List<Category> categories;
+        private String submitterRankId;
 
         GetSubmissionData(Activity activity, SubmissionPopup submissionPopup) {
             this.activity = activity;
@@ -281,6 +320,7 @@ public class SubmissionPopup {
                     try {
                         this.submitterImage = lukeNetUtils.getBitmapFromURL(userFromServer.getImageUrl());
                         this.submitterName = userFromServer.getUsername();
+                        this.submitterRankId = userFromServer.getRankId();
                     } catch (ExecutionException | InterruptedException e) {
                         Log.e(TAG, "doInBackground: ", e);
                     }
@@ -311,6 +351,10 @@ public class SubmissionPopup {
                     }
                     if (!isAdminMarker) {
                         submissionPopup.submissionSubmitterName.setText(submitterName);
+                    }
+                    Rank r = SessionSingleton.getInstance().getRankById(submitterRankId);
+                    if(r != null) {
+                        submissionSubmitterRank.setText(r.getTitle());
                     }
                     submissionPopup.loadingSpinny.setVisibility(View.GONE);
                     submissionPopup.mainView.setVisibility(View.VISIBLE);
