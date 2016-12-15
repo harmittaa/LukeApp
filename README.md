@@ -28,9 +28,9 @@ The Baltic App is a collaboration between LUKE, Metropolia and Bonus. The object
     - Pins displayed on the map are retrieved intelligently from the SQLite database, so that unused data does not get loaded into memeory
   
 ## Apis
-  - (https://developers.google.com/maps/android/)[Google Maps] used as map Api
-  - (https://auth0.com/)[Auth0] used for authentication through social media or email
-  - (http://www.balticapp.fi/lukeA/)[Custom Server] for serverside operations
+  - [https://developers.google.com/maps/android/](Google Maps) used as map Api
+  - [https://auth0.com/](Auth0) used for authentication through social media or email
+  - [http://www.balticapp.fi/lukeA/](Custom Server) for serverside operations
   
 ## Screenshots
 <center><img src="/screenshots/main.jpg" width="250"> <img src="/screenshots/list.jpg" width="250"> <img src="/screenshots/result.jpg" width="250"></center>
