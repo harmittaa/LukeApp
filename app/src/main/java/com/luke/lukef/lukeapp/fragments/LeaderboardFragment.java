@@ -171,15 +171,13 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
             final UserFromServer userFromServer = getItem(position);
 
             //load user profile image
-            loadImageTask loadImageTask = new loadImageTask(userImage, userFromServer.getImageUrl(), getMainActivity());
-            loadImageTask.execute();
+            LukeNetUtils.imageSetupTask(userImage, userFromServer.getImageUrl(), R.drawable.luke_default_profile_pic,getMainActivity());
 
             //setup rank, title and image
             Rank r = SessionSingleton.getInstance().getRankById(userFromServer.getRankId());
             if (r != null) {
                 rankTitle.setText(r.getTitle());
-                loadImageTask loadImageTask2 = new loadImageTask(rankImage, r.getImageUrl(), getMainActivity());
-                loadImageTask2.execute();
+                LukeNetUtils.imageSetupTask(rankImage, r.getImageUrl(), R.drawable.luke_rank_default,getMainActivity());
             } else {
                 getMainActivity().runOnUiThread(new Runnable() {
                     @Override
@@ -206,48 +204,6 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
 
     }
 
-    private class loadImageTask extends AsyncTask<Void, Void, Void> {
 
-        private ImageView imageView;
-        private String urlString;
-        private Activity activity;
-        private Bitmap bitmap = null;
-
-        loadImageTask(ImageView imageView, String urlString, Activity activity) {
-            this.activity = activity;
-            this.urlString = urlString;
-            this.imageView = imageView;
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            if (this.urlString != null) {
-                LukeNetUtils lukeNetUtils = new LukeNetUtils(this.activity);
-                try {
-                    this.bitmap = lukeNetUtils.getBitmapFromURL(urlString);
-                } catch (ExecutionException | InterruptedException e) {
-                    Log.e("PERKELE", "doInBackground: ", e);
-                }
-            } else {
-                this.bitmap = null;
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            this.activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    if (loadImageTask.this.bitmap == null) {
-                        loadImageTask.this.imageView.setImageDrawable(ResourcesCompat.getDrawable(activity.getResources(), R.drawable.luke_default_profile_pic, null));
-                    } else {
-                        loadImageTask.this.imageView.setImageBitmap(loadImageTask.this.bitmap);
-                    }
-                }
-            });
-            super.onPostExecute(aVoid);
-        }
-    }
 
 }

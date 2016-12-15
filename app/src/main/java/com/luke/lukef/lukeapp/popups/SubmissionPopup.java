@@ -82,7 +82,7 @@ public class SubmissionPopup implements View.OnClickListener {
         }
     }
 
-    public void createPopupTest(String markerId, boolean isAdminMarker) {
+    public void createPopup(String markerId, boolean isAdminMarker) {
         this.markerId = markerId;
         this.isAdminMarker = isAdminMarker;
 

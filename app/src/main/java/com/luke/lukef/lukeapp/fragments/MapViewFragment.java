@@ -66,7 +66,6 @@ import com.luke.lukef.lukeapp.tools.SubmissionDatabase;
 import com.luke.lukef.lukeapp.WelcomeActivity;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.model.ClusterMarker;
-import com.luke.lukef.lukeapp.tools.LukeNetUtils;
 import com.luke.lukef.lukeapp.popups.SubmissionPopup;
 import com.luke.lukef.lukeapp.tools.LukeUtils;
 
@@ -548,14 +547,13 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     @Override
     public boolean onClusterItemClick(ClusterMarker clusterMarker) {
         boolean isAdminMarker = true;
-
         if (clusterMarker instanceof ClusterMarkerAdmin) {
-            AdminMarkerPopup adminMarkerPopup = new AdminMarkerPopup(clusterMarker.getAdminMarkerTitle(),getMainActivity());
+            AdminMarkerPopup adminMarkerPopup = new AdminMarkerPopup(clusterMarker.getSubmissionId(),getMainActivity());
             adminMarkerPopup.createPopupTest();
         } else {
             isAdminMarker = false;
             submissionPopup = new SubmissionPopup(getMainActivity());
-            submissionPopup.createPopupTest(clusterMarker.getSubmissionId(), isAdminMarker);
+            submissionPopup.createPopup(clusterMarker.getSubmissionId(), isAdminMarker);
         }
         return false;
     }

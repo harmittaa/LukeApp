@@ -1,13 +1,16 @@
 package com.luke.lukef.lukeapp.tools;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.os.AsyncTask;
+import android.support.v4.content.res.ResourcesCompat;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.ImageView;
 
 import com.auth0.android.Auth0;
 import com.auth0.android.authentication.AuthenticationAPIClient;
@@ -621,5 +624,55 @@ public class LukeNetUtils {
             Log.e(TAG, "postMethod: ", e);
             return false;
         }
+    }
+
+    public static void imageSetupTask(ImageView imageViewToSet, String url, final int defaultImageId, Activity activity){
+        class LoadImageTask extends AsyncTask<Void, Void, Void> {
+
+            private ImageView imageView;
+            private String urlString;
+            private Activity activity;
+            private Bitmap bitmap = null;
+            int defaultId;
+
+            LoadImageTask(ImageView imageView, String urlString, Activity activity, int defaultId) {
+                this.activity = activity;
+                this.urlString = urlString;
+                this.imageView = imageView;
+                this.defaultId = defaultId;
+            }
+
+            @Override
+            protected Void doInBackground(Void... params) {
+                if (this.urlString != null) {
+                    LukeNetUtils lukeNetUtils = new LukeNetUtils(this.activity);
+                    try {
+                        this.bitmap = lukeNetUtils.getBitmapFromURL(urlString);
+                    } catch (ExecutionException | InterruptedException e) {
+                        Log.e("PERKELE", "doInBackground: ", e);
+                    }
+                } else {
+                    this.bitmap = null;
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                this.activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (LoadImageTask.this.bitmap == null) {
+                            LoadImageTask.this.imageView.setImageDrawable(ResourcesCompat.getDrawable(activity.getResources(), defaultImageId, null));
+                        } else {
+                            LoadImageTask.this.imageView.setImageBitmap(LoadImageTask.this.bitmap);
+                        }
+                    }
+                });
+                super.onPostExecute(aVoid);
+            }
+        }
+        LoadImageTask bitmapTask = new LoadImageTask(imageViewToSet,url,activity,defaultImageId);
+        bitmapTask.execute();
     }
 }

@@ -113,11 +113,16 @@ public class AdminMarkerPopup implements View.OnClickListener {
         }
 
         submissionDatabase.closeDbConnection();
+        loadingSpinny.setVisibility(View.GONE);
+        mainView.setVisibility(View.VISIBLE);
     }
 
     @Override
     public void onClick(View v) {
-
+        switch (v.getId()){
+            case R.id.popup_button_positive:
+                dialog.dismiss();
+        }
     }
 
     public String getAdminMarkerId() {
