@@ -16,6 +16,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.auth0.android.Auth0;
+import com.auth0.android.lock.AuthButtonSize;
 import com.auth0.android.lock.AuthenticationCallback;
 import com.auth0.android.lock.Lock;
 import com.auth0.android.lock.LockCallback;
@@ -105,7 +106,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
 
     private void doLogin(String clientId, String domain) {
         Auth0 auth0 = new Auth0(clientId, domain);
-        this.lock = Lock.newBuilder(auth0, this.callBack).build(this);
+        this.lock = Lock.newBuilder(auth0, this.callBack)
+                .closable(true)
+                .loginAfterSignUp(true)
+                .withAuthButtonSize(AuthButtonSize.BIG)
+                .build(this);
         startActivity(this.lock.newIntent(this));
     }
 

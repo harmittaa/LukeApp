@@ -740,7 +740,6 @@ public class MainActivity extends AppCompatActivity {
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private int progressStatus;
-    private ProgressBar progressBar;
     private ImageView fullScreenImageView;
     private ImageView drawerUserProfileImage;
     private TextView drawerUsername;
@@ -768,18 +767,6 @@ public class MainActivity extends AppCompatActivity {
         View header = this.navigationView.getHeaderView(0);
         this.progressStatus = 25;
         Drawable drawable = ResourcesCompat.getDrawable(getResources(), R.drawable.progress_bar, null);
-        this.progressBar = (ProgressBar) header.findViewById(R.id.progressbar1);
-        // Main Progress
-        this.progressBar.setProgress(progressStatus);
-        // Maximum Progress
-        this.progressBar.setMax(100);
-        this.progressBar.setProgressDrawable(drawable);
-
-        //Animation when drawing process
-        ObjectAnimator animation = ObjectAnimator.ofInt(this.progressBar, "progress", 0, this.progressStatus);
-        animation.setDuration(990);
-        animation.setInterpolator(new DecelerateInterpolator());
-        animation.start();
 
         setupDrawerActions(this.navigationView);
         //activate map fragment as default
@@ -1039,7 +1026,7 @@ public class MainActivity extends AppCompatActivity {
         Bitmap b;
         if (!TextUtils.isEmpty(SessionSingleton.getInstance().getIdToken())) {
             this.drawerUsername.setText(SessionSingleton.getInstance().getUsername());
-            this.drawerScore.setText(SessionSingleton.getInstance().getScore() + " points");
+            this.drawerScore.setText("Score: " + SessionSingleton.getInstance().getScore());
             if (SessionSingleton.getInstance().getUserImage() != null) {
                 b = SessionSingleton.getInstance().getUserImage();
             } else {
@@ -1048,6 +1035,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             this.drawerUsername.setText(getResources().getText(R.string.not_logged_in));
             b = BitmapFactory.decodeResource(this.getResources(), R.drawable.luke_default_profile_pic);
+            this.drawerScore.setText("");
         }
         this.drawerUserProfileImage.setImageBitmap(b);
     }
