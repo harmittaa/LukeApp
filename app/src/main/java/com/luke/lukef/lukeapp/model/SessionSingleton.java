@@ -23,6 +23,7 @@ public class SessionSingleton {
     private int score;
     private boolean isUserLogged = false;
     private ArrayList<Category> categories;
+    private ArrayList<Rank> ranks;
     private Bitmap userImage;
 
     private SessionSingleton() {
@@ -64,7 +65,7 @@ public class SessionSingleton {
     public void setIdToken(String idToken) {
         this.idToken = idToken;
 
-       // Log.e(TAG, "setidToken: idtoken token set to " + this.idToken);
+        // Log.e(TAG, "setidToken: idtoken token set to " + this.idToken);
     }
 
     public String getAccessToken() {
@@ -103,7 +104,7 @@ public class SessionSingleton {
         this.auth0Domain = auth0Domain;
     }
 
-    public void logOut(Activity activity){
+    public void logOut(Activity activity) {
         this.setAuth0Domain(null);
         this.setIdToken(null);
         this.setUserLogged(false);
@@ -121,5 +122,21 @@ public class SessionSingleton {
 
     public void setScore(int score) {
         this.score = score;
+    }
+
+    public ArrayList<Rank> getRanks() {
+        return ranks;
+    }
+
+    public void setRanks(ArrayList<Rank> ranks) {
+        this.ranks = ranks;
+    }
+
+    public Rank getRankById(String id) {
+        for (Rank c : getRanks()) {
+            if (c.getId().equals(id)) {
+                return c;
+            }
+        }return null;
     }
 }

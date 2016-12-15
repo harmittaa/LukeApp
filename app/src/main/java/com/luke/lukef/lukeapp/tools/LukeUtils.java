@@ -19,6 +19,7 @@ import android.util.Log;
 
 import com.luke.lukef.lukeapp.model.Category;
 import com.luke.lukef.lukeapp.model.Link;
+import com.luke.lukef.lukeapp.model.Rank;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.model.Submission;
 import com.luke.lukef.lukeapp.model.UserFromServer;
@@ -359,9 +360,35 @@ public class LukeUtils {
         if (jsonObject.has("rankingId")) {
             userFromServer.setRankId(jsonObject.getString("rankingId"));
         }
-        if (jsonObject.has("score")){
+        if (jsonObject.has("score")) {
             userFromServer.setScore(jsonObject.getInt("score"));
         }
         return userFromServer;
+    }
+
+    public static ArrayList<Rank> parseRanksFromJsonArray(JSONArray jsonArray) throws JSONException {
+        ArrayList<Rank> ranks = new ArrayList<>();
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject jsonObject = jsonArray.getJSONObject(i);
+            Rank rank = new Rank();
+            if (jsonObject.has("image_url")) {
+                rank.setImageUrl(jsonObject.getString("image_url"));
+            }
+            if (jsonObject.has("id")) {
+                rank.setId(jsonObject.getString("id"));
+            }
+            if (jsonObject.has("title")) {
+                rank.setTitle(jsonObject.getString("title"));
+            }
+            if (jsonObject.has("score")) {
+                rank.setScoreRequirement(jsonObject.getInt("score"));
+            }
+            if (jsonObject.has("description")){
+                rank.setDescription(jsonObject.getString("description"));
+            }
+            ranks.add(rank);
+        }
+
+        return ranks;
     }
 }

@@ -25,6 +25,8 @@ import android.widget.TextView;
 import com.luke.lukef.lukeapp.Constants;
 import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
+import com.luke.lukef.lukeapp.model.Rank;
+import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.model.UserFromServer;
 import com.luke.lukef.lukeapp.tools.LukeNetUtils;
 
@@ -70,15 +72,16 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
             @Override
             public void run() {
                 try {
-                    ArrayList<UserFromServer> userFromServers = lukeNetUtils.getAllUsers();
+                    ArrayList<UserFromServer> userFromServersAll = lukeNetUtils.getAllUsers();
+                    userFromServersAll = sortOutNoScoreUsers(userFromServersAll);
                     //sort by whose score is bigger
-                    Collections.sort(userFromServers, new Comparator<UserFromServer>() {
+                    Collections.sort(userFromServersAll, new Comparator<UserFromServer>() {
                         @Override
                         public int compare(UserFromServer o1, UserFromServer o2) {
                             return Integer.valueOf(o2.getScore()).compareTo(o1.getScore());
                         }
                     });
-                    final UserListViewAdapter userListViewAdapter = new UserListViewAdapter(getMainActivity(), R.layout.leaderboard_list_item, userFromServers);
+                    final UserListViewAdapter userListViewAdapter = new UserListViewAdapter(getMainActivity(), R.layout.leaderboard_list_item, userFromServersAll);
                     getMainActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -107,6 +110,20 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
 
             }
         });
+    }
+
+    private ArrayList<UserFromServer> sortOutNoScoreUsers(ArrayList<UserFromServer> allUsers){
+        ArrayList<UserFromServer> tempList = new ArrayList<>();
+        for (UserFromServer u : allUsers){
+            if(u.getId().equals(SessionSingleton.getInstance().getUserId())){
+                tempList.add(u);
+                continue;
+            }
+            else if(u.getScore() > 0){
+                tempList.add(u);
+            }
+        }
+        return tempList;
     }
 
     private MainActivity getMainActivity() {
@@ -153,18 +170,27 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
 
             final UserFromServer userFromServer = getItem(position);
 
+            //load user profile image
             loadImageTask loadImageTask = new loadImageTask(userImage, userFromServer.getImageUrl(), getMainActivity());
             loadImageTask.execute();
-            //loadImageTask loadImageTask1 = new loadImageTask()
 
+            //setup rank, title and image
+            Rank r = SessionSingleton.getInstance().getRankById(userFromServer.getRankId());
+            if(r != null) {
+                rankTitle.setText(r.getTitle());
+                loadImageTask loadImageTask2 = new loadImageTask(rankImage, r.getImageUrl(), getMainActivity());
+                loadImageTask2.execute();
+            }
 
-            // TODO: 14/12/2016 parse ranks, save to singleton, then get them from here and set to the rank image
-            rankImage.setImageDrawable(ContextCompat.getDrawable(getMainActivity(), R.drawable.luke_exit));
-            rankTitle.setText("Jeeben Rank");
             positionTextView.setText("" + (position + 1));
-
             username.setText(userFromServer.getUsername());
             score.setText("Score: " + userFromServer.getScore());
+
+            if (userFromServer.getId().equals(SessionSingleton.getInstance().getUserId())) {
+                v.setBackgroundColor(ContextCompat.getColor(getMainActivity(), R.color.shamrock));
+            } else {
+                v.setBackgroundColor(ContextCompat.getColor(getMainActivity(), android.R.color.transparent));
+            }
 
             return v;
 

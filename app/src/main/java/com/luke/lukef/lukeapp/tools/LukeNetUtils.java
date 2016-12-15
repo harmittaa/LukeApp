@@ -21,6 +21,7 @@ import com.luke.lukef.lukeapp.WelcomeActivity;
 import com.luke.lukef.lukeapp.interfaces.Auth0Responder;
 import com.luke.lukef.lukeapp.model.Category;
 import com.luke.lukef.lukeapp.model.Link;
+import com.luke.lukef.lukeapp.model.Rank;
 import com.luke.lukef.lukeapp.model.SessionSingleton;
 import com.luke.lukef.lukeapp.model.Submission;
 import com.luke.lukef.lukeapp.model.UserFromServer;
@@ -862,5 +863,85 @@ public class LukeNetUtils {
         t.start();
         return userFromServerFutureTask.get();
 
+    }
+
+    public ArrayList<Rank> getAllRanks() throws ExecutionException, InterruptedException {
+        Callable<ArrayList<Rank>> arrayListCallable = new Callable<ArrayList<Rank>>() {
+            @Override
+            public ArrayList<Rank> call() throws Exception {
+                String allRanks = getMethod("http://www.balticapp.fi/lukeA/rank");
+                JSONArray allRanksJson = new JSONArray(allRanks);
+                ArrayList<Rank> ranks = LukeUtils.parseRanksFromJsonArray(allRanksJson);
+                return ranks;
+            }
+        };
+        FutureTask<ArrayList<Rank>> arrayListFutureTask = new FutureTask<ArrayList<Rank>>(arrayListCallable);
+        Thread t = new Thread(arrayListFutureTask);
+        t.start();
+        return arrayListFutureTask.get();
+    }
+
+    private String getMethod(String urlString) throws IOException {
+        URL lukeURL = new URL(urlString);
+        HttpURLConnection httpURLConnection = (HttpURLConnection) lukeURL.openConnection();
+        httpURLConnection.setRequestProperty(context.getString(R.string.authorization), context.getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
+        if (httpURLConnection.getResponseCode() == 200) {
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
+            String jsonString = "";
+            StringBuilder stringBuilder = new StringBuilder();
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                stringBuilder.append(line).append("\n");
+            }
+            jsonString = stringBuilder.toString();
+            bufferedReader.close();
+            return jsonString;
+
+        } else {
+            //TODO: if error do something else, ERROR STREAM
+            Log.e(TAG, "doInBackground: ERROR  " + httpURLConnection.getResponseCode());
+            return null;
+        }
+    }
+
+    private void postMethod(String urlString, String params) throws IOException {
+        HttpURLConnection conn;
+        URL url = new URL(urlString);
+        conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty(context.getString(R.string.authorization), context.getString(R.string.bearer) + SessionSingleton.getInstance().getIdToken());
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("charset", "utf-8");
+        conn.setDoOutput(true);
+
+        //get the output stream of the connection
+        OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
+
+        //write the JSONobject to the connections output
+        writer.write(params);
+
+        //flush and close the writer
+        writer.flush();
+        writer.close();
+
+        //get the response, if successfull, get inputstream, if unsuccessful get errorStream
+        BufferedReader bufferedReader;
+        Log.e(TAG, "updateUserImage call: RESPONSE CODE:" + conn.getResponseCode());
+        if (conn.getResponseCode() != 200) {
+            bufferedReader = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+
+        } else {
+            // TODO: 25/11/2016 check for authorization error, respond accordingly
+            bufferedReader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+        }
+        String jsonString;
+        StringBuilder stringBuilder = new StringBuilder();
+        String line2;
+        while ((line2 = bufferedReader.readLine()) != null) {
+            stringBuilder.append(line2).append("\n");
+        }
+        bufferedReader.close();
+        jsonString = stringBuilder.toString();
+        Log.e(TAG, "updateUserImage run: Result : " + jsonString);
     }
 }
