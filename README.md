@@ -1,3 +1,7 @@
+### Build Status
+[![Build Status](https://travis-ci.org/harmittaa/LukeApp.svg?branch=master)](https://travis-ci.org/harmittaa/LukeApp)
+
+
 # Baltic App
 
 The Baltic App is a collaboration between LUKE, Metropolia and Bonus. The objective of this project was to create an application for monitoring the condition of the Baltic sea through user created reports, for the benefit of researchers and the general public. The application can be used to submit reports on the condition of the environment as well as viewing reports made by other users, to determine the condition of a location. The application consists of android application as well as an admin panel and server.
@@ -33,7 +37,4 @@ The Baltic App is a collaboration between LUKE, Metropolia and Bonus. The object
   - [Custom Server](http://www.balticapp.fi/lukeA/) for serverside operations
   
 ### Screenshots
-<img src="https://lh5.googleusercontent.com/BTqEXNj9bB5n3yW7hVlLpTkzyenWSOpuPVYUoLyXFxoGwK3Fb-SWDVdnsUkKvZmH83ciWGBNSkWZLv4=w1918-h968-rw" width="250" height ="500"><img src="https://lh3.googleusercontent.com/8Vylxrq9iJIfrdwgFGR01TBfsv44NGcOicKnA-HO7tskb_tJ0AARRROCnMUSIp8ekSTHzZiPaXFHuUM=w1918-h968-rw" width="250" height ="500"> <img src="https://lh6.googleusercontent.com/yRsVLtdOrhGhD7Lb_qfZVbjo1Z-3YOZxYx9xEFa3Q8mcRJEr1K3GvzXyZ3sLoiFObrivyBjeiAKqUyQ=w1918-h968-rw" width="250" height ="500"> 
-  
-### Build Status
-[![Build Status](https://travis-ci.org/harmittaa/LukeApp.svg?branch=master)](https://travis-ci.org/harmittaa/LukeApp)
+<img src="https://i.imgur.com/QagnraC.jpg" width="250" height ="500"><img src="https://i.imgur.com/t8JLPJY.jpg" width="250" height ="500"> <img src="https://i.imgur.com/AEI7BvD.jpg" width="250" height ="500"> 
