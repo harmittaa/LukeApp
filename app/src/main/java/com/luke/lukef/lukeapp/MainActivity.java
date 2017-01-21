@@ -680,6 +680,25 @@ Public License instead of this License.  But first, please read
 
  */
 
+/**
+ * Contributors:
+ * Daniel Zakharin
+ * Matti Mäkiki-Kihniä
+ */
+
+/*
+NEXT STEPS:
+
+1. Change Api Key for Google Maps               ✔
+2. Documentation
+3. Fix App to run on older Android Version
+4. Fix Bugs:
+    - Crash with no internet access
+    - Drawer info not emptied on logout
+    - Move remaining common methods to LukeUtils / LukeNetUtils
+    - Check and ask for permissions in critical places
+ */
+
 package com.luke.lukef.lukeapp;
 
 import android.support.annotation.NonNull;
@@ -697,9 +716,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -717,7 +734,6 @@ import java.util.List;
 import java.util.Map;
 
 import android.Manifest;
-import android.animation.ObjectAnimator;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -727,12 +743,15 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.location.Location;
 import android.os.Build;
 
 
 /**
- * Main activity of the app. Contains a view where fragments are cycled. The fragments contain all the functional parts. Also contains logic for drawer
+ * Main activity of the app.
+ * <p>
+ * Contains a view where fragments ({@link MapViewFragment}, {@link NewSubmissionFragment}, {@link ProfileFragment}, {@link LeaderboardFragment}) are cycled.
+ * The fragments contain all the implementation, MainActivity is used only for switching fragments and tasks requiring an {@link android.app.Activity Activity}.</p>
+ * Also contains logic for drawer.
  */
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
@@ -756,7 +775,6 @@ public class MainActivity extends AppCompatActivity {
         this.drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         this.navigationView = (NavigationView) findViewById(R.id.nav_view);
         this.fullScreenImageView = (ImageView) findViewById(R.id.fullscreenImage);
-        //Menu menu = this.navigationView.getMenu();
 
         View hView = navigationView.getHeaderView(0);
         this.drawerUsername = (TextView) hView.findViewById(R.id.drawerUsername);
@@ -764,9 +782,9 @@ public class MainActivity extends AppCompatActivity {
         this.drawerUserProfileImage = (ImageView) hView.findViewById(R.id.drawerUserProfileImage);
 
         //Custom header in Navigation Drawer
-        View header = this.navigationView.getHeaderView(0);
+        /*View header = this.navigationView.getHeaderView(0);
         this.progressStatus = 25;
-        Drawable drawable = ResourcesCompat.getDrawable(getResources(), R.drawable.progress_bar, null);
+        Drawable drawable = ResourcesCompat.getDrawable(getResources(), R.drawable.progress_bar, null);*/
 
         setupDrawerActions(this.navigationView);
         //activate map fragment as default
@@ -781,7 +799,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Switches the <code>fragment_container</code> Relative Layout from activity_main.xml to the
+     * Switches the <code>fragment_container</code> RelativeLayout from <code>activity_main.xml</code> to the
      * fragment which is chosen.
      *
      * @param fragmentToChange Constants enum type defined for each fragment
@@ -792,20 +810,13 @@ public class MainActivity extends AppCompatActivity {
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         Fragment fragment = null;
         String tag = "default";
-        // cases are enumerations
+        // cases are enumerations, create new fragment corresponding with the enum given
         switch (fragmentToChange) {
-            case FRAGMENT_CONFIRMATION:
-                // create the fragment object
-                fragment = new ConfirmationFragment();
-                break;
             case FRAGMENT_LEADERBOARD:
                 fragment = new LeaderboardFragment();
                 tag = "leader";
                 break;
             case FRAGMENT_NEW_SUBMISSION:
-                /*if (getCurrentFragment(fragmentManager) instanceof MapViewFragment) {
-                    bundleToSend = constructBundleFromMap((MapViewFragment) getCurrentFragment(fragmentManager));
-                }*/
                 fragment = new NewSubmissionFragment();
                 tag = "newSub";
                 break;
@@ -817,20 +828,25 @@ public class MainActivity extends AppCompatActivity {
                 fragment = new MapViewFragment();
                 tag = "map";
                 break;
+            default:
+                fragment = null;
+                break;
         }
         //replace the fragment
-        if (bundleToSend != null) {
+        if (bundleToSend != null && fragment != null) {
             fragment.setArguments(bundleToSend);
         }
-        fragmentTransaction.replace(R.id.fragment_container, fragment, tag).addToBackStack(tag).commit();
+        if (fragment != null) {
+            fragmentTransaction.replace(R.id.fragment_container, fragment, tag).addToBackStack(tag).commit();
 
+        }
     }
 
 
     /**
-     * Shows the given image as full screen
+     * Sets a {@link Bitmap} to be shown in the fullscreen view
      *
-     * @param b The Bitmap to be shown
+     * @param b The {@link Bitmap} to be shown
      */
     public void setFullScreenImageViewImage(final Bitmap b) {
         runOnUiThread(new Runnable() {
@@ -846,6 +862,7 @@ public class MainActivity extends AppCompatActivity {
      *
      * @param isVisible whether the image is shown fullscreen, true = is shown, false = hidden
      */
+    // NOT THE WAY TO DO THIS, BUT WORKS FOR NOW
     public void setFullScreenImageViewVisibility(final boolean isVisible) {
         runOnUiThread(new Runnable() {
             @Override
@@ -868,12 +885,12 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private Fragment getCurrentFragment(FragmentManager fm) {
-        return fm.findFragmentById(R.id.fragment_container);
-    }
-
     // TODO: 12/12/2016 DANIEL move ot LukeUtils?
-    private void checkPermissions() {
+
+    /**
+     * Checks all permissions required by the App to function
+     */
+    public void checkPermissions() {
         List<String> permissions = new ArrayList<>();
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
@@ -889,6 +906,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /*
+    Called automatically when permissions have been checked
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
@@ -910,7 +930,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    //Implementation of Navigation Drawer
+    /**
+     * Override of default {@link #onBackPressed() onBackPressed} functinality.
+     * <p>
+     *     Checks for situations where drawer or fullscreen images are open.
+     *     In some cases going from {@link MapViewFragment} to another fragment and then back, will result in a bad slowdown. In these cases, instead of going through the backstack, initiate a regular fragment switch.
+     *     Needs to be figured out and fixed in future.
+     * </p>
+     */
     @Override
     public void onBackPressed() {
         Fragment f = getFragmentManager().findFragmentById(R.id.fragment_container);
@@ -942,7 +969,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Navigating between menu items
+     * Sets up navigation through menu items in the drawer
      *
      * @param navigationView The navigation view that holds the drawer buttons
      */
@@ -1020,7 +1047,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Sets user data to the drawer
+     * Sets currently logged users data into the drawer fields
      */
     private void setDrawerUserData() {
         Bitmap b;
@@ -1040,6 +1067,10 @@ public class MainActivity extends AppCompatActivity {
         this.drawerUserProfileImage.setImageBitmap(b);
     }
 
+    /**
+     * Displays a toast on the screen
+     * @param toastString Message to be shown in the toast
+     */
     public void makeToast(String toastString) {
         Toast.makeText(this, toastString, Toast.LENGTH_SHORT).show();
     }

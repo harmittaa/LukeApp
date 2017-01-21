@@ -94,7 +94,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     private List<String> submissionMarkerIdList;
     private GoogleApiClient googleApiClient;
     private LocationRequest locationRequest;
-    private Location longPressLoc;
     private ImageButton menuButton;
     private ImageButton filtersButon;
     private ImageButton newSubmissionButton;
@@ -174,15 +173,16 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
 
 
     /**
-     * Opens up {{@link com.luke.lukef.lukeapp.fragments.NewSubmissionFragment} if user is logged in,
+     * Switches to {@link NewSubmissionFragment} if user is logged in, GPS is on and there is a internet connection. Else
      * shows pop up to login if not.
      */
     private void activateNewSubmission() {
         if (SessionSingleton.getInstance().isUserLogged()) {
             if (LukeUtils.checkGpsStatus(getMainActivity())) {
                 if (LukeUtils.checkInternetStatus(getMainActivity())) {
-                    switchFragment(constructBundle(getLastLoc()));
+                    switchToNewSubmissions(constructBundle(getLastLoc()));
                 } else {
+                    // TODO: 21.1.2017 prompt user to turn on gps / internet
                     getMainActivity().makeToast("No internet connection");
                 }
             } else {
@@ -193,7 +193,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         }
     }
 
-    private void switchFragment(Bundle bundle) {
+    private void switchToNewSubmissions(Bundle bundle) {
         getMainActivity().fragmentSwitcher(Constants.fragmentTypes.FRAGMENT_NEW_SUBMISSION, bundle);
     }
 
@@ -213,8 +213,10 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     }
 
     /**
-     * Creates a login prompt with <b>Login</b> and <b>Cancel</b> buttons
+     * Creates a login prompt with <b>Login</b> and <b>Cancel</b> buttons. Login button takes user to the starting screen
      */
+    // TODO: 21.1.2017 change the style of the prompt to match style of the App
+    // TODO: 21.1.2017 move to LukeUtils
     private void createLoginPrompt() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getMainActivity());
         builder.setMessage("Please Log in to Submit")
@@ -235,7 +237,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     }
 
     /**
-     * Hides the new submission pop up
+     * Unhides the submissions popup
      */
     public void unhidePopup() {
         this.submissionPopup.unHidePopup();
@@ -258,19 +260,17 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     }
 
     /**
-     * Setup method for open street map in this fragment
-     * Enables touch controls
-     * Sets starting position and zooms in
+     * Sets up the Google Map Fragment
      */
     private void setupGoogleMap() {
-        //init map
-        //get current phone position and zoom to location
         LocationManager lm = (LocationManager) getMainActivity().getSystemService(Context.LOCATION_SERVICE);
+        //check for permissions and get last known location of the device
         if (ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getMainActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: 21/11/2016 ask for permission
-            Log.e(TAG, "setupGoogleMap: ASK FOR PERMISSION");
+            getMainActivity().checkPermissions();
+            this.lastKnownLoc = lm.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
+        } else {
+            this.lastKnownLoc = lm.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
         }
-        this.lastKnownLoc = lm.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
     }
 
     /**
@@ -294,7 +294,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
      * @return {@link Location} object
      */
     private Location fetchArgsFromBundle() {
-        Bundle b = getArguments();  // getMainActivity().getIntent().getExtras();
+        Bundle b = getArguments();
         if (b != null && b.containsKey("latitude")) {
             Location location = new Location("jes");
             location.setLatitude(b.getDouble("latitude"));
@@ -342,6 +342,9 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         this.googleApiClient.connect();
     }
 
+    /**
+     * Makes a locationrequest to track the location of the user on the map
+     */
     protected void createLocationRequest() {
         this.locationRequest = new LocationRequest();
         this.locationRequest.setInterval(5000);
@@ -548,9 +551,10 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     public boolean onClusterItemClick(ClusterMarker clusterMarker) {
         boolean isAdminMarker = true;
         if (clusterMarker instanceof ClusterMarkerAdmin) {
-            AdminMarkerPopup adminMarkerPopup = new AdminMarkerPopup(clusterMarker.getSubmissionId(),getMainActivity());
+            AdminMarkerPopup adminMarkerPopup = new AdminMarkerPopup(clusterMarker.getSubmissionId(), getMainActivity());
             adminMarkerPopup.createPopupTest();
         } else {
+            //deprecated code left in because of time constraints, should remove isAdminmarker boolean from submissionpopup
             isAdminMarker = false;
             submissionPopup = new SubmissionPopup(getMainActivity());
             submissionPopup.createPopup(clusterMarker.getSubmissionId(), isAdminMarker);
@@ -584,7 +588,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
                         Location location = new Location("");
                         location.setLatitude(latLng.latitude);
                         location.setLongitude(latLng.longitude);
-                        switchFragment(constructBundle(location));
+                        switchToNewSubmissions(constructBundle(location));
                     } else {
                         getMainActivity().makeToast("You need to log in to do this");
                     }
@@ -602,7 +606,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     }
 
     /**
-     * Gets called when user has stopped moving the map
+     * Gets called when user has stopped moving the map, filters visibler submissions depending on the visible map area
      */
     @Override
     public void onCameraIdle() {
@@ -653,6 +657,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
             //                                          int[] grantResults)
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
+            getMainActivity().checkPermissions();
             return;
         }
         this.lastKnownLoc = LocationServices.FusedLocationApi.getLastLocation(

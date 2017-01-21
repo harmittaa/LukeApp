@@ -72,7 +72,7 @@
             android:value="AIzaSyDoKuZUgxw9tew9F9CH0n60vURWK9OS0Sk" />-->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyD4AFZBvA2mMOzhYtXcjmUTeUCmCycxffw"/>
+            android:value="AIzaSyBonEtg5UTC1inVHbZi98Vg4JN5DRBG9SU"/>
 
         <service android:name=".tools.SubmissionFetchService" />
 
