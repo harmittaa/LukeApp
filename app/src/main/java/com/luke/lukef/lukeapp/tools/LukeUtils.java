@@ -80,6 +80,12 @@ public class LukeUtils {
     }
 
 
+    /**
+     * Parses a JSONObject into a Submission object
+     * @param jsonObject JSONObject to be parsed
+     * @return Submission object
+     * @throws JSONException
+     */
     public static Submission parseSubmissionFromJsonObject(JSONObject jsonObject) throws JSONException {
         Submission submission = new Submission();
         if (jsonObject.has("id")) {
@@ -229,6 +235,11 @@ public class LukeUtils {
         alert.show();
     }
 
+    /**
+     * Picks out Category id's from a Submission object, and returns an array of Category objects corresponding to these id's
+     * @param submission submissions whose categories needs to be returned
+     * @return Arraylist of Category objects
+     */
     public static ArrayList<Category> getCategoryObjectsFromSubmission(Submission submission) {
         ArrayList<Category> categories = new ArrayList<>();
         for (String s : submission.getSubmissionCategoryList()) {
@@ -302,6 +313,12 @@ public class LukeUtils {
         return tempCategoryList;
     }
 
+    /**
+     * Parses Link objects from a JSONArray
+     * @param jsonArr JSONArray from which to parse Links
+     * @return Arraylist of Link objects
+     * @throws JSONException
+     */
     public static List<Link> parseLinksFromJsonArray(JSONArray jsonArr) throws JSONException {
         ArrayList<Link> tempLinkList = new ArrayList<>();
         for (int i = 0; i < jsonArr.length(); i++) {
@@ -343,6 +360,12 @@ public class LukeUtils {
         return tempLinkList;
     }
 
+    /**
+     * Parses User objects from JSONObject
+     * @param jsonObject JSONObject from which to parse Users
+     * @return User object
+     * @throws JSONException
+     */
     public static UserFromServer parseUserFromJsonObject(JSONObject jsonObject) throws JSONException {
         UserFromServer userFromServer = new UserFromServer();
         if (jsonObject.has("image_url")) {
@@ -366,6 +389,12 @@ public class LukeUtils {
         return userFromServer;
     }
 
+    /**
+     * Parses Rank objects from an JSONArray
+     * @param jsonArray JSONArray from which to parse Ranks
+     * @return Arraylist of Rank objects
+     * @throws JSONException
+     */
     public static ArrayList<Rank> parseRanksFromJsonArray(JSONArray jsonArray) throws JSONException {
         ArrayList<Rank> ranks = new ArrayList<>();
         for (int i = 0; i < jsonArray.length(); i++) {

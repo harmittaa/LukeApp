@@ -45,7 +45,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
 /**
- * Handles login skip or Auth0
+ * Handles the login screen as well as logging in with Auth0
  */
 public class WelcomeActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String TAG = "WelcomeActivity";
@@ -103,7 +103,11 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
-
+    /**
+     * Activates the Auth0 sign in process
+     * @param clientId id of the Auth0 client
+     * @param domain Auth0 domain
+     */
     private void doLogin(String clientId, String domain) {
         Auth0 auth0 = new Auth0(clientId, domain);
         this.lock = Lock.newBuilder(auth0, this.callBack)
@@ -114,6 +118,9 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         startActivity(this.lock.newIntent(this));
     }
 
+    /**
+     * Gets called when the Auth0 login process is done
+     */
     private final LockCallback callBack = new AuthenticationCallback() {
         @Override
         public void onAuthentication(Credentials credentials) {

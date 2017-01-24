@@ -552,7 +552,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         boolean isAdminMarker = true;
         if (clusterMarker instanceof ClusterMarkerAdmin) {
             AdminMarkerPopup adminMarkerPopup = new AdminMarkerPopup(clusterMarker.getSubmissionId(), getMainActivity());
-            adminMarkerPopup.createPopupTest();
+            adminMarkerPopup.createPopupAdmin();
         } else {
             //deprecated code left in because of time constraints, should remove isAdminmarker boolean from submissionpopup
             isAdminMarker = false;

@@ -720,7 +720,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.luke.lukef.lukeapp.fragments.ConfirmationFragment;
 import com.luke.lukef.lukeapp.fragments.LeaderboardFragment;
 import com.luke.lukef.lukeapp.fragments.MapViewFragment;
 import com.luke.lukef.lukeapp.fragments.NewSubmissionFragment;

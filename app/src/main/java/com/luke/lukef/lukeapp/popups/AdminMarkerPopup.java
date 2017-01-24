@@ -33,6 +33,10 @@ import java.util.concurrent.ExecutionException;
  * Created by Daniel on 15/12/2016.
  */
 
+/**
+ * Popup to be displayed on the {@link com.luke.lukef.lukeapp.fragments.MapViewFragment MapViewFragment} when an adminmarker is clicked. Handles setting up all the view of the popup.
+ */
+
 public class AdminMarkerPopup implements View.OnClickListener {
     private Cursor queryCursor;
     private String adminMarkerId;
@@ -53,7 +57,7 @@ public class AdminMarkerPopup implements View.OnClickListener {
         this.mainActivity = mainActivity;
     }
 
-    public void createPopupTest() {
+    public void createPopupAdmin() {
 
         this.dialog = new Dialog(mainActivity);
         // Include dialog.xml file
@@ -125,13 +129,6 @@ public class AdminMarkerPopup implements View.OnClickListener {
         }
     }
 
-    public String getAdminMarkerId() {
-        return adminMarkerId;
-    }
-
-    public void setAdminMarkerId(String adminMarkerId) {
-        this.adminMarkerId = adminMarkerId;
-    }
 
 
 }

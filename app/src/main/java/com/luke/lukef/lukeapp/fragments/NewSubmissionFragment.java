@@ -227,6 +227,11 @@ public class NewSubmissionFragment extends Fragment implements View.OnClickListe
         this.photoFile = image;
     }
 
+
+    /*
+    This method gets called once the camera intent is done.
+    Gets the image that was taken with the camera, sets it in the imageview
+     */
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {

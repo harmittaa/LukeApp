@@ -36,6 +36,9 @@ import java.util.concurrent.ExecutionException;
 
 import static com.luke.lukef.lukeapp.WelcomeActivity.REQUEST_IMAGE_CAPTURE;
 
+/**
+ * Gets displayed when a user logs in for the first time, or when the user edits their profile.
+ */
 public class NewUserActivity extends AppCompatActivity implements View.OnClickListener, RadioGroup.OnCheckedChangeListener, Auth0Responder {
     private static final String TAG = "NewUserActivity";
     private boolean isEditing = false;
@@ -77,12 +80,13 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (!TextUtils.isEmpty(userNameEditText.getText())) {
                     if (attemptSetUsername(userNameEditText.getText().toString())) {
-                        // TODO: 05/12/2016 change activity
                         Log.e(TAG, "onEditorAction: SHOULD CHANGE ACTIVITY NOW");
                         startActivity(new Intent(NewUserActivity.this, MainActivity.class));
                     } else {
                         Log.e(TAG, "onEditorAction: SOME ERROR HAPPENED?");
                         // TODO: 05/12/2016 display error
+                        makeToast("Username taken");
+
                     }
                 } else if (isEditing) {
                     startActivity(new Intent(NewUserActivity.this, MainActivity.class));
@@ -96,6 +100,9 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
                 WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
     }
 
+    /**
+     * Checks the bundle passed with the intent to determine whether it has been started to edit a profile or as a first time login
+     */
     private void checkBundle() {
         if (getIntent().getExtras() != null) {
             this.isEditing = getIntent().getExtras().getBoolean("isEditing");
@@ -103,6 +110,14 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
         } else {
             this.isEditing = false;
         }
+    }
+
+    /**
+     * Displays a toast on the screen
+     * @param toastString Message to be shown in the toast
+     */
+    public void makeToast(String toastString) {
+        Toast.makeText(this, toastString, Toast.LENGTH_SHORT).show();
     }
 
     @Override

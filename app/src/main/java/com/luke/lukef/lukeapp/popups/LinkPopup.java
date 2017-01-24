@@ -14,7 +14,7 @@ import com.luke.lukef.lukeapp.R;
 import com.luke.lukef.lukeapp.model.Link;
 
 /**
- * Created by Daniel on 13/12/2016.
+ * Handles creating and displaying the link popup that comes up when starting the app.
  */
 
 public class LinkPopup {

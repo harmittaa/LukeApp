@@ -384,6 +384,13 @@ public class LukeNetUtils {
 
     }
 
+    /**
+     * Fetches the currently logged user from the server
+     * @return User object corresponding to the currently logged user
+     * @throws IOException
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
     public UserFromServer getOwnUser() throws IOException, ExecutionException, InterruptedException {
         Callable<UserFromServer> userFromServerCallable = new Callable<UserFromServer>() {
             @Override
@@ -404,6 +411,7 @@ public class LukeNetUtils {
     /**
      * Fetches user data like ID, image and URL from the server
      */
+    // TODO: 24.1.2017 use lukeutils getOwnUser method insted
     private class FetchUserDataTask extends AsyncTask<Void, Void, Void> {
         private WelcomeActivity welcomeActivity;
         UserFromServer userFromServer;
@@ -448,6 +456,11 @@ public class LukeNetUtils {
 
     }
 
+    /**
+     * Attempts to log in into the luke api. If succesful, starts a task to fetch users data
+     * @param welcomeActivity
+     * @param idToken
+     */
     public void attemptLogin(final WelcomeActivity welcomeActivity, final String idToken) {
 
         Callable<Boolean> booleanCallable = new Callable<Boolean>() {
@@ -490,6 +503,10 @@ public class LukeNetUtils {
 
     }
 
+    /**
+     * Fetches the newest link from the backend
+     * @return Link object of the newest link on the backend
+     */
     public Link getNewestLink() {
         Callable<Link> linkCallable = new Callable<Link>() {
             @Override
@@ -513,6 +530,12 @@ public class LukeNetUtils {
         }
     }
 
+    /**
+     * Fewtches all users from the backend.
+     * @return Arraylist of User objects
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
     public ArrayList<UserFromServer> getAllUsers() throws ExecutionException, InterruptedException {
 
         Callable<ArrayList<UserFromServer>> userFromServerCallable = new Callable<ArrayList<UserFromServer>>() {
@@ -539,6 +562,12 @@ public class LukeNetUtils {
 
     }
 
+    /**
+     * Fetches all ranks from the backend
+     * @return Arraylist of Rank objects
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
     public ArrayList<Rank> getAllRanks() throws ExecutionException, InterruptedException {
         Callable<ArrayList<Rank>> arrayListCallable = new Callable<ArrayList<Rank>>() {
             @Override
@@ -555,6 +584,12 @@ public class LukeNetUtils {
         return arrayListFutureTask.get();
     }
 
+    /**
+     * Generic get method for the luke api
+     * @param urlString Url to send the request to
+     * @return Response of the request as a String
+     * @throws IOException
+     */
     private String getMethod(String urlString) throws IOException {
         URL lukeURL = new URL(urlString);
         HttpURLConnection httpURLConnection = (HttpURLConnection) lukeURL.openConnection();
@@ -578,6 +613,12 @@ public class LukeNetUtils {
         }
     }
 
+    /**
+     * Generic post method for the luke api.
+     * @param urlString Url to send the request to
+     * @param params Parameters to send with the request as a String
+     * @return boolean indicating the success of the request
+     */
     private boolean postMethod(String urlString, String params) {
         try {
             HttpURLConnection conn;
@@ -626,6 +667,13 @@ public class LukeNetUtils {
         }
     }
 
+    /**
+     * Method for asynchronously fetching an image from the internet and setting it into an imageView
+     * @param imageViewToSet ImageView where the image will be set
+     * @param url Url of the image as a String
+     * @param defaultImageId Default image id, in case the online image is unavailable
+     * @param activity Activity that can run setting the imageView on a UiThread
+     */
     public static void imageSetupTask(ImageView imageViewToSet, String url, final int defaultImageId, Activity activity){
         class LoadImageTask extends AsyncTask<Void, Void, Void> {
 
@@ -649,7 +697,7 @@ public class LukeNetUtils {
                     try {
                         this.bitmap = lukeNetUtils.getBitmapFromURL(urlString);
                     } catch (ExecutionException | InterruptedException e) {
-                        Log.e("PERKELE", "doInBackground: ", e);
+                        Log.e("ImageAsyncTask", "doInBackground: ", e);
                     }
                 } else {
                     this.bitmap = null;

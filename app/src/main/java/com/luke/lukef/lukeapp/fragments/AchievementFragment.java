@@ -10,7 +10,7 @@ import android.view.ViewGroup;
 import com.luke.lukef.lukeapp.R;
 
 /**
- * Created by Bang Nguyen on 11/15/2016.
+ * Fragment that gets displayed in the tab view of a users profile. Implementation not done, this fragment is empty
  */
 
 public class AchievementFragment extends Fragment {

@@ -5,7 +5,7 @@ package com.luke.lukef.lukeapp;
  */
 public class Constants {
     public enum fragmentTypes {
-        FRAGMENT_CONFIRMATION, FRAGMENT_LEADERBOARD, FRAGMENT_MAP, FRAGMENT_NEW_SUBMISSION, FRAGMENT_PROFILE
+         FRAGMENT_LEADERBOARD, FRAGMENT_MAP, FRAGMENT_NEW_SUBMISSION, FRAGMENT_PROFILE
     }
 
     public enum markerCategories {

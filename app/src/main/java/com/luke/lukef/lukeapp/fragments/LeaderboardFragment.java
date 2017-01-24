@@ -37,6 +37,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Fragment that displays a listview of top users. Clicking a list item takes the user to the page of the user they clicked.
+ */
 
 public class LeaderboardFragment extends Fragment implements View.OnClickListener {
     private View fragmentView;
@@ -67,11 +70,17 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
         }
     }
 
+    /**
+     * Configures the listview of the fragment. First fetches all users from the backend, then filters out users with no score, then arranges them by most points.
+     * Currently sorting and filtering is done on the front end, because of this it is run in a seperate thread.
+     */
+    // TODO: 24.1.2017 Ideally, sorting and filtering would happen on the backend.
     private void setupListView() {
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
+                    //get all users from the backend, store in an array
                     ArrayList<UserFromServer> userFromServersAll = lukeNetUtils.getAllUsers();
                     userFromServersAll = sortOutNoScoreUsers(userFromServersAll);
                     //sort by whose score is bigger
@@ -81,6 +90,7 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
                             return Integer.valueOf(o2.getScore()).compareTo(o1.getScore());
                         }
                     });
+                    //create adapter for the listview
                     final UserListViewAdapter userListViewAdapter = new UserListViewAdapter(getMainActivity(), R.layout.leaderboard_list_item, userFromServersAll);
                     getMainActivity().runOnUiThread(new Runnable() {
                         @Override
@@ -96,10 +106,12 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
             }
         });
         t.start();
+        //set item click listener to move user to profile fragment for a specific user
         leaderboardListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 try {
+                    //get the user from the list, put the id in to a bundle, use framgnet switcher to switch to profile
                     UserFromServer userFromServer = (UserFromServer) parent.getItemAtPosition(position);
                     Bundle b = new Bundle();
                     b.putString("userId",userFromServer.getId());
@@ -112,6 +124,11 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
         });
     }
 
+    /**
+     * Sorts an arraylist of users to exclude any with 0 score
+     * @param allUsers list of users to sort
+     * @return An arrylist of users with a score above 0
+     */
     private ArrayList<UserFromServer> sortOutNoScoreUsers(ArrayList<UserFromServer> allUsers){
         ArrayList<UserFromServer> tempList = new ArrayList<>();
         for (UserFromServer u : allUsers){
@@ -130,6 +147,9 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
         return (MainActivity) getActivity();
     }
 
+    /**
+     * List adapter that works with a list of users
+     */
     private class UserListViewAdapter extends ArrayAdapter<UserFromServer> {
 
         LayoutInflater layoutInflater = (LayoutInflater) getMainActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
