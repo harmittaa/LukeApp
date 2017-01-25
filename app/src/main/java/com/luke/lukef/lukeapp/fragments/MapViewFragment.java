@@ -108,8 +108,8 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         this.submissionMarkerIdList = new ArrayList<>();
 
-        setupGoogleMap();
         connectToGoogleApi();
+        setupGoogleMap();
         createLocationRequest();
 
         if (this.fragmentView != null) {
@@ -120,7 +120,12 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         try {
             this.fragmentView = inflater.inflate(R.layout.fragment_map, container, false);
             this.mapFragment = ((MapFragment) getChildFragmentManager().findFragmentById(R.id.googleMapFragment));
+            //check if fragment is null. On API 19 childfragmentmanager returns null, so regular fragment manager is used
+            if (this.mapFragment == null) {
+                this.mapFragment = ((MapFragment) getFragmentManager().findFragmentById(R.id.googleMapFragment));
+            }
             this.mapFragment.getMapAsync(this);
+
         } catch (InflateException e) {
             Log.e(TAG, "onCreateView: ", e);
             this.mapFragment.getMapAsync(this);
@@ -885,7 +890,6 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
         private LayerDrawable makeClusterBackground(int borderColor) {
             // Outline color
             int clusterOutlineColor = ContextCompat.getColor(getContext(), borderColor);
-
             this.mColoredCircleBackground = new ShapeDrawable(new OvalShape());
             ShapeDrawable outline = new ShapeDrawable(new OvalShape());
             outline.getPaint().setColor(clusterOutlineColor);
