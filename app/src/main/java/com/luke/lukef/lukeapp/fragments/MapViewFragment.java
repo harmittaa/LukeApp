@@ -76,6 +76,8 @@ import java.util.List;
 /**
  * Handles the Map view, fetches submissions, populates map with Submissions and Admin markers
  */
+
+// TODO: 25.1.2017 Add ContextCompat to MainActivity so it can work in older android version
 public class MapViewFragment extends Fragment implements View.OnClickListener, OnMapReadyCallback, OnCameraIdleListener,
         GoogleApiClient.OnConnectionFailedListener,
         GoogleApiClient.ConnectionCallbacks,
@@ -118,6 +120,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
                 parent.removeView(this.fragmentView);
         }
         try {
+            if(this.fragmentView == null)
             this.fragmentView = inflater.inflate(R.layout.fragment_map, container, false);
             this.mapFragment = ((MapFragment) getChildFragmentManager().findFragmentById(R.id.googleMapFragment));
             //check if fragment is null. On API 19 childfragmentmanager returns null, so regular fragment manager is used
@@ -128,7 +131,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
 
         } catch (InflateException e) {
             Log.e(TAG, "onCreateView: ", e);
-            this.mapFragment.getMapAsync(this);
+            //this.mapFragment.getMapAsync(this);
         }
         setupButtons();
         return this.fragmentView;
@@ -137,6 +140,11 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        //this prevents crash on older devices due to duplicate fragments
+        MapFragment f = (MapFragment) getFragmentManager()
+                .findFragmentById(R.id.googleMapFragment);
+        if (f != null)
+            getFragmentManager().beginTransaction().remove(f).commit();
     }
 
     @Override
@@ -807,16 +815,16 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
             // Set cluster color based on what items there's the most
             switch (findElementWithMostOccurrences(cluster)) {
                 case POSITIVE:
-                    clusterColor = ContextCompat.getColor(getContext(), R.color.marker_positive);
+                    clusterColor = getMainActivity().getContextCompatColor(R.color.marker_positive);
                     break;
                 case NEUTRAL:
-                    clusterColor = ContextCompat.getColor(getContext(), R.color.marker_neutral);
+                    clusterColor = getMainActivity().getContextCompatColor( R.color.marker_neutral);
                     break;
                 case NEGATIVE:
-                    clusterColor = ContextCompat.getColor(getContext(), R.color.marker_negative);
+                    clusterColor = getMainActivity().getContextCompatColor(R.color.marker_negative);
                     break;
                 default:
-                    clusterColor = ContextCompat.getColor(getContext(), R.color.marker_neutral);
+                    clusterColor = getMainActivity().getContextCompatColor( R.color.marker_neutral);
                     break;
             }
 
@@ -889,7 +897,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
          */
         private LayerDrawable makeClusterBackground(int borderColor) {
             // Outline color
-            int clusterOutlineColor = ContextCompat.getColor(getContext(), borderColor);
+            int clusterOutlineColor = getMainActivity().getContextCompatColor( borderColor);
             this.mColoredCircleBackground = new ShapeDrawable(new OvalShape());
             ShapeDrawable outline = new ShapeDrawable(new OvalShape());
             outline.getPaint().setColor(clusterOutlineColor);

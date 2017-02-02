@@ -903,6 +903,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public int getContextCompatColor(int iD){
+        return ContextCompat.getColor(this, iD);
+    }
+
     /*
     Called automatically when permissions have been checked
      */
