@@ -13,6 +13,7 @@ import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
+import android.provider.Settings;
 import android.support.v4.content.ContextCompat;
 import android.util.Base64;
 import android.util.Log;
@@ -45,7 +46,7 @@ import java.util.Locale;
  */
 public class LukeUtils {
     private static final String TAG = "LukeUtils";
-    private static final String noInternet = "Making a submission requires an Internet Connection. Enable Internet now?";
+    private static final String noInternet = "The Baltic app requires an Internet Connection to work. Enable Internet now?";
     private static final String noGps = "Making a submission requires GPS to be enabled. Enable GPS now?";
 
     /**
@@ -204,7 +205,7 @@ public class LukeUtils {
         if (netInfo != null && netInfo.isConnectedOrConnecting()) {
             return true;
         } else {
-            alertDialogBuilder(context, noInternet, android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+            alertDialogBuilder(context, noInternet, Settings.ACTION_WIRELESS_SETTINGS);
             return false;
         }
     }

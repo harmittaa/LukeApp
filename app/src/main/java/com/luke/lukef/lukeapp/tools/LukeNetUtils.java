@@ -349,7 +349,7 @@ public class LukeNetUtils {
             Submission submission = LukeUtils.parseSubmissionFromJsonObject(jsonArray.getJSONObject(0));
             return submission;
         } catch (IOException e) {
-            Log.e(TAG, "Exception with fetching data: " + e.toString());
+            Log.e(TAG, "Exception with fetching data: ",e);
             return null;
         } catch (JSONException e) {
             Log.e(TAG, "getSubmissionFromId: ", e);

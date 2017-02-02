@@ -57,6 +57,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     private String accessToken = "";
     private LukeNetUtils lukeNetUtils;
     TextView title;
+    boolean dataServiceStarted = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,11 +70,14 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         this.loginButton.setOnClickListener(this);
         this.skipLoginButton.setOnClickListener(this);
         requestPermission();
-        startService(new Intent(this, SubmissionFetchService.class));
-        getCategories();
-        getRanks();
-        ShowLinkTask showLinkTask = new ShowLinkTask();
-        showLinkTask.execute();
+        if(LukeUtils.checkInternetStatus(this)) {
+            startService(new Intent(this, SubmissionFetchService.class));
+            this.dataServiceStarted = true;
+            getCategories();
+            getRanks();
+            ShowLinkTask showLinkTask = new ShowLinkTask();
+            showLinkTask.execute();
+        }
 
     }
 
@@ -87,14 +91,17 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         switch (v.getId()) {
             case R.id.skipLoginButton:
                 if (LukeUtils.checkInternetStatus(this)) {
-                    SessionSingleton.getInstance().setUserLogged(false);
-                    startActivity(new Intent(WelcomeActivity.this, MainActivity.class));
+                    SessionSingleton.getInstance().setUserLogged(false);if(!dataServiceStarted) {
+                        startService(new Intent(WelcomeActivity.this, SubmissionFetchService.class));
+                        getCategories();
+                        getRanks();
+                        startActivity(new Intent(WelcomeActivity.this, MainActivity.class));
+                    }
                 }
 
                 break;
             case R.id.loginButton:
                 if (LukeUtils.checkInternetStatus(this)) {
-                    SessionSingleton.getInstance().setUserLogged(false);
                     Auth0SetupTask auth0SetupTask = new Auth0SetupTask(getString(R.string.auth0URL));
                     auth0SetupTask.execute();
 
@@ -130,6 +137,12 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
             SessionSingleton.getInstance().setIdToken(idToken);
             Log.e(TAG, "onAuthentication: idToken " + idToken);
             lukeNetUtils.attemptLogin(WelcomeActivity.this, idToken);
+            if(!dataServiceStarted) {
+                startService(new Intent(WelcomeActivity.this, SubmissionFetchService.class));
+                getCategories();
+                getRanks();
+            }
+
         }
 
         @Override

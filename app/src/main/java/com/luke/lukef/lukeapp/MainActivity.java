@@ -691,9 +691,9 @@ NEXT STEPS:
 
 1. Change Api Key for Google Maps               ✔
 2. Documentation
-3. Fix App to run on older Android Version
+3. Fix App to run on older Android Version      ✔ (needs more testing)
 4. Fix Bugs:
-    - Crash with no internet access
+    - Crash with no internet access             (int progress)
     - Drawer info not emptied on logout
     - Move remaining common methods to LukeUtils / LukeNetUtils
     - Check and ask for permissions in critical places
@@ -903,6 +903,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //get around older devices not having contextcompat in fragments
     public int getContextCompatColor(int iD){
         return ContextCompat.getColor(this, iD);
     }
