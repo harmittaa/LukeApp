@@ -6,6 +6,14 @@
 
 The Baltic App is a collaboration between LUKE, Metropolia and Bonus. The objective of this project was to create an application for monitoring the condition of the Baltic sea through user created reports, for the benefit of researchers and the general public. The application can be used to submit reports on the condition of the environment as well as viewing reports made by other users, to determine the condition of a location. The application consists of android application as well as an admin panel and server.
 
+# Contributors
+Android Development & Design:
+  Matti-Mäkikihniä
+  Daniel Zakharin
+Design:
+  Janne Pelkonen
+  Samppa Sassi
+
 ### Key Functionalities
   - Loggin in with social media or email
   - User profile creation with profile image and username
