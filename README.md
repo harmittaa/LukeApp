@@ -10,6 +10,7 @@ The Baltic App is a collaboration between LUKE, Metropolia and Bonus. The object
 Android Development & Design:
   Matti-Mäkikihniä
   Daniel Zakharin
+  
 Design:
   Janne Pelkonen
   Samppa Sassi
