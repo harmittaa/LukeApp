@@ -1,6 +1,3 @@
-// LICENSE
-
-
 /*
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
@@ -624,66 +621,33 @@ copy of the Program in return for a fee.
 
                      END OF TERMS AND CONDITIONS
 
-            How to Apply These Terms to Your New Programs
+*/
 
-  If you develop a new program, and you want it to be of the greatest
-possible use to the public, the best way to achieve this is to make it
-free software which everyone can redistribute and change under these terms.
+/*
+        BalticApp, for studying and tracking the condition of the Baltic sea
+        and Gulf of Finland throug user submissions.
+        Copyright (C) 2016  Daniel Zakharin, LuKe
 
-  To do so, attach the following notices to the program.  It is safest
-to attach them to the start of each source file to most effectively
-state the exclusion of warranty; and each file should have at least
-the "copyright" line and a pointer to where the full notice is found.
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU General Public License as published by
+        the Free Software Foundation, either version 3 of the License, or
+        (at your option) any later version.
 
-    {one line to give the program's name and a brief idea of what it does.}
-    Copyright (C) {year}  {name of author}
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU General Public License for more details.
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+        You should have received a copy of the GNU General Public License
+        along with this program.  If not, see <http://www.gnu.org/licenses/> or
+        the beginning of MainActivity.java file.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-Also add information on how to contact you by electronic and paper mail.
-
-  If the program does terminal interaction, make it output a short
-notice like this when it starts in an interactive mode:
-
-    {project}  Copyright (C) {year}  {fullname}
-    This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'.
-    This is free software, and you are welcome to redistribute it
-    under certain conditions; type `show c' for details.
-
-The hypothetical commands `show w' and `show c' should show the appropriate
-parts of the General Public License.  Of course, your program's commands
-might be different; for a GUI interface, you would use an "about box".
-
-  You should also get your employer (if you work as a programmer) or school,
-if any, to sign a "copyright disclaimer" for the program, if necessary.
-For more information on this, and how to apply and follow the GNU GPL, see
-<http://www.gnu.org/licenses/>.
-
-  The GNU General Public License does not permit incorporating your program
-into proprietary programs.  If your program is a subroutine library, you
-may consider it more useful to permit linking proprietary applications with
-the library.  If this is what you want to do, use the GNU Lesser General
-Public License instead of this License.  But first, please read
-<http://www.gnu.org/philosophy/why-not-lgpl.html>.
-
-
- */
+*/
 
 /**
  * Contributors:
  * Daniel Zakharin
- * Matti Mäkiki-Kihniä
+ * Matti Mäki-Kihniä
  */
 
 /*
@@ -693,10 +657,17 @@ NEXT STEPS:
 2. Documentation
 3. Fix App to run on older Android Version      ✔ (needs more testing)
 4. Fix Bugs:
-    - Crash with no internet access             (int progress)
+    - Crash with no internet access             (in progress)
     - Drawer info not emptied on logout
     - Move remaining common methods to LukeUtils / LukeNetUtils
     - Check and ask for permissions in critical places
+5. Try new implementation of thumbnails
+6. Add 18 year check when signing up
+7. Make Sequence diagrams for network operations
+8. Make Class Diagram
+9. Proofread readme
+10.Add licence stub to all classes
+
  */
 
 package com.luke.lukef.lukeapp;
@@ -904,7 +875,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //get around older devices not having contextcompat in fragments
-    public int getContextCompatColor(int iD){
+    public int getContextCompatColor(int iD) {
         return ContextCompat.getColor(this, iD);
     }
 
@@ -935,9 +906,9 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Override of default {@link #onBackPressed() onBackPressed} functinality.
      * <p>
-     *     Checks for situations where drawer or fullscreen images are open.
-     *     In some cases going from {@link MapViewFragment} to another fragment and then back, will result in a bad slowdown. In these cases, instead of going through the backstack, initiate a regular fragment switch.
-     *     Needs to be figured out and fixed in future.
+     * Checks for situations where drawer or fullscreen images are open.
+     * In some cases going from {@link MapViewFragment} to another fragment and then back, will result in a bad slowdown. In these cases, instead of going through the backstack, initiate a regular fragment switch.
+     * Needs to be figured out and fixed in future.
      * </p>
      */
     @Override
@@ -1071,6 +1042,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Displays a toast on the screen
+     *
      * @param toastString Message to be shown in the toast
      */
     public void makeToast(String toastString) {

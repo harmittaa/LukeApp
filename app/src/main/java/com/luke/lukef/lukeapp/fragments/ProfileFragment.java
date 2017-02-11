@@ -23,7 +23,6 @@ import com.luke.lukef.lukeapp.MainActivity;
 import com.luke.lukef.lukeapp.R;
 import com.luke.lukef.lukeapp.model.UserFromServer;
 import com.luke.lukef.lukeapp.tools.LukeNetUtils;
-import com.luke.lukef.lukeapp.v4fragments.TabFragmentAchievements;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -183,7 +182,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
             super(fm);
             UserSubmissionFragment userSubmissionFragment = new UserSubmissionFragment();
             userSubmissionFragment.setUserId(ProfileFragment.this.userID);
-            TabFragmentAchievements achievementFragment = new TabFragmentAchievements();
+            AchievementFragment achievementFragment = new AchievementFragment();
             this.fragments = new ArrayList<>();
             this.fragments.add(userSubmissionFragment);
             this.fragments.add(achievementFragment);
