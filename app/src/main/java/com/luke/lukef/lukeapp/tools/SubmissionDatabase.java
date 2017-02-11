@@ -125,6 +125,7 @@ public class SubmissionDatabase extends SQLiteOpenHelper {
      *
      * @param jsonArray The JSONArray containing submission JSONObjects
      */
+    // TODO: 11.2.2017 use LukeUtils parsing instead
     void addSubmissions(JSONArray jsonArray) {
         // define the DateFormat in which the submission's date will be presented
         format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH);

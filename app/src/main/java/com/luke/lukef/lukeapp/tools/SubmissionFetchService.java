@@ -38,6 +38,13 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+/**
+ * Service for fetching Submissions in the background and adding them to the Sqlite database.
+ * <p>
+ *     Fetching submissions is done in a service to avoid interruptions and to enable fetching
+ *     even when app is in the background.
+ * </p>
+ */
 public class SubmissionFetchService extends Service {
     private static final String TAG = "SubmissionFetchService";
     private Context context;

@@ -110,6 +110,12 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
         super.onViewRecycled(holder);
     }
 
+    /**
+     * Splits a date String into a date and a time and displays them in seperate TextViews
+     * @param fullDate The full date as a String, containing both a date and a time
+     * @param left TextView on the left side of the card
+     * @param right TextView on the right side of the card
+     */
     private void setupDateTime(final String fullDate, final TextView left, final TextView right) {
         activity.runOnUiThread(new Runnable() {
             @Override
@@ -155,6 +161,10 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
         }
     }
 
+    /**
+     * Asynctask for loading an image into a card. Displays images when they are ready, even with slow
+     * internet speed.
+     */
     private class LoadImageTask extends AsyncTask<Void, Void, Void> {
 
         private MyViewHolder holder;
@@ -202,6 +212,10 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.MyView
         }
     }
 
+    /**
+     * Asynctask for loading a map image into a card. Displays maps when they are ready, even with slow
+     * internet speed.
+     */
     private class LoadMapTask extends AsyncTask<Void, Void, Void> {
 
         private MyViewHolder holder;

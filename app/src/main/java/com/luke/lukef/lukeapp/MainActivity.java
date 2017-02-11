@@ -719,7 +719,10 @@ import android.os.Build;
  * <p>
  * Contains a view where fragments ({@link MapViewFragment}, {@link NewSubmissionFragment}, {@link ProfileFragment}, {@link LeaderboardFragment}) are cycled.
  * The fragments contain all the implementation, MainActivity is used only for switching fragments and tasks requiring an {@link android.app.Activity Activity}.</p>
- * Also contains logic for drawer.
+ * Also contains logic for navigation drawer.
+ * <p>
+ *     This class is accessed after goin through welcome activity, it is not the starting activity of the app.
+ * </p>
  */
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";

@@ -64,7 +64,32 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
 /**
- * Handles the login screen as well as logging in with Auth0
+ * First screen of the app, works as a login screen.
+ * <p>
+ *     Login is done through Auth0. First a Auth0 domain and clientId are fetched from the Luke
+ *     server. If this is succesfull, launches and intent to open the Auth0 activity.
+ *
+ *     <b>NOTE:</b> The Auth0 activity is fetched from their servers, it does not exist in the app
+ *     as a class.
+ * </p>
+ * <p>
+ *     If the user succesfully logs in or signs up through Auth0, the callback is handled by the
+ *     LockCallback object passed in the intent. The callback attempts a login to the Luke server
+ *     using the credentials gotten from Auth0. If this is also succesfull, the app goes to either
+ *     {@link NewUserActivity} or {@link MainActivity} depending on if the user is new or already
+ *     registered.
+ * </p>
+ * <p>
+ *     This activity also fetches data important to the app from the Luke Server.
+ *     {@link com.luke.lukef.lukeapp.model.Category Categories}, {@link Rank Ranks} and
+ *     {@link com.luke.lukef.lukeapp.model.Submission Submissions} are all fetched when starting
+ *     the app so they are immidiately available when using the app. Ranks and Categories are
+ *     both fetched in an Asynctask, while Submissions are fetched in a {@link android.app.Service Service}
+ *     since fetching them may take longer than the user spends on this screen.
+ * </p>
+ * <p>
+ *     A popup is displayed when starting the app with links / text. This is done using {@link ShowLinkTask ShowLinkTask}.
+ * </p>
  */
 public class WelcomeActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String TAG = "WelcomeActivity";
@@ -77,6 +102,35 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     private LukeNetUtils lukeNetUtils;
     TextView title;
     boolean dataServiceStarted = false;
+
+    /**
+     * Gets called when the Auth0 login process is done
+     */
+    private final LockCallback callBack = new AuthenticationCallback() {
+        @Override
+        public void onAuthentication(Credentials credentials) {
+            accessToken = credentials.getAccessToken();
+            idToken = credentials.getIdToken();
+            SessionSingleton.getInstance().setAccessToken(accessToken);
+            SessionSingleton.getInstance().setIdToken(idToken);
+            Log.e(TAG, "onAuthentication: idToken " + idToken);
+            lukeNetUtils.attemptLogin(WelcomeActivity.this, idToken);
+            if(!dataServiceStarted) {
+                startService(new Intent(WelcomeActivity.this, SubmissionFetchService.class));
+                getCategories();
+                getRanks();
+            }
+
+        }
+
+        @Override
+        public void onCanceled() {
+        }
+
+        @Override
+        public void onError(LockException error) {
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -144,34 +198,7 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         startActivity(this.lock.newIntent(this));
     }
 
-    /**
-     * Gets called when the Auth0 login process is done
-     */
-    private final LockCallback callBack = new AuthenticationCallback() {
-        @Override
-        public void onAuthentication(Credentials credentials) {
-            accessToken = credentials.getAccessToken();
-            idToken = credentials.getIdToken();
-            SessionSingleton.getInstance().setAccessToken(accessToken);
-            SessionSingleton.getInstance().setIdToken(idToken);
-            Log.e(TAG, "onAuthentication: idToken " + idToken);
-            lukeNetUtils.attemptLogin(WelcomeActivity.this, idToken);
-            if(!dataServiceStarted) {
-                startService(new Intent(WelcomeActivity.this, SubmissionFetchService.class));
-                getCategories();
-                getRanks();
-            }
 
-        }
-
-        @Override
-        public void onCanceled() {
-        }
-
-        @Override
-        public void onError(LockException error) {
-        }
-    };
 
     @Override
     protected void onDestroy() {
@@ -183,7 +210,8 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     /**
-     * Fetches information required for Auth0 setup
+     * Fetches information required for Auth0 login to work. If Auth0 setup is done succesfully,
+     * activates the Auth0 login screen.
      */
     private class Auth0SetupTask extends AsyncTask<Void, Void, Void> {
         String url;

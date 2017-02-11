@@ -59,6 +59,19 @@ import static com.luke.lukef.lukeapp.WelcomeActivity.REQUEST_IMAGE_CAPTURE;
 
 /**
  * Gets displayed when a user logs in for the first time, or when the user edits their profile.
+ * <p>
+ * A bundle is passed with the intent when this activity is activated to edit and existing
+ * profile. When editing a profile, changing ones username is disabled so the field is hidden.
+ * If no bundle is passed then editing name is enabled.
+ * </p>
+ * <p>
+ *     To display social media image to choose as profile image, this activity implements
+ *     Auth0Responder interface.
+ * </p>
+ * <p>
+ * When editing is finished, regardless if editing or making a new user, the destination
+ * activity is MainActivity
+ * </p>
  */
 public class NewUserActivity extends AppCompatActivity implements View.OnClickListener, RadioGroup.OnCheckedChangeListener, Auth0Responder {
     private static final String TAG = "NewUserActivity";
@@ -90,12 +103,9 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
         }
         ImageButton confirmButton = (ImageButton) findViewById(R.id.newUserConfirmButton);
         confirmButton.setOnClickListener(this);
-        if (this.isEditing) {
-            this.userNameEditText.setHint("Optional");
-        } else {
-            this.userNameEditText.setHint("Choose username");
-        }
         this.userNameEditText.setImeActionLabel("Done", KeyEvent.ACTION_DOWN);
+        /*Action when pressing enter on keyboard. Since editing ones name is disabled when editing
+        and existing profile, this should never be triggered unless a new user is being created*/
         this.userNameEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
@@ -135,6 +145,7 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
 
     /**
      * Displays a toast on the screen
+     *
      * @param toastString Message to be shown in the toast
      */
     public void makeToast(String toastString) {
@@ -152,8 +163,8 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.newUserConfirmButton:
-                if (attemptSetUsername(this.userNameEditText.getText().toString()))
-                    break;
+                attemptSetUsername(this.userNameEditText.getText().toString());
+                break;
         }
     }
 
@@ -272,6 +283,10 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
     }
 
 
+    /*
+        Gets called when camera intent is done. Gets the image created by the camera from storage
+        and sets it to the imageview as well as the selected image
+     */
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
@@ -279,18 +294,13 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
             options.inSampleSize = 2;
             Bitmap imageBitmap = BitmapFactory.decodeFile(this.photoPath, options);
             try {
-                Log.e(TAG, "onActivityResult: photo file before write" + this.photoFile.length());
                 FileOutputStream fo = new FileOutputStream(this.photoFile);
                 imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fo);
-                Log.e(TAG, "onActivityResult: photo file after write" + this.photoFile.length());
             } catch (FileNotFoundException e) {
                 Log.e(TAG, "onActivityResult: ", e);
             }
 
             imageBitmap = BitmapFactory.decodeFile(photoPath, options);
-
-            if (imageBitmap != null)
-                Log.e(TAG, "onActivityResult: photo exists, size : " + imageBitmap.getByteCount());
             Log.e(TAG, "run: CAMERA");
             this.userImageViewCamera.setImageBitmap(imageBitmap);
             this.cameraProfileImage = imageBitmap;
