@@ -95,7 +95,29 @@ import java.util.Calendar;
 import java.util.List;
 
 /**
- * Handles the Map view, fetches submissions, populates map with Submissions and Admin markers
+ * Handles the Map view, fetches submissions, populates map with Submissions and Admin markers.
+ * <p>
+ *     Using Google Maps requires a {@link MapFragment}. When the Fragment is created a conntection
+ *     is made to Google api then the map needs to be instantiated using
+ *     {@link MapFragment#getMapAsync(OnMapReadyCallback)}. When this is done, the method
+ *     returns a {@link GoogleMap} object in the {@link OnMapReadyCallback#onMapReady(GoogleMap)}
+ *     method. This Object can be sotred in a variable and is what is used when interacting with
+ *     the Google Map.
+ * </p>
+ * <p>
+ *     The map is populated with Submissions from the SQLite database to avoid unnecessary web traffic.
+ *     Only submissions whose coordinates are in the part of the map that is visible to the user
+ *     get displayed on the map, to avoid lagging up the map. This is done in the onCameraIdle method,
+ *     since we don't want to be loading submissions while the map is still being moved.
+ * </p>
+ * <p>
+ *      Filtering by date happens in the Calendar popup. When a date is selected, the map is cleared
+ *      and then repopupalted.
+ * </p>
+ * <p>
+ *     Setting up the Clustering of map markers happens in this class. This is done with a custom
+ *     ClusterManager. This allows to change cluster colors and borders.
+ * </p>
  */
 
 // TODO: 25.1.2017 Add ContextCompat to MainActivity so it can work in older android version
@@ -140,6 +162,7 @@ public class MapViewFragment extends Fragment implements View.OnClickListener, O
             if (parent != null)
                 parent.removeView(this.fragmentView);
         }
+        //this is needed to avoid all sorts of crashing with the map when goin back and forth between fragments
         try {
             if(this.fragmentView == null)
             this.fragmentView = inflater.inflate(R.layout.fragment_map, container, false);

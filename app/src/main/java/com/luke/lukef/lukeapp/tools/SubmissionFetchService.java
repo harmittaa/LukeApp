@@ -79,7 +79,7 @@ public class SubmissionFetchService extends Service {
     }
 
     /**
-     * Fetches all submissions from the server, and passes the resulting JSONArray to SQLiteHelper
+     * Fetches all submissions from the server, and passes the resulting JSONArray to SQLiteHelper, which stores them into the datbase
      */
     private void getSubmissions() {
         String jsonString;

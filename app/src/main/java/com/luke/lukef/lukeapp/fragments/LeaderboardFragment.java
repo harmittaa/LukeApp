@@ -59,7 +59,9 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 /**
- * Fragment that displays a listview of top users. Clicking a list item takes the user to the page of the user they clicked.
+ * Fragment that displays a listview of top users. Clicking a list item takes the user to the page
+ * of the user they clicked. Contains a listView and uses a custom {@link ArrayAdapter} that works with
+ * {@link UserFromServer} objetcs.
  */
 
 public class LeaderboardFragment extends Fragment implements View.OnClickListener {
@@ -92,8 +94,10 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
     }
 
     /**
-     * Configures the listview of the fragment. First fetches all users from the backend, then filters out users with no score, then arranges them by most points.
-     * Currently sorting and filtering is done on the front end, because of this it is run in a seperate thread.
+     * Configures the listview of the fragment. First fetches all users from the backend, then
+     * filters out users with no score, then arranges them by most points.
+     * Currently sorting and filtering is done on the front end, because of this it is run in a
+     * seperate thread.
      */
     // TODO: 24.1.2017 Ideally, sorting and filtering would happen on the backend.
     private void setupListView() {
@@ -146,7 +150,7 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
     }
 
     /**
-     * Sorts an arraylist of users to exclude any with 0 score
+     * Sorts an arraylist of users to exclude any with 0 score.
      * @param allUsers list of users to sort
      * @return An arrylist of users with a score above 0
      */
@@ -169,7 +173,7 @@ public class LeaderboardFragment extends Fragment implements View.OnClickListene
     }
 
     /**
-     * List adapter that works with a list of users
+     * List adapter that populates the listView with {@link UserFromServer} objects
      */
     private class UserListViewAdapter extends ArrayAdapter<UserFromServer> {
 

@@ -71,7 +71,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
 /**
- * Contains methods for interaction with the server
+ * Contains methods for interaction with the Luke backend. Needs to be intsantiated, unlike LukeUtils, since
+ * context is required for most network operations.
  */
 public class LukeNetUtils {
     private Context context;
@@ -82,7 +83,7 @@ public class LukeNetUtils {
     }
 
     /**
-     * Checks from server username is available
+     * Checks the server if a username is available
      *
      * @param usernameToCheck The username that should be checked
      * @return <b>true</b> if the username exists already, <b>false</b> if not
@@ -126,7 +127,7 @@ public class LukeNetUtils {
     }
 
     /**
-     * Sets the the username of the current user into the server
+     * Sets a username for a user in the server
      *
      * @param username The username to be set
      * @return <b>true</b> if the request passes, <b>false</b> if it doesn't
@@ -154,7 +155,7 @@ public class LukeNetUtils {
     }
 
     /**
-     * Sets an image for the user into the backend
+     * Sets a profile image for a user in the server
      *
      * @param bitmap The bitmap that should be set
      * @return <b>true</b> if the update passes, <b>false</b> if not
@@ -188,7 +189,7 @@ public class LukeNetUtils {
     }
 
     /**
-     * Sends a request to auth0 to receive a user profile image
+     * Sends a request to Auth0 to receive a user profile image url
      *
      * @param auth0Responder the receiver of the bitmap that auth0 provides
      */
@@ -214,7 +215,7 @@ public class LukeNetUtils {
     }
 
     /**
-     * Fetches Bitmap from the given URL
+     * Creates a Bitmap from the given URL
      *
      * @param imageUrl The URL of the image
      * @return The image as an Bitmap object, otherwise <b>null</b>
@@ -276,7 +277,7 @@ public class LukeNetUtils {
     }
 
     /**
-     * Creates a report for the submission into the server.
+     * Report an inappropriate submissions by id
      *
      * @param submissionId The ID of the given submission.
      * @return <b>true</b> if the request passes, <b>false</b> if it doesn't.
@@ -304,7 +305,7 @@ public class LukeNetUtils {
     }
 
     /**
-     * Fetches user's submissions from the server.
+     * Fetches all submissions by a user from the server.
      *
      * @param userID The ID of the user whose submissions should be fetched.
      * @return Returns an ArrayList of {@link Submission} objects.
@@ -358,7 +359,7 @@ public class LukeNetUtils {
     }
 
     /**
-     * Fetches the Submission by ID from the server
+     * Fetches a single Submission by ID from the server
      *
      * @param id The ID of the submission which data needs to be fetched
      * @return Submission object
@@ -380,7 +381,8 @@ public class LukeNetUtils {
 
 
     /**
-     * Fetches categories from the server, parses them and adds new ones to the {@link SessionSingleton#getCategoryList()}
+     * Fetches all existing categories from the server, parses them and adds new ones to the
+     * {@link SessionSingleton}. Duplicates do not get added
      */
     public ArrayList<Category> getCategories() throws ExecutionException, InterruptedException {
         Callable<ArrayList<Category>> categoriesCallable = new Callable<ArrayList<Category>>() {
@@ -430,7 +432,7 @@ public class LukeNetUtils {
     }
 
     /**
-     * Fetches user data like ID, image and URL from the server
+     * Fetches user data like ID, image and URL from the server. Sets them into the SessionSigleton
      */
     // TODO: 24.1.2017 use lukeutils getOwnUser method insted
     private class FetchUserDataTask extends AsyncTask<Void, Void, Void> {
@@ -478,7 +480,7 @@ public class LukeNetUtils {
     }
 
     /**
-     * Attempts to log in into the luke api. If succesful, starts a task to fetch users data
+     * Attempts to log in into the Luke server. If succesful, starts a task to fetch users data
      * @param welcomeActivity
      * @param idToken
      */
@@ -525,7 +527,8 @@ public class LukeNetUtils {
     }
 
     /**
-     * Fetches the newest link from the backend
+     * Fetches the newest link from the backend. This link will be shown at the start of the app.
+     * Only the newest link will be shown
      * @return Link object of the newest link on the backend
      */
     public Link getNewestLink() {
@@ -689,7 +692,8 @@ public class LukeNetUtils {
     }
 
     /**
-     * Method for asynchronously fetching an image from the internet and setting it into an imageView
+     * Method for asynchronously fetching an image from the internet and setting it into an imageView.
+     * Allows bigger image download to not pause the app.
      * @param imageViewToSet ImageView where the image will be set
      * @param url Url of the image as a String
      * @param defaultImageId Default image id, in case the online image is unavailable

@@ -55,9 +55,10 @@ import java.util.concurrent.ExecutionException;
  */
 
 /**
- * Popup to be displayed on the {@link com.luke.lukef.lukeapp.fragments.MapViewFragment MapViewFragment} when an adminmarker is clicked. Handles setting up all the view of the popup.
+ * Popup to be displayed on the {@link com.luke.lukef.lukeapp.fragments.MapViewFragment MapViewFragment}
+ * when an adminmarker is clicked. Handles setting up all the view of the popup.
  */
-
+// TODO: 13.2.2017 This popup has no interactable elements
 public class AdminMarkerPopup implements View.OnClickListener {
     private Cursor queryCursor;
     private String adminMarkerId;

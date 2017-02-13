@@ -58,8 +58,12 @@ import java.util.concurrent.ExecutionException;
 
 
 /**
- * Handles showing submission data when submission is clicked on the map
+ * Handles showing submission data when submission is clicked on the map. Clicking a profile image
+ * takes the user to a profile page of the submitter. Clicking report reports the submission.
+ * Clicking the submission image will enlarge it.
  */
+
+// TODO: 13.2.2017 This class is very messy
 public class SubmissionPopup implements View.OnClickListener {
     private static final String TAG = "SubmissionPopup";
     private MainActivity mainActivity;
@@ -103,6 +107,12 @@ public class SubmissionPopup implements View.OnClickListener {
         }
     }
 
+    /**
+     * Constructs and shows the popup.
+     * @param markerId id of the Submission that the marker was representing
+     * @param isAdminMarker flag for clicking an adminmarker
+     */
+    // TODO: 13.2.2017 isAdminMarker is no longer user. Clean code and remove all checks and usages.
     public void createPopup(String markerId, boolean isAdminMarker) {
         this.markerId = markerId;
         this.isAdminMarker = isAdminMarker;
@@ -146,7 +156,7 @@ public class SubmissionPopup implements View.OnClickListener {
     }
 
     /**
-     * Set data from cursor to dialog
+     * Set data from cursor to the dialog
      */
     private void addDataToDialog() {
         this.queryCursor.moveToFirst();
@@ -210,7 +220,8 @@ public class SubmissionPopup implements View.OnClickListener {
 
     /**
      * Adds imageviews to the categories section of the popup, with the thumbnails of the categories.
-     * Dimensions of the parent view can only be retreived once they are drawn, so a GlobalLayoutListener is needed.
+     * Dimensions of the parent view can only be retreived once they are drawn, so a
+     * GlobalLayoutListener is needed.
      *
      * @param categories list of categories whose images are to be added to the category list
      */

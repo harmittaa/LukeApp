@@ -63,7 +63,8 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Utility methods to be used from anywhere
+ * Utility methods to be used from anywhere in the app. Mainly parsing {@link JSONObject JSONObjects} and {@link JSONArray JSONArrays}
+ * into usable objects.
  */
 public class LukeUtils {
     private static final String TAG = "LukeUtils";

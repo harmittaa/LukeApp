@@ -12,7 +12,7 @@ import android.view.ViewGroup;
 import com.luke.lukef.lukeapp.R;
 
 /**
- * Created by Daniel on 08/12/2016.
+ * Fragment displayed in one of the tabs in the {@link ProfileFragment}. Currently has no funcitionality
  */
 
 public class AchievementFragment extends Fragment{

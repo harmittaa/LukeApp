@@ -46,7 +46,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Handles the popup that is show when user clicks on categories button from NewSubmissionFragment
+ * Handles the popup that is show when user clicks on categories button in NewSubmissionFragment
  */
 public class CategoriesPopup {
     private static final String TAG = "CategoriesPopup";
@@ -60,9 +60,9 @@ public class CategoriesPopup {
     private DialogInterface.OnCancelListener onCancelListener;
 
     /**
-     * Constructor for creating a pop up
+     * Constructor for creating a categories pop up
      *
-     * @param mainActivity        To pass the context
+     * @param mainActivity        Used as context
      * @param onItemClickListener To listen to clicks on the list of submissions
      * @param buOnClickListener   To listen to clicks on the accept button
      * @param confirmedCategories List of currently confirmed categories to add to the submission
