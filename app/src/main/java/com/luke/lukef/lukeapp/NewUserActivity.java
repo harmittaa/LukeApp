@@ -35,6 +35,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -87,6 +88,7 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
     private Bitmap selectedProfileImage;
     private Bitmap auth0ProfileImage;
     private Bitmap cameraProfileImage;
+    private CheckBox ageCheckBox;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,6 +96,7 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
         setContentView(R.layout.activity_new_user);
         this.lukeNetUtils = new LukeNetUtils(this);
         this.userNameEditText = (EditText) findViewById(R.id.newUserName);
+        this.ageCheckBox = (CheckBox) findViewById(R.id.age_check);
         checkBundle();
         this.userImageViewCamera = (ImageView) findViewById(R.id.newUserCameraImageView);
         this.userImageViewAuth0 = (ImageView) findViewById(R.id.newUserSocialMediaImageView);
@@ -109,19 +112,7 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
         this.userNameEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (!TextUtils.isEmpty(userNameEditText.getText())) {
-                    if (attemptSetUsername(userNameEditText.getText().toString())) {
-                        Log.e(TAG, "onEditorAction: SHOULD CHANGE ACTIVITY NOW");
-                        startActivity(new Intent(NewUserActivity.this, MainActivity.class));
-                    } else {
-                        Log.e(TAG, "onEditorAction: SOME ERROR HAPPENED?");
-                        // TODO: 05/12/2016 display error
-                        makeToast("Username taken");
-
-                    }
-                } else if (isEditing) {
-                    startActivity(new Intent(NewUserActivity.this, MainActivity.class));
-                }
+                endEditing();
                 return false;
             }
         });
@@ -138,6 +129,7 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
         if (getIntent().getExtras() != null) {
             this.isEditing = getIntent().getExtras().getBoolean("isEditing");
             this.userNameEditText.setVisibility(View.GONE);
+            this.ageCheckBox.setVisibility(View.GONE);
         } else {
             this.isEditing = false;
         }
@@ -163,8 +155,32 @@ public class NewUserActivity extends AppCompatActivity implements View.OnClickLi
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.newUserConfirmButton:
-                attemptSetUsername(this.userNameEditText.getText().toString());
+                //attemptSetUsername(this.userNameEditText.getText().toString());
+                endEditing();
                 break;
+        }
+    }
+
+    /**
+     * Perform validity checks on username and age, then attempt to set username in backend
+     */
+    private void endEditing(){
+        if (!TextUtils.isEmpty(userNameEditText.getText())) {
+            if(ageCheckBox.isChecked()) {
+                if (attemptSetUsername(userNameEditText.getText().toString())) {
+                    Log.e(TAG, "onEditorAction: SHOULD CHANGE ACTIVITY NOW");
+                    startActivity(new Intent(NewUserActivity.this, MainActivity.class));
+                } else {
+                    Log.e(TAG, "onEditorAction: SOME ERROR HAPPENED?");
+                    // TODO: 05/12/2016 display error
+                    makeToast("Username taken");
+
+                }
+            }else{
+                makeToast("You must be 18 years or older to register");
+            }
+        } else if (isEditing) {
+            startActivity(new Intent(NewUserActivity.this, MainActivity.class));
         }
     }
 

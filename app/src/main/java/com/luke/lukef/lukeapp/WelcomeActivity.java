@@ -164,12 +164,13 @@ public class WelcomeActivity extends AppCompatActivity implements View.OnClickLi
         switch (v.getId()) {
             case R.id.skipLoginButton:
                 if (LukeUtils.checkInternetStatus(this)) {
-                    SessionSingleton.getInstance().setUserLogged(false);if(!dataServiceStarted) {
+                    SessionSingleton.getInstance().setUserLogged(false);
+                    if(!dataServiceStarted) {
                         startService(new Intent(WelcomeActivity.this, SubmissionFetchService.class));
                         getCategories();
                         getRanks();
-                        startActivity(new Intent(WelcomeActivity.this, MainActivity.class));
                     }
+                    startActivity(new Intent(WelcomeActivity.this, MainActivity.class));
                 }
 
                 break;
