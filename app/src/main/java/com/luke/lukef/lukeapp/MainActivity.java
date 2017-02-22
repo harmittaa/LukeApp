@@ -650,25 +650,7 @@ copy of the Program in return for a fee.
  * Matti Mäki-Kihniä
  */
 
-/*
-NEXT STEPS:
 
-1. Change Api Key for Google Maps               ✔
-2. Documentation
-3. Fix App to run on older Android Version      ✔ (needs more testing)
-4. Fix Bugs:
-    - Crash with no internet access             (in progress)
-    - Drawer info not emptied on logout
-    - Move remaining common methods to LukeUtils / LukeNetUtils
-    - Check and ask for permissions in critical places
-5. Try new implementation of thumbnails
-6. Add 18 year check when signing up
-7. Make Sequence diagrams for network operations
-8. Make Class Diagram
-9. Proofread readme
-10.Add licence stub to all classes
-
- */
 
 package com.luke.lukef.lukeapp;
 
@@ -713,6 +695,29 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
 
+/*
+NEXT STEPS:
+
+1. Change Api Key for Google Maps               ✔
+2. Documentation                                ✔
+3. Fix App to run on older Android Version      ✔ (needs more testing)
+4. Fix Bugs:
+    - Crash with no internet access             ✔ (needs testing)
+    - Drawer info not emptied on logout
+    - Move remaining common methods to LukeUtils / LukeNetUtils
+    - Check and ask for permissions in critical places
+5. Try new implementation of thumbnails
+6. Add 18 year check when signing up            ✔
+7. Make Sequence diagrams for network operations
+8. Make Class Diagram                           ✔
+9. Proofread readme
+10.Add licence stub to all classes              ✔
+
+ */
+
+/*
+    CLASS DIAGRAM CAN BE FOUND IN ROOT FOLDER OF APP
+ */
 
 /**
  * Main activity of the app.
