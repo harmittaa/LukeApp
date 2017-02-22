@@ -717,6 +717,10 @@ NEXT STEPS:
 
 /*
     CLASS DIAGRAM CAN BE FOUND IN ROOT FOLDER OF APP
+    To get a interactable version of the class diagram, follow the instructions here:
+    "http://stackoverflow.com/questions/17123384/how-to-generate-class-diagram-uml-on-android-studio/36823007#36823007"
+    After having installed the plugin to Android Studio, you can access the plugin from the right side of Android Studio, below Project, Structure etc. tabs.
+    Load the suml file to see the class diagram
  */
 
 /**
