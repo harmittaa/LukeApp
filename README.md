@@ -53,6 +53,7 @@ GPLv3
   - [Google Maps](https://developers.google.com/maps/android/) used as map Api
   - [Auth0](https://auth0.com/) used for authentication through social media or email
   - [Custom Server](http://www.balticapp.fi/lukeA/) for serverside operations
+  - [Admin panel](https://github.com/BangNguyen1992/Luke-Admin-v2)
   
 ### Screenshots
 <img src="https://i.imgur.com/QagnraC.jpg" width="250" height ="500"><img src="https://i.imgur.com/t8JLPJY.jpg" width="250" height ="500"> <img src="https://i.imgur.com/AEI7BvD.jpg" width="250" height ="500"> 
